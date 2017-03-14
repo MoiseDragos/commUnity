@@ -21,11 +21,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:paddingLeft="130dp"
+        android:paddingLeft="120dp"
         android:textSize="16sp"
         android:textColor="@color/blue2"
         android:textStyle="bold"
-        android:text="@string/login"/>
+        android:text="@string/singup"/>
 
     <Space
         android:layout_width="match_parent"
@@ -58,18 +58,9 @@
         android:textColorHint="@color/blue2"
         android:textCursorDrawable="@null" />
 
-    <TextView
-        android:id="@+id/forgot_password_activity_id"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/blue2"
-        android:paddingTop="10dp"
-        android:layout_marginRight="40dp"
-        android:layout_gravity="end"
-        android:text="@string/forgotPassword"/>
 
     <Button
-        android:id="@+id/login_id"
+        android:id="@+id/register_id"
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:layout_gravity="center_horizontal"
@@ -78,11 +69,11 @@
         android:layout_marginRight="32dp"
         android:textColor="@color/white"
         android:background="@drawable/button_login_form"
-        android:text="@string/login"/>
+        android:text="@string/singup"/>
 
     <Space
         android:layout_width="match_parent"
-        android:layout_height="90dp"/>
+        android:layout_height="120dp"/>
 
 
     <LinearLayout
@@ -96,17 +87,17 @@
             android:layout_height="wrap_content"
             android:textColor="@color/blue2"
 
-            android:text="@string/noaccount"
+            android:text="@string/account"
             android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/singUp_activity_id"
+            android:id="@+id/login_activity_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
             android:layout_marginRight="6dp"
             android:layout_marginLeft="6dp"
-            android:text="@string/singup"
+            android:text="@string/login"
             android:textSize="16sp" />
     </LinearLayout>
 </LinearLayout>

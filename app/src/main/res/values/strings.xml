@@ -1,9 +1,10 @@
 <resources>
     <string name="app_name">CommUnity</string>
-    <string name="username">Username</string>
+    <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="login">Login</string>
     <string name="forgotPassword">Ai uitat parola?</string>
     <string name="noaccount">Nu ai cont?</string>
-    <string name="singup">Înscrie-te</string>
+    <string name="account">Ai cont?</string>
+    <string name="singup">Register</string>
 </resources>
