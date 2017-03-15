@@ -59,12 +59,13 @@
         android:textCursorDrawable="@null" />
 
     <TextView
-        android:id="@+id/forgot_password_activity_id"
+        android:id="@+id/forgot_password_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/blue2"
         android:paddingTop="10dp"
         android:layout_marginRight="40dp"
+        android:layout_marginLeft="40dp"
         android:layout_gravity="end"
         android:text="@string/forgotPassword"/>
 
@@ -100,13 +101,13 @@
             android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/singUp_activity_id"
+            android:id="@+id/register_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
             android:layout_marginRight="6dp"
             android:layout_marginLeft="6dp"
-            android:text="@string/singup"
+            android:text="@string/register"
             android:textSize="16sp" />
     </LinearLayout>
 </LinearLayout>

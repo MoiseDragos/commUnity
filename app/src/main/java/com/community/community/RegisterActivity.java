@@ -1,11 +1,13 @@
 package com.community.community;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,6 +18,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.ProviderQueryResult;
+
+import java.util.List;
 
 /**
  * Created by root on 14.03.2017.
@@ -39,16 +44,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.register_activity);
 
-        mEmailField = (EditText) findViewById(R.id.email_id);
-        mPasswordField = (EditText) findViewById(R.id.password_id);
-        mRegisterBtn = (Button) findViewById(R.id.register_id);
-        mLogin = (TextView) findViewById(R.id.login_activity_id);
-
-        progressDialog = new ProgressDialog(this);
-
-        mRegisterBtn.setOnClickListener(this);
-        mLogin.setOnClickListener(this);
-
         /* Firebase */
         mAuth = FirebaseAuth.getInstance();
 
@@ -59,11 +54,24 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 if(firebaseAuth.getCurrentUser() != null){
 
                     // Intent User Account
-
+                    finish();
+                    startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
                 }
 
             }
         };
+
+        mEmailField = (EditText) findViewById(R.id.email_id);
+        mPasswordField = (EditText) findViewById(R.id.password_id);
+        mRegisterBtn = (Button) findViewById(R.id.register_id);
+        mLogin = (TextView) findViewById(R.id.login_activity_id);
+
+        progressDialog = new ProgressDialog(this);
+
+        mRegisterBtn.setOnClickListener(this);
+        mLogin.setOnClickListener(this);
+
+
 
     }
 
@@ -81,7 +89,25 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             return true;
         }
 
-        //TODO: alte verificari
+
+
+        final Task<ProviderQueryResult> queryResultTask = mAuth.fetchProvidersForEmail(email)
+                .addOnCompleteListener(this, new OnCompleteListener<ProviderQueryResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<ProviderQueryResult> task) {
+                        progressDialog.dismiss();
+
+                        if(task.isSuccessful()){
+                            List<String> taskList = task.getResult().getProviders();
+
+                            if(!taskList.isEmpty()){
+                                Toast.makeText(RegisterActivity.this, "Contul existentă", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                });
+
+        //TODO: other verifications
 
         return false;
     }
@@ -114,18 +140,19 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
+                        progressDialog.dismiss();
                         if(task.isSuccessful()){
-                            // start the profile activity
                             Toast.makeText(RegisterActivity.this, "Înregistrare reușită", Toast.LENGTH_SHORT).show();
+                            /*TODO: Send activation email*/
+                            finish();
+                            startActivity(new Intent(getApplicationContext(), LoginActivity.class));
                         } else {
                             Toast.makeText(RegisterActivity.this, "Înregistrare nereușită, vă rugăm reîncercați", Toast.LENGTH_SHORT).show();
                         }
 
-                        progressDialog.dismiss();
+
                     }
                 });
-
-        // progressDialog.hide();
     }
 
     @Override
@@ -136,7 +163,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         }
 
         if(v == mLogin){
-            //will open singUp activity
+            finish();
+            startActivity(new Intent(this, LoginActivity.class));
         }
 
     }
