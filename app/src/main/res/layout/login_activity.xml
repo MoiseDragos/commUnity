@@ -3,11 +3,13 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@color/blue5">
+    android:background="@color/blue5"
+    android:weightSum="10">
 
     <Space
-        android:layout_width="match_parent"
-        android:layout_height="160dp"/>
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="4"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -28,8 +30,9 @@
         android:text="@string/login"/>
 
     <Space
-        android:layout_width="match_parent"
-        android:layout_height="50dp"/>
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1.3"/>
 
     <EditText
         android:id="@+id/email_id"
@@ -82,8 +85,9 @@
         android:text="@string/login"/>
 
     <Space
-        android:layout_width="match_parent"
-        android:layout_height="90dp"/>
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="3.7"/>
 
 
     <LinearLayout
