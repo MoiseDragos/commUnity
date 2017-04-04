@@ -48,7 +48,7 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
                 if(mAuth.getCurrentUser() != null){
 
                     finish();
-                    startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
 
                 }
 
@@ -66,6 +66,7 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
         mSingUpAct.setOnClickListener(this);
         mLogInAct.setOnClickListener(this);
 
+        //TODO: EditText pressed long
     }
 
     @Override
@@ -88,6 +89,7 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
                 .addOnCompleteListener(this, new OnCompleteListener<ProviderQueryResult>() {
             @Override
             public void onComplete(@NonNull Task<ProviderQueryResult> task) {
+
                 progressDialog.dismiss();
 
                 if(task.isSuccessful()){
@@ -95,11 +97,21 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
 
                     if(taskList.isEmpty()){
                         Toast.makeText(ForgotPasswordActivity.this, "Cont inexistent", Toast.LENGTH_SHORT).show();
+
                     }
                 }
             }
         });
 
+//        progressDialog.setMessage("Sending email...");
+//        progressDialog.show();
+//
+//        try {
+//            Thread.sleep(2000);
+//        } catch(InterruptedException ex) {
+//            Thread.currentThread().interrupt();
+//        }
+//        progressDialog.dismiss();
         //TODO: alte verificari
 
         return false;
@@ -116,6 +128,8 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()){
                     Toast.makeText(ForgotPasswordActivity.this, "Sending email...", Toast.LENGTH_SHORT).show();
+                    finish();
+                    startActivity(new Intent(getApplicationContext(), LoginActivity.class));
                 }
             }
         });

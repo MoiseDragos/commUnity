@@ -101,7 +101,7 @@
             android:layout_height="wrap_content"
             android:textColor="@color/blue2"
 
-            android:text="@string/noaccount"
+            android:text="@string/noAccount"
             android:textSize="16sp" />
 
         <TextView

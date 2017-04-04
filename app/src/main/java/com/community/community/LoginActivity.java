@@ -48,7 +48,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 if(mAuth.getCurrentUser() != null){
 
                     finish();
-                    startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
+//                    startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
 
                 }
 
@@ -115,11 +116,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if(task.isSuccessful()){
-                            Toast.makeText(LoginActivity.this, "Înregistrare reușită", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(LoginActivity.this, "Înregistrare reușită", Toast.LENGTH_SHORT).show();
+                            //TODO: Mai multe pagini deschise?! Back
                             finish();
                             startActivity(new Intent(getApplicationContext(), LoginActivity.class));
                         } else {
-                            Toast.makeText(LoginActivity.this, "Înregistrare nereușită, vă rugăm reîncercați", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, "Logare nereușită", Toast.LENGTH_SHORT).show();
                         }
 
                         progressDialog.dismiss();

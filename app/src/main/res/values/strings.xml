@@ -4,10 +4,14 @@
     <string name="password">Password</string>
     <string name="login">Login</string>
     <string name="forgotPassword">Ai uitat parola?</string>
-    <string name="noaccount">Nu ai cont?</string>
+    <string name="noAccount">Nu ai cont?</string>
     <string name="account">Ai cont?</string>
     <string name="register">Register</string>
     <string name="logout">LogOut</string>
     <string name="forgotPasswordComm">ForgotPassword</string>
-    <string name="sendemail">Send email</string>
+    <string name="sendEmail">Send email</string>
+    <string name="open">Open</string>
+    <string name="close">Close</string>
+    <string name="publicProfile">Public Profile</string>
+    <string name="settings">Settings</string>
 </resources>

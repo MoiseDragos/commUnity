@@ -35,6 +35,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
     private ProgressDialog progressDialog;
 
+    boolean exist = false;
+
     /* Firebase */
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -89,8 +91,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             return true;
         }
 
-
-
         final Task<ProviderQueryResult> queryResultTask = mAuth.fetchProvidersForEmail(email)
                 .addOnCompleteListener(this, new OnCompleteListener<ProviderQueryResult>() {
                     @Override
@@ -101,6 +101,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                             List<String> taskList = task.getResult().getProviders();
 
                             if(!taskList.isEmpty()){
+                                exist = true;
                                 Toast.makeText(RegisterActivity.this, "Contul existentă", Toast.LENGTH_SHORT).show();
                             }
                         }
@@ -147,7 +148,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                             finish();
                             startActivity(new Intent(getApplicationContext(), LoginActivity.class));
                         } else {
-                            Toast.makeText(RegisterActivity.this, "Înregistrare nereușită, vă rugăm reîncercați", Toast.LENGTH_SHORT).show();
+                            if(!exist)
+                                Toast.makeText(RegisterActivity.this, "Înregistrare nereușită, vă rugăm reîncercați", Toast.LENGTH_SHORT).show();
+                            exist = false;
                         }
 
 
