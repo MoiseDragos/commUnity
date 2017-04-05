@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity{
                                 Toast.makeText(getApplicationContext(), "Account", Toast.LENGTH_SHORT).show();
                                 break;
                             case R.id.nav_settings:
-                                Toast.makeText(getApplicationContext(), "Settings", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
                                 break;
                             case R.id.nav_logout:
                                 mAuth.signOut();
