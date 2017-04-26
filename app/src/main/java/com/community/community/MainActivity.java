@@ -1,5 +1,6 @@
 package com.community.community;
 
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -13,28 +14,50 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.community.community.GMaps.FragmentGMaps;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.FirebaseDatabase;
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnAddPressedListener{
+
+    /* Fragments */
+    FragmentManager fragmentManager = null;
 
     /* Firebase */
     private FirebaseAuth mAuth = null;
     private FirebaseAuth.AuthStateListener mAuthListener = null;
+    private FirebaseDatabase mDatabase = null;
 
     /* NavigationView */
     private DrawerLayout mDrawerLayout = null;
     private NavigationView mNavigationView = null;
-    private ImageButton drawerBtn = null;
+    private ImageButton navBtn = null;
     private TextView mEmail = null;
 
-    //private ActionBarDrawerToggle mToggle = null;
+    /* Google Maps */
+    private ImageButton addBtn = null;
+    FragmentGMaps mapFragment = null;
 
     private CallImageButtonClickListener callImageButtonClickListener = new CallImageButtonClickListener();
     private class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
-            mDrawerLayout.openDrawer(Gravity.START);
+
+
+            switch (view.getId()) {
+
+                case R.id.add_marker:
+                    onAddPressed();
+                    break;
+
+                case R.id.edit_profile:
+                    mDrawerLayout.openDrawer(Gravity.START);
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 
@@ -59,11 +82,16 @@ public class MainActivity extends AppCompatActivity{
             }
         };
 
-        //mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
+        /* Fragments */
+        fragmentManager = getFragmentManager();
+
+        /* Google Maps */
+        addBtn = (ImageButton)findViewById(R.id.add_marker);
+        addBtn.setOnClickListener(callImageButtonClickListener);
 
         /* NavigationView */
-        drawerBtn = (ImageButton)findViewById(R.id.edit_profile);
-        drawerBtn.setOnClickListener(callImageButtonClickListener);
+        navBtn = (ImageButton)findViewById(R.id.edit_profile);
+        navBtn.setOnClickListener(callImageButtonClickListener);
 
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawerLayout);
         mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
@@ -94,8 +122,29 @@ public class MainActivity extends AppCompatActivity{
         FirebaseUser user = mAuth.getCurrentUser();
         mEmail = (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.userEmail);
         mEmail.setText(user.getEmail());
-
-        //mDrawerLayout.addDrawerListener(mToggle);
-        //mToggle.syncState();
    }
+
+    public void onAddPressed() {
+        mapFragment = (FragmentGMaps) getSupportFragmentManager().findFragmentById(R.id.map);
+
+        if (mapFragment != null) {
+            mapFragment.addNewMarker();
+        } else {
+            //TODO:
+            Toast.makeText(this, "N-ar trebui sa fiu aici!", Toast.LENGTH_SHORT).show();
+//            // Otherwise, we're in the one-pane layout and must swap frags...
+//
+//            // Create fragment and give it an argument for the selected article
+//            FragmentGMaps newFragment = new FragmentGMaps();
+//
+//            fragmentTransaction = fragmentManager.beginTransaction();
+//
+//            // Replace whatever is in the fragment_container view with this fragment,
+//            // and add the transaction to the back stack so the user can navigate back
+//            fragmentTransaction.addToBackStack(null);
+//
+//            // Commit the transaction
+//            fragmentTransaction.commit();
+        }
+    }
 }

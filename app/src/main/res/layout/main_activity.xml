@@ -14,18 +14,40 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <ImageButton
-            android:id="@+id/edit_profile"
-            android:layout_marginTop="15dp"
-            android:layout_marginBottom="10dp"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:src="@drawable/edit_user"
-            android:background="@drawable/edittext_login_form"
-            android:scaleType="fitXY"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <ImageButton
+                android:id="@+id/edit_profile"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="10dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/edit_user"
+                android:background="@drawable/edittext_login_form"
+                android:scaleType="fitXY"/>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/add_marker"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="10dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/ic_notifications_black_24dp"
+                android:background="@drawable/edittext_login_form"
+                android:scaleType="fitXY"/>
+
+        </LinearLayout>
+
 
         <fragment
-            android:name="com.community.community.FragmentGMaps"
+            android:name="com.community.community.GMaps.FragmentGMaps"
             android:id="@+id/map"
             android:layout_width="match_parent"
             android:layout_height="fill_parent" />

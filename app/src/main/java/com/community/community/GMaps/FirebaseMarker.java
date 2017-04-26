@@ -1,57 +1,50 @@
 package com.community.community.GMaps;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 public class FirebaseMarker {
-    public String dob;
-    public String dod;
-    public String firstname;
-    public String lastname;
-    public double latitude;
-    public double longitude;
+    private String name;
+    private String owner;
+    private String description;
+    private double latitude;
+    private double longitude;
 
+    public FirebaseMarker() { }
 
-    //required empty constructor
-    public FirebaseMarker() {
-    }
-
-    public FirebaseMarker(String firstname, String lastname, double latitude, double longitude, String dob, String dod) {
-        this.dob = dob;
-        this.dod = dod;
-        this.firstname = firstname;
-        this.lastname = lastname;
+    public FirebaseMarker(String name, String description, String email,double latitude, double longitude) {
+        this.name = name;
+        this.owner = email;
+        this.description = description;
         this.latitude = latitude;
         this.longitude = longitude;
     }
 
-    public String getDob() {
-        return dob;
-    }
-
-    public void setDob(String dob) {
-        this.dob = dob;
-    }
-
-    public String getDod() {
-        return dod;
-    }
-
-    public void setDod(String dod) {
-        this.dod = dod;
+    public void addMarker(GoogleMap gMap,double latitude, double longitude){
+        gMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude)).title(owner));
     }
 
     public String getFirstname() {
-        return firstname;
+        return name;
     }
 
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
+    public void setFirstname(String name) {
+        this.name = name;
     }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String email) { this.owner = email; }
 
     public String getLastname() {
-        return lastname;
+        return description;
     }
 
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
+    public void setLastname(String description) {
+        this.description = description;
     }
 
     public double getLongitude() {
