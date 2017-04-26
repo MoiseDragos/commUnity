@@ -16,12 +16,19 @@
 
         <ImageButton
             android:id="@+id/edit_profile"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="10dp"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:src="@drawable/edit_user"
             android:background="@drawable/edittext_login_form"
             android:scaleType="fitXY"/>
+
+        <fragment
+            android:name="com.community.community.FragmentGMaps"
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent" />
 
     </LinearLayout>
 

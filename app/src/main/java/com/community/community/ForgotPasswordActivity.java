@@ -99,6 +99,9 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
                         Toast.makeText(ForgotPasswordActivity.this, "Cont inexistent", Toast.LENGTH_SHORT).show();
 
                     }
+                } else {
+                  // TODO:
+                    Toast.makeText(ForgotPasswordActivity.this, "Firebase error!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
