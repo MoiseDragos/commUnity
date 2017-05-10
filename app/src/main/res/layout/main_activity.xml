@@ -6,15 +6,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/drawerLayout"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    app:backgroundTint="@color/blue2">
 
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@color/blue5">
 
         <LinearLayout
+            android:id="@+id/linear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -28,31 +31,141 @@
                 android:background="@drawable/edittext_login_form"
                 android:scaleType="fitXY"/>
 
-            <View
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="@color/blue5"
+                >
+                <View
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
+                <EditText
+                    android:id="@+id/search"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginRight="70dp"
+                    android:layout_marginEnd="70dp"
+                    android:layout_marginBottom="15dp"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center_horizontal"
+                    android:hint="@string/find_location"
+                    android:textColorHint="@color/blue2"
+                    android:cursorVisible="false"
+                    app:backgroundTint="@color/blue2"
+                    android:textColor="@color/blue2"/>
+                <!--<AutoCompleteTextView-->
+                    <!--android:id="@+id/autoCompleteTextView"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:ems="10"-->
+                    <!--android:layout_marginLeft="10dp"-->
+                    <!--android:layout_marginStart="10dp"-->
+                    <!--android:layout_marginRight="70dp"-->
+                    <!--android:layout_marginEnd="70dp"-->
+                    <!--android:layout_marginTop="20dp"-->
+                    <!--android:layout_gravity="center_vertical"-->
+                    <!--android:gravity="center_horizontal"-->
+                    <!--android:hint="@string/find_location"-->
+                    <!--android:textColorHint="@color/blue2"-->
+                    <!--android:cursorVisible="false"-->
+                    <!--app:backgroundTint="@color/blue2"-->
+                    <!--android:textColor="@color/blue2" >-->
+
+                    <!--<requestFocus />-->
+                <!--</AutoCompleteTextView>-->
+                <!--<fragment-->
+                    <!--android:id="@+id/place_autocomplete_fragment"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_marginLeft="10dp"-->
+                    <!--android:layout_marginStart="10dp"-->
+                    <!--android:layout_marginRight="70dp"-->
+                    <!--android:layout_marginEnd="70dp"-->
+                    <!--android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"-->
+                    <!--/>-->
+            </LinearLayout>
+            <!--<View-->
+                <!--android:layout_width="0dp"-->
+                <!--android:layout_height="0dp"-->
+                <!--android:layout_weight="1" />-->
 
             <ImageButton
-                android:id="@+id/add_marker"
+                android:id="@+id/search_marker"
                 android:layout_marginTop="15dp"
                 android:layout_marginBottom="10dp"
+                android:layout_marginLeft="-60dp"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:src="@drawable/ic_notifications_black_24dp"
+                android:src="@mipmap/ic_search_black_24dp"
                 android:background="@drawable/edittext_login_form"
                 android:scaleType="fitXY"/>
 
         </LinearLayout>
 
-
         <fragment
             android:name="com.community.community.GMaps.FragmentGMaps"
             android:id="@+id/map"
             android:layout_width="match_parent"
-            android:layout_height="fill_parent" />
+            android:layout_height="fill_parent"
+            android:layout_below="@id/linear"
+            />
 
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <Button
+                android:id="@+id/submit_marker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="30dp"
+                android:text="@string/save"
+                android:background="@drawable/edittext_login_form_green"
+                android:scaleType="fitXY"
+                android:textColor="@color/white"
+                android:visibility="gone"/>
+            <Button
+                android:id="@+id/cancel_marker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="30dp"
+                android:text="@string/cancel"
+                android:background="@drawable/edittext_login_form_red"
+                android:scaleType="fitXY"
+                android:textColor="@color/white"
+                android:visibility="gone"
+
+                />
+
+        </LinearLayout>
+
+        <!--<fragment-->
+            <!--android:name="com.community.community.GMaps.FragmentSubmit"-->
+            <!--android:id="@+id/marker_submit"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="fill_parent"-->
+            <!--android:layout_marginTop="-60dp"-->
+            <!--android:layout_below="@id/map" />-->
+
+        <ImageButton
+            android:id="@+id/add_marker"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_margin="10dp"
+            android:src="@drawable/add_icon"
+            android:background="@drawable/edittext_login_form"
+            android:scaleType="fitXY"
+            android:layout_below="@id/linear"
+            android:layout_alignParentRight="true"/>
+
+    </RelativeLayout>
 
 
     <android.support.design.widget.NavigationView

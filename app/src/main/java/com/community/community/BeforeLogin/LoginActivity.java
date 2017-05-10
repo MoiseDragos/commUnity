@@ -1,4 +1,4 @@
-package com.community.community;
+package com.community.community.BeforeLogin;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -13,6 +13,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.community.community.MainActivity;
+import com.community.community.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -48,7 +50,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 if(mAuth.getCurrentUser() != null){
 
                     finish();
-//                    startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
 
                 }

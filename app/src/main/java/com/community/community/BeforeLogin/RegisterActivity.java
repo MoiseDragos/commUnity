@@ -1,4 +1,4 @@
-package com.community.community;
+package com.community.community.BeforeLogin;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -14,9 +14,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.community.community.MainActivity;
+import com.community.community.R;
 import com.community.community.User.User;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -58,7 +59,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
                     // Intent User Account
                     finish();
-                    startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
                 }
 
             }
@@ -159,7 +160,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 //                            finish();
 //                            startActivity(new Intent(getApplicationContext(), LoginActivity.class));
                         } else {
-
+                            Log.d("GMaps", "AICI4!");
                             if(!exist){
                                 Log.d("GMaps", "AICI5!");
                                 Toast.makeText(RegisterActivity.this, "Înregistrare nereușită, vă rugăm reîncercați", Toast.LENGTH_SHORT).show();

@@ -2,27 +2,38 @@ package com.community.community;
 
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.community.community.BeforeLogin.LoginActivity;
 import com.community.community.GMaps.FragmentGMaps;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 
-public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnAddPressedListener{
+import java.io.IOException;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnBtnPressedListener {
 
     /* Fragments */
-    FragmentManager fragmentManager = null;
+    private FragmentManager fragmentManager = null;
+    private FragmentGMaps mapFragment = null;
 
     /* Firebase */
     private FirebaseAuth mAuth = null;
@@ -37,26 +48,68 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnA
 
     /* Google Maps */
     private ImageButton addBtn = null;
-    FragmentGMaps mapFragment = null;
+    private ImageButton searchBtn = null;
+    private EditText searchEditText = null;
+
+    /* Submit Buttons*/
+    private Button saveBtn = null;
+    private Button cancelBtn = null;
 
     private CallImageButtonClickListener callImageButtonClickListener = new CallImageButtonClickListener();
-    private class CallImageButtonClickListener implements View.OnClickListener {
+    public class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
 
-
             switch (view.getId()) {
-
-                case R.id.add_marker:
-                    onAddPressed();
-                    break;
 
                 case R.id.edit_profile:
                     mDrawerLayout.openDrawer(Gravity.START);
                     break;
+                case R.id.search_marker:
+                    onButtonPressed(1);
+                    break;
+                case R.id.add_marker:
+                    setVesibility(View.VISIBLE);
+                    onButtonPressed(2);
+                    break;
+                case R.id.submit_marker:
+                    setVesibility(View.GONE);
+
+                    Intent i = new Intent(getApplicationContext(), SubmitCauseActivity.class);
+                    startActivityForResult(i, 1);
+                    break;
+                case R.id.cancel_marker:
+                    setVesibility(View.GONE);
+                    onButtonPressed(3);
+                    break;
 
                 default:
                     break;
+            }
+        }
+    }
+
+    public void setVesibility(int visibility){
+        saveBtn.setVisibility(visibility);
+        cancelBtn.setVisibility(visibility);
+    }
+
+    //TODO: another way
+    private String causeName = null;
+    private String causeDescription = null;
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d("GMaps", "onActivityResult");
+        if (requestCode == 1) {
+            if(resultCode == RESULT_OK) {
+                causeName = data.getStringExtra("NameFiled");
+                causeDescription = data.getStringExtra("DescriptionFiled");;
+                onButtonPressed(4);
+            } else {
+                onButtonPressed(3);
             }
         }
     }
@@ -84,10 +137,14 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnA
 
         /* Fragments */
         fragmentManager = getFragmentManager();
+        mapFragment = (FragmentGMaps) getSupportFragmentManager().findFragmentById(R.id.map);
 
         /* Google Maps */
         addBtn = (ImageButton)findViewById(R.id.add_marker);
         addBtn.setOnClickListener(callImageButtonClickListener);
+
+        searchBtn = (ImageButton)findViewById(R.id.search_marker);
+        searchBtn.setOnClickListener(callImageButtonClickListener);
 
         /* NavigationView */
         navBtn = (ImageButton)findViewById(R.id.edit_profile);
@@ -95,6 +152,12 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnA
 
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawerLayout);
         mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
+
+        /* Submit Button */
+        saveBtn = (Button)findViewById(R.id.submit_marker);
+        saveBtn.setOnClickListener(callImageButtonClickListener);
+        cancelBtn = (Button)findViewById(R.id.cancel_marker);
+        cancelBtn.setOnClickListener(callImageButtonClickListener);
 
         mNavigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
@@ -124,11 +187,26 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnA
         mEmail.setText(user.getEmail());
    }
 
-    public void onAddPressed() {
-        mapFragment = (FragmentGMaps) getSupportFragmentManager().findFragmentById(R.id.map);
+
+    public void onButtonPressed(int i) {
 
         if (mapFragment != null) {
-            mapFragment.addNewMarker();
+            switch (i){
+                case 1:
+                    mapFragment.onSearch(onSearch());
+                    break;
+                case 2:
+                    mapFragment.onAdd();
+                    break;
+                case 3:
+                    mapFragment.onCancel();
+                    break;
+                case 4:
+                    mapFragment.onSubmit(causeName, causeDescription);
+                    break;
+                default:
+                    break;
+            }
         } else {
             //TODO:
             Toast.makeText(this, "N-ar trebui sa fiu aici!", Toast.LENGTH_SHORT).show();
@@ -146,5 +224,27 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnA
 //            // Commit the transaction
 //            fragmentTransaction.commit();
         }
+    }
+
+    public LatLng onSearch() {
+        searchEditText = (EditText) findViewById(R.id.search);
+        String location = searchEditText.getText().toString();
+
+        List<Address> addList = null;
+
+        if(!location.equals("")){
+            Geocoder geoc = new Geocoder(this);
+
+            try{
+                addList = geoc.getFromLocationName(location, 1);
+            }catch (IOException e){
+                e.printStackTrace();
+            }
+            if(!addList.isEmpty()) {
+                Address address = addList.get(0);
+                return new LatLng(address.getLatitude(), address.getLongitude());
+            }
+        }
+        return null;
     }
 }

@@ -1,8 +1,13 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.community.community.GMaps.FragmentAdd">
+    tools:context="com.community.community.SubmitCauseActivity">
+
+
+
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="vertical"
@@ -19,10 +24,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:textSize="38sp"
+            android:textSize="30sp"
             android:textColor="@color/white"
             android:textStyle="bold"
-            android:text="@string/addCauses"/>
+            android:text="@string/objectiv_details"/>
 
         <Space
             android:layout_width="0dp"
@@ -38,13 +43,12 @@
             android:layout_marginRight="38dp"
             android:background="@drawable/edittext_login_form"
             android:fontFamily="sans-serif"
-            android:inputType="textEmailAddress"
             android:hint="@string/causesName"
             android:textColorHint="@color/blue2"
             android:textCursorDrawable="@null" />
 
         <EditText
-            android:id="@+id/password_id"
+            android:id="@+id/describe_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="38dp"
@@ -52,23 +56,22 @@
             android:background="@drawable/edittext_login_form"
             android:fontFamily="sans-serif"
             android:hint="@string/describe"
-            android:inputType="textPassword"
             android:textColorHint="@color/blue2"
             android:textCursorDrawable="@null" />
 
         <Space
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="3.7"/>
+            android:layout_weight="1.7"/>
 
-         <LinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center">
 
             <Button
-                android:id="@+id/save_marker"
+                android:id="@+id/submit_cause"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_gravity="center_horizontal"
@@ -79,25 +82,25 @@
                 android:background="@drawable/button_login_form"
                 android:text="@string/save"/>
 
-             <Button
-                 android:id="@+id/cancel_marker"
-                 android:layout_width="wrap_content"
-                 android:layout_height="40dp"
-                 android:layout_gravity="center_horizontal"
-                 android:layout_marginLeft="32dp"
-                 android:layout_marginTop="30dp"
-                 android:layout_marginRight="32dp"
-                 android:textColor="@color/white"
-                 android:background="@drawable/button_login_form"
-                 android:text="@string/cancel"/>
+            <Button
+                android:id="@+id/cancel_cause"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginRight="32dp"
+                android:textColor="@color/white"
+                android:background="@drawable/button_login_form"
+                android:text="@string/cancel"/>
 
 
-         </LinearLayout>
+        </LinearLayout>
 
         <Space
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="3.7"/>
+            android:layout_weight="5"/>
 
     </LinearLayout>
-</FrameLayout>
+</android.support.constraint.ConstraintLayout>
