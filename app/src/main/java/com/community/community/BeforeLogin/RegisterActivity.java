@@ -29,6 +29,9 @@ import java.util.List;
 
 public class RegisterActivity extends AppCompatActivity implements View.OnClickListener  {
 
+    // TODO: remove
+    private String LOG = this.getClass().getSimpleName();
+
     private EditText mEmailField;
     private EditText mPasswordField;
     private Button mRegisterBtn;
@@ -59,7 +62,12 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
                     // Intent User Account
                     finish();
-                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+
+                    Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                    i.putExtra("isRegistred", true);
+                    startActivity(i);
+//                    Log.d(LOG, "True");
+//                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
                 }
 
             }
@@ -140,29 +148,22 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         progressDialog.setMessage("Registering User...");
         progressDialog.show();
 
-        Log.d("GMaps", "AICI!");
 
-        if(!exist){
-            Log.d("GMaps", "AICI1!");
-            writeNewUser(email);
-        }
+//        if(!exist){
+//            writeNewUser(email);
+//        }
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        Log.d("GMaps", task.getException().toString());
-                        Log.d("GMaps", "AICI2!");
                         if(task.isSuccessful()){
                             Toast.makeText(RegisterActivity.this, "Înregistrare reușită", Toast.LENGTH_SHORT).show();
-                            Log.d("GMaps", "AICI3!");
-                            writeNewUser(email);
+//                            writeNewUser(email);
                             /*TODO: Send activation email*/
 //                            finish();
 //                            startActivity(new Intent(getApplicationContext(), LoginActivity.class));
                         } else {
-                            Log.d("GMaps", "AICI4!");
                             if(!exist){
-                                Log.d("GMaps", "AICI5!");
                                 Toast.makeText(RegisterActivity.this, "Înregistrare nereușită, vă rugăm reîncercați", Toast.LENGTH_SHORT).show();
                             }
                             exist = false;
@@ -173,7 +174,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                     }
                 });
 
-        Log.d("GMaps", "AICI6!");
     }
 
     @Override
@@ -188,24 +188,5 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             startActivity(new Intent(this, LoginActivity.class));
         }
 
-    }
-
-    private void writeNewUser(String email) {
-        User user = new User(email, email);
-        Log.d("GMaps", "Email: " + user.getEmail());
-        Log.d("GMaps", "Username: " + user.getUsername());
-        Log.d("GMaps", mDatabase.child("users").toString());
-
-        if(mDatabase.child("users") == null){
-            mDatabase.setValue("users");
-        }
-
-        //mDatabase.child("users").setValue(user);
-    }
-
-    private void writeNewUser(String userId, String name, String email) {
-        User user = new User(name, email);
-
-        mDatabase.child("users").child(userId).setValue(user);
     }
 }

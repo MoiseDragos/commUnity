@@ -49,8 +49,12 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
 
                 if(mAuth.getCurrentUser() != null){
 
+                    //TODO: nu cred ca are cum sa intre aici! Verifica!
                     finish();
-                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                    Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                    i.putExtra("isRegistred", true);
+                    startActivity(i);
+//                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
 
                 }
 

@@ -32,6 +32,9 @@ import java.util.Map;
 
 public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
 
+    // TODO: remove
+    private String LOG = this.getClass().getSimpleName();
+    
     OnBtnPressedListener mCallback;
 
     private GoogleMap mGoogleMap;
@@ -39,8 +42,6 @@ public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
     private View mView;
 
     private DatabaseReference mDatabase;
-    private DatabaseReference users;
-    private DatabaseReference causes;
 
     private FirebaseMarker firebaseNewMarker;
 
@@ -78,7 +79,7 @@ public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
         mGoogleMap = googleMap;
         setUpMap();
 
-        Log.d("GMaps", "Maps init completed!");
+        Log.d(LOG, "Maps init completed!");
     }
 
     private void addCausesOnMap() {
@@ -90,6 +91,7 @@ public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
             public void onDataChange(DataSnapshot snapshot) {
                 if (snapshot.hasChild("causes")) {
                     DatabaseReference dRef = rootRef.child("causes");
+
 
                     dRef.addListenerForSingleValueEvent( new ValueEventListener() {
                         @Override
@@ -111,22 +113,6 @@ public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
                 //handle databaseError
             }
         });
-//        DatabaseReference dRef = null;
-//        dRef = FirebaseDatabase.getInstance().getReference().child("causes");
-//
-//        dRef.addListenerForSingleValueEvent( new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(DataSnapshot dataSnapshot) {
-//                        //Get map of users in datasnapshot
-//                        addInitMarkers((Map<String,Object>) dataSnapshot.getValue());
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(DatabaseError databaseError) {
-//                        //handle databaseError
-//                    }
-//                });
-
     }
 
     private void addInitMarkers(Map<String,Object> causes) {
@@ -135,12 +121,13 @@ public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
         for (Map.Entry<String, Object> entry : causes.entrySet()){
 
             //Get cause map
-            Map singleCause = (Map) entry.getValue();
+            Map singleCauseMap = (Map) entry.getValue();
+            Map singleCause = (Map) singleCauseMap.get("Info");
             double lat = (Double) singleCause.get("latitude");
             double lg = (Double) singleCause.get("longitude");
             String owner = (String) singleCause.get("owner");
 
-            Log.d("GMaps", lat + " " + lg + " " + owner);
+            Log.d(LOG, lat + " " + lg + " " + owner);
 
             FirebaseAuth mAuth = FirebaseAuth.getInstance();
             FirebaseUser user = mAuth.getCurrentUser();
@@ -165,7 +152,7 @@ public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
 
         addCausesOnMap();
         // TODO:
-        // 1. Display existing objects DONE!
+        // 1. Display existing objects (DONE!)
         // 2. mGoogleMap.setMyLocationEnabled(true);
     }
 
@@ -198,7 +185,7 @@ public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
 
         //TODO: remove
         float zommLevel = mGoogleMap.getCameraPosition().zoom;
-        Log.d("GMaps", "ZoomLevel: " + String.valueOf(zommLevel));
+        Log.d(LOG, "ZoomLevel: " + String.valueOf(zommLevel));
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -209,9 +196,9 @@ public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
             firebaseNewMarker = new FirebaseMarker(mGoogleMap, email, ll.latitude, ll.longitude);
 
             //TODO: remove
-            Log.d("GMaps", "CurrentUser:" + user.getEmail());
-            Log.d("GMaps", "Lat:" + String.valueOf(ll.latitude));
-            Log.d("GMaps", "Lon:" + String.valueOf(ll.longitude));
+            Log.d(LOG, "CurrentUser:" + user.getEmail());
+            Log.d(LOG, "Lat:" + String.valueOf(ll.latitude));
+            Log.d(LOG, "Lon:" + String.valueOf(ll.longitude));
         }
     }
 
@@ -220,23 +207,33 @@ public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
         //Confirm Position
         firebaseNewMarker.submitMarker(name, description);
 
-        // Write on firebase
-        Log.d("GMaps", firebaseNewMarker.getName() + "\n"
+        // Write on firebase - "causes"
+        Log.d(LOG, firebaseNewMarker.getName() + "\n"
                 + firebaseNewMarker.getDescription() + "\n"
                 + firebaseNewMarker.getLatitude() + "\n"
                 + firebaseNewMarker.getLongitude() + "\n"
                 + firebaseNewMarker.getOwner());
 
-        causes = mDatabase.child("causes").child(name);
+        DatabaseReference causes = mDatabase.child("causes").child(name).child("Info");
         causes.setValue(firebaseNewMarker).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Log.d("GMaps", e.getLocalizedMessage());
+                Log.d(LOG, e.getLocalizedMessage());
             }
         });
 
-        firebaseNewMarker = null;
+        // Write on firebase - "users"
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
 
+        DatabaseReference users = mDatabase.child("users").child(user.getUid()).child("MyCauses").child(name);
+        users.setValue(firebaseNewMarker).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(LOG, e.getLocalizedMessage());
+            }
+        });
+        firebaseNewMarker = null;
 
     }
 

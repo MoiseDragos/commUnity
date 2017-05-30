@@ -50,7 +50,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 if(mAuth.getCurrentUser() != null){
 
                     finish();
-                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                    Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                    i.putExtra("isRegistred", false);
+                    startActivity(i);
+//                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
 
                 }
 

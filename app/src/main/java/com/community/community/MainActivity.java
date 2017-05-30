@@ -22,14 +22,21 @@ import android.widget.Toast;
 import com.community.community.BeforeLogin.LoginActivity;
 import com.community.community.GMaps.FragmentGMaps;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.IOException;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnBtnPressedListener {
+
+    // TODO: remove
+    private String LOG = this.getClass().getSimpleName();
 
     /* Fragments */
     private FragmentManager fragmentManager = null;
@@ -38,13 +45,15 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     /* Firebase */
     private FirebaseAuth mAuth = null;
     private FirebaseAuth.AuthStateListener mAuthListener = null;
-    private FirebaseDatabase mDatabase = null;
+    private DatabaseReference mDatabase = null;
+    private DatabaseReference users;
 
     /* NavigationView */
     private DrawerLayout mDrawerLayout = null;
     private NavigationView mNavigationView = null;
     private ImageButton navBtn = null;
     private TextView mEmail = null;
+    private CircleImageView mNavViewImage = null;
 
     /* Google Maps */
     private ImageButton addBtn = null;
@@ -54,6 +63,9 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     /* Submit Buttons*/
     private Button saveBtn = null;
     private Button cancelBtn = null;
+
+    /* Registred */
+    private boolean isRegistred = false;
 
     private CallImageButtonClickListener callImageButtonClickListener = new CallImageButtonClickListener();
     public class CallImageButtonClickListener implements View.OnClickListener {
@@ -102,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("GMaps", "onActivityResult");
+        Log.d(LOG, "onActivityResult");
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
                 causeName = data.getStringExtra("NameFiled");
@@ -134,6 +146,17 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
             }
         };
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        Bundle extras = getIntent().getExtras();
+        if(extras != null && isRegistred == false) {
+            isRegistred = true;
+            Boolean res = extras.getBoolean("isRegistred");
+            Log.d(LOG, res.toString());
+            if(res) {
+                writeNewUser();
+            }
+        }
 
         /* Fragments */
         fragmentManager = getFragmentManager();
@@ -181,10 +204,12 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     }
                 });
 
+        /* NavigationView Default */
+        mNavViewImage = (CircleImageView) mNavigationView.getHeaderView(0).findViewById(R.id.profile_image);
+        mNavViewImage.setImageDrawable(getResources().getDrawable(R.drawable.profile));
 
-        FirebaseUser user = mAuth.getCurrentUser();
         mEmail = (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.userEmail);
-        mEmail.setText(user.getEmail());
+        mEmail.setText(mAuth.getCurrentUser().getEmail());
    }
 
 
@@ -246,5 +271,21 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
             }
         }
         return null;
+    }
+
+    private void writeNewUser() {
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        users = mDatabase.child("users").child(user.getUid()).child("ProfileSettings").child("status");
+        users.setValue("active").addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(LOG, e.getLocalizedMessage());
+            }
+        });
+
+//        CircleImageView imageView = (CircleImageView) mapFragment.getView().findViewById(R.id.edit_profile);
+//        int resourceImage = this.getResources().getIdentifier("profile", "drawable", this.getPackageName());
+//        imageView.setImageResource(resourceImage);
     }
 }

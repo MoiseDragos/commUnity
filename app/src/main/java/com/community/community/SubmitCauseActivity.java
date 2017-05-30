@@ -73,7 +73,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
             // 2. Max line for EditText (ScrollView?)
             Intent intent = new Intent();
             intent.putExtra("NameFiled", mNameField.getText().toString());
-            intent.putExtra("Description", mDescriptionField.getText().toString());
+            intent.putExtra("DescriptionFiled", mDescriptionField.getText().toString());
             setResult(RESULT_OK, intent);
             finish();
         }
