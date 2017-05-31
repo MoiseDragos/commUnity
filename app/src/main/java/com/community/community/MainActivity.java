@@ -22,7 +22,6 @@ import android.widget.Toast;
 import com.community.community.BeforeLogin.LoginActivity;
 import com.community.community.GMaps.FragmentGMaps;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -46,7 +45,6 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     private FirebaseAuth mAuth = null;
     private FirebaseAuth.AuthStateListener mAuthListener = null;
     private DatabaseReference mDatabase = null;
-    private DatabaseReference users;
 
     /* NavigationView */
     private DrawerLayout mDrawerLayout = null;
@@ -81,17 +79,17 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     onButtonPressed(1);
                     break;
                 case R.id.add_marker:
-                    setVesibility(View.VISIBLE);
+                    setVisibility(View.VISIBLE);
                     onButtonPressed(2);
                     break;
                 case R.id.submit_marker:
-                    setVesibility(View.GONE);
+                    setVisibility(View.GONE);
 
                     Intent i = new Intent(getApplicationContext(), SubmitCauseActivity.class);
                     startActivityForResult(i, 1);
                     break;
                 case R.id.cancel_marker:
-                    setVesibility(View.GONE);
+                    setVisibility(View.GONE);
                     onButtonPressed(3);
                     break;
 
@@ -101,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         }
     }
 
-    public void setVesibility(int visibility){
+    public void setVisibility(int visibility){
         saveBtn.setVisibility(visibility);
         cancelBtn.setVisibility(visibility);
     }
@@ -149,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
         Bundle extras = getIntent().getExtras();
-        if(extras != null && isRegistred == false) {
+        if(extras != null && !isRegistred) {
             isRegistred = true;
             Boolean res = extras.getBoolean("isRegistred");
             Log.d(LOG, res.toString());
@@ -188,7 +186,8 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
                         switch (menuItem.getItemId()) {
                             case R.id.nav_account:
-                                Toast.makeText(getApplicationContext(), "Account", Toast.LENGTH_SHORT).show();
+//                                Toast.makeText(getApplicationContext(), "Account", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(getApplicationContext(), PublicProfile.class));
                                 break;
                             case R.id.nav_settings:
                                 startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
@@ -275,14 +274,23 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
     private void writeNewUser() {
         FirebaseUser user = mAuth.getCurrentUser();
+        String email = user.getEmail();
 
-        users = mDatabase.child("users").child(user.getUid()).child("ProfileSettings").child("status");
-        users.setValue("active").addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.d(LOG, e.getLocalizedMessage());
-            }
-        });
+        DatabaseReference users = mDatabase.child("users").child(user.getUid()).child("ProfileSettings").child("status");
+        users.setValue("active");
+
+        users = mDatabase.child("users").child(user.getUid()).child("ProfileSettings").child("nickname");
+        users.setValue(email);
+
+        users = mDatabase.child("users").child(user.getUid()).child("ProfileSettings").child("email");
+        users.setValue(email);
+
+        users = mDatabase.child("users").child(user.getUid()).child("MyCauses").child("number");
+        users.setValue("0");
+
+        users = mDatabase.child("users").child(user.getUid()).child("SupportedCauses").child("number");
+        users.setValue("0");
+
 
 //        CircleImageView imageView = (CircleImageView) mapFragment.getView().findViewById(R.id.edit_profile);
 //        int resourceImage = this.getResources().getIdentifier("profile", "drawable", this.getPackageName());

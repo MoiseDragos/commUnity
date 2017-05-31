@@ -7,8 +7,6 @@
     tools:context="com.community.community.PublicProfile">
 
 
-
-
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -18,75 +16,116 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:background="@color/blue5">
+        android:background="@color/blue4"
+        android:weightSum="10">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="4"
+            android:id="@+id/blur_profile_image"
+            android:scaleType="fitXY"/>
+            <!--android:src="@drawable/profile"-->
 
         <de.hdodenhof.circleimageview.CircleImageView
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/profile_image"
-            android:layout_marginTop="15dp"
-            android:layout_width="wrap_content"
+            android:layout_marginTop="-58dp"
+            android:layout_width="116dp"
             android:layout_height="116dp"
-            android:src="@drawable/profile"
+            android:layout_gravity="center"
             app:civ_border_width="2dp"
-            app:civ_border_color="@color/blue4"/>
+            app:civ_border_color="@color/white"/>
+        <!--android:src="@drawable/profile"-->
+
+        <TextView
+            android:id="@+id/userNickname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="20sp"
+            android:text="@string/email"
+            android:textCursorDrawable="@null"
+            android:background="@null"
+            android:textColor="@color/white"
+            android:gravity="center"/>
 
         <TextView
             android:id="@+id/userEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="3dp"
             android:layout_marginBottom="20dp"
-            android:layout_below="@+id/profile_image"
-            android:ems="10"
+            android:text="@string/email"
             android:textCursorDrawable="@null"
             android:background="@null"
             android:textColor="@color/blue2"
             android:gravity="center"/>
 
-        <GridLayout
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="2"
-            android:rowCount="5"
-            android:layout_margin="20dp">
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:background="@color/blue5">
 
-            <TextView
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textSize="20sp"
-                android:text="@string/nickname"
-                android:textColor="@color/blue2"/>
+                android:layout_weight="1"
+                android:orientation="vertical" >
 
-            <EditText
-                android:id="@+id/nickname"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:ems="10"
-                android:textCursorDrawable="@null"
-                android:background="@drawable/edittext_login_form"
-                android:textSize="20sp"
-                android:textColor="@color/blue2"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/added_objectives"
+                    android:gravity="center"
+                    android:textSize="15sp"
+                    android:textColor="@color/blue2"/>
+                <TextView
+                    android:id="@+id/own_number"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:textSize="25sp"
+                    android:text="0"
+                    android:textColor="@color/white"
+                    android:gravity="center"/>
+            </LinearLayout>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:text="@string/describe"
-                android:textColor="@color/blue2"/>
-
-            <EditText
+            <View
+                android:layout_width="1dp"
                 android:layout_height="match_parent"
-                android:layout_width="match_parent"
-                android:minLines="5"
-                android:maxLines="10"
-                android:lines="8"
-                android:inputType="textMultiLine"
-                android:gravity="top|start"
-                android:background="@drawable/edittext_login_form"
-                android:scrollbars="vertical" />
-        </GridLayout>
+                android:background="@color/white" />
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/supported_objectives"
+                    android:gravity="center"
+                    android:textSize="15sp"
+                    android:textColor="@color/blue2"/>
+
+                <TextView
+                    android:id="@+id/supported_number"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:textSize="25sp"
+                    android:text="0"
+                    android:textColor="@color/white"
+                    android:gravity="center"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
 
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

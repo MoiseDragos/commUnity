@@ -40,16 +40,14 @@
                  android:textColor="@color/white"
                  android:background="@drawable/edittext_login_form_red"
                  android:text="@string/cancel"/>
-
-
-
          </LinearLayout>
-             <TextView
-                 android:layout_width="match_parent"
-                 android:layout_height="wrap_content"
-                 android:textColor="@color/white"
-                 android:gravity="center"
-                 android:text="@string/marker_position"/>
+
+         <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:textColor="@color/white"
+             android:gravity="center"
+             android:text="@string/marker_position"/>
 
     </LinearLayout>
 
