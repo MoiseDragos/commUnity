@@ -16,7 +16,6 @@ import android.widget.Toast;
 
 import com.community.community.MainActivity;
 import com.community.community.R;
-import com.community.community.User.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;

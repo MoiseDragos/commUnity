@@ -65,7 +65,7 @@
         </activity>
 
         <activity
-            android:name=".PublicProfile"
+            android:name=".PublicProfileActivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
 

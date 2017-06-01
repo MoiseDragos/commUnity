@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.community.community.BeforeLogin.LoginActivity;
 import com.community.community.GMaps.FragmentGMaps;
+import com.community.community.User.User;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -62,8 +63,110 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     private Button saveBtn = null;
     private Button cancelBtn = null;
 
+    /* User */
+    private User userPublicProfile = null;
+
     /* Registred */
     private boolean isRegistred = false;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main_activity);
+
+         /* Firebase */
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+
+                if(firebaseAuth.getCurrentUser() != null){
+
+                    finish();
+                    startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+
+                }
+
+            }
+        };
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
+//        user = new User(mAuth.getCurrentUser().getEmail(), mAuth.getCurrentUser().getUid());
+        userPublicProfile = new User();
+
+        /* Add new user in Firebase */
+        Bundle extras = getIntent().getExtras();
+        if(extras != null) {
+            if(!isRegistred) {
+                isRegistred = true;
+                Boolean res = extras.getBoolean("isRegistred");
+                Log.d(LOG, res.toString());
+                if(res) {
+                    writeNewUser();
+                } else {
+                    userPublicProfile.updateUserProfile();
+                }
+            } else {
+                Log.d(LOG, "Nu am ce cauta aici! isRegistred == true");
+            }
+        } else {
+            Log.d(LOG, "Nu am ce cauta aici! extras == null");
+        }
+
+        /* Fragments */
+        fragmentManager = getFragmentManager();
+        mapFragment = (FragmentGMaps) getSupportFragmentManager().findFragmentById(R.id.map);
+
+        /* Google Maps */
+        addBtn = (ImageButton)findViewById(R.id.add_marker);
+        addBtn.setOnClickListener(callImageButtonClickListener);
+
+        searchBtn = (ImageButton)findViewById(R.id.search_marker);
+        searchBtn.setOnClickListener(callImageButtonClickListener);
+
+        /* NavigationView */
+        navBtn = (ImageButton)findViewById(R.id.edit_profile);
+        navBtn.setOnClickListener(callImageButtonClickListener);
+
+        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawerLayout);
+        mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
+
+        /* Submit Button */
+        saveBtn = (Button)findViewById(R.id.submit_marker);
+        saveBtn.setOnClickListener(callImageButtonClickListener);
+        cancelBtn = (Button)findViewById(R.id.cancel_marker);
+        cancelBtn.setOnClickListener(callImageButtonClickListener);
+
+        mNavigationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        switch (menuItem.getItemId()) {
+                            case R.id.nav_account:
+//                                Toast.makeText(getApplicationContext(), "Account", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(getApplicationContext(), PublicProfileActivity.class));
+                                break;
+                            case R.id.nav_settings:
+                                startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+                                break;
+                            case R.id.nav_logout:
+                                mAuth.signOut();
+                                finish();
+                                startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+                                break;
+                        }
+                        mDrawerLayout.closeDrawers();
+                        return true;
+                    }
+                });
+
+        /* NavigationView Default */
+        mNavViewImage = (CircleImageView) mNavigationView.getHeaderView(0).findViewById(R.id.profile_image);
+        mNavViewImage.setImageDrawable(getResources().getDrawable(R.drawable.profile));
+
+        mEmail = (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.userEmail);
+        mEmail.setText(mAuth.getCurrentUser().getEmail());
+    }
 
     private CallImageButtonClickListener callImageButtonClickListener = new CallImageButtonClickListener();
     public class CallImageButtonClickListener implements View.OnClickListener {
@@ -99,15 +202,9 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         }
     }
 
-    public void setVisibility(int visibility){
-        saveBtn.setVisibility(visibility);
-        cancelBtn.setVisibility(visibility);
-    }
-
     //TODO: another way
     private String causeName = null;
     private String causeDescription = null;
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -124,94 +221,6 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         }
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_activity);
-
-         /* Firebase */
-        mAuth = FirebaseAuth.getInstance();
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-                if(firebaseAuth.getCurrentUser() != null){
-
-                    finish();
-                    startActivity(new Intent(getApplicationContext(), LoginActivity.class));
-
-                }
-
-            }
-        };
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-
-        Bundle extras = getIntent().getExtras();
-        if(extras != null && !isRegistred) {
-            isRegistred = true;
-            Boolean res = extras.getBoolean("isRegistred");
-            Log.d(LOG, res.toString());
-            if(res) {
-                writeNewUser();
-            }
-        }
-
-        /* Fragments */
-        fragmentManager = getFragmentManager();
-        mapFragment = (FragmentGMaps) getSupportFragmentManager().findFragmentById(R.id.map);
-
-        /* Google Maps */
-        addBtn = (ImageButton)findViewById(R.id.add_marker);
-        addBtn.setOnClickListener(callImageButtonClickListener);
-
-        searchBtn = (ImageButton)findViewById(R.id.search_marker);
-        searchBtn.setOnClickListener(callImageButtonClickListener);
-
-        /* NavigationView */
-        navBtn = (ImageButton)findViewById(R.id.edit_profile);
-        navBtn.setOnClickListener(callImageButtonClickListener);
-
-        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawerLayout);
-        mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
-
-        /* Submit Button */
-        saveBtn = (Button)findViewById(R.id.submit_marker);
-        saveBtn.setOnClickListener(callImageButtonClickListener);
-        cancelBtn = (Button)findViewById(R.id.cancel_marker);
-        cancelBtn.setOnClickListener(callImageButtonClickListener);
-
-        mNavigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        switch (menuItem.getItemId()) {
-                            case R.id.nav_account:
-//                                Toast.makeText(getApplicationContext(), "Account", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(getApplicationContext(), PublicProfile.class));
-                                break;
-                            case R.id.nav_settings:
-                                startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
-                                break;
-                            case R.id.nav_logout:
-                                mAuth.signOut();
-                                finish();
-                                startActivity(new Intent(getApplicationContext(), LoginActivity.class));
-                                break;
-                        }
-                        mDrawerLayout.closeDrawers();
-                        return true;
-                    }
-                });
-
-        /* NavigationView Default */
-        mNavViewImage = (CircleImageView) mNavigationView.getHeaderView(0).findViewById(R.id.profile_image);
-        mNavViewImage.setImageDrawable(getResources().getDrawable(R.drawable.profile));
-
-        mEmail = (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.userEmail);
-        mEmail.setText(mAuth.getCurrentUser().getEmail());
-   }
-
-
     public void onButtonPressed(int i) {
 
         if (mapFragment != null) {
@@ -226,7 +235,9 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     mapFragment.onCancel();
                     break;
                 case 4:
-                    mapFragment.onSubmit(causeName, causeDescription);
+                    int ownCausesNumber = userPublicProfile.getOwnCausesNumber();
+                    userPublicProfile.setOwnCausesNumber(ownCausesNumber + 1);
+                    mapFragment.onSubmit(causeName, causeDescription, ownCausesNumber + 1);
                     break;
                 default:
                     break;
@@ -272,24 +283,33 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         return null;
     }
 
+    public void setVisibility(int visibility){
+        saveBtn.setVisibility(visibility);
+        cancelBtn.setVisibility(visibility);
+    }
     private void writeNewUser() {
         FirebaseUser user = mAuth.getCurrentUser();
         String email = user.getEmail();
 
-        DatabaseReference users = mDatabase.child("users").child(user.getUid()).child("ProfileSettings").child("status");
-        users.setValue("active");
+        /* UserPublicProfile */
+        userPublicProfile.setStatus("active");
+        userPublicProfile.setNickname(email);
+        userPublicProfile.setEmail(email);
+        userPublicProfile.setOwnCausesNumber(0);
+        userPublicProfile.setSupportedCausesNumber(0);
 
-        users = mDatabase.child("users").child(user.getUid()).child("ProfileSettings").child("nickname");
-        users.setValue(email);
-
-        users = mDatabase.child("users").child(user.getUid()).child("ProfileSettings").child("email");
-        users.setValue(email);
-
-        users = mDatabase.child("users").child(user.getUid()).child("MyCauses").child("number");
-        users.setValue("0");
-
-        users = mDatabase.child("users").child(user.getUid()).child("SupportedCauses").child("number");
-        users.setValue("0");
+        /* Firebase */
+        DatabaseReference rootRef = mDatabase.child("users").child(user.getUid()).child("ProfileSettings");
+        DatabaseReference ref = rootRef.child("status");
+        ref.setValue("active");
+        ref = rootRef.child("nickname");
+        ref.setValue(email);
+        ref = rootRef.child("email");
+        ref.setValue(email);
+        ref = rootRef.child("ownCauses");
+        ref.setValue("0");
+        ref = rootRef.child("supportedCauses");
+        ref.setValue("0");
 
 
 //        CircleImageView imageView = (CircleImageView) mapFragment.getView().findViewById(R.id.edit_profile);

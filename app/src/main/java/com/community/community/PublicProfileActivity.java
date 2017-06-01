@@ -2,25 +2,24 @@ package com.community.community;
 
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.constraint.solver.widgets.Snapshot;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.community.community.BeforeLogin.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Map;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class PublicProfile extends AppCompatActivity {
+public class PublicProfileActivity extends AppCompatActivity {
 
     // TODO: remove
     private String LOG = this.getClass().getSimpleName();
@@ -60,48 +59,41 @@ public class PublicProfile extends AppCompatActivity {
         };
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        Log.d(LOG, "1");
         blurImage = (ImageView) findViewById(R.id.blur_profile_image);
         circleImage = (CircleImageView) findViewById(R.id.profile_image);
         nickname = (TextView) findViewById(R.id.userNickname);
         email = (TextView) findViewById(R.id.userEmail);
         ownNumber = (TextView) findViewById(R.id.own_number);
         supportedNumber = (TextView) findViewById(R.id.supported_number);
-        Log.d(LOG, "2");
-        initialize();
+
+        setProfileDetails();
     }
 
-    private void initialize() {
-        FirebaseUser user = mAuth.getCurrentUser();
-
+    private void setProfileDetails() {
         blurImage.setImageDrawable(getResources().getDrawable(R.drawable.profile));
         circleImage.setImageDrawable(getResources().getDrawable(R.drawable.profile));
-        DatabaseReference ref = mDatabase.child("users").child(user.getUid()).child("ProfileSettings").child("nickname");
 
-        ref.addValueEventListener(new ValueEventListener() {
+        DatabaseReference dRef = FirebaseDatabase.getInstance().getReference().child("users")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child("ProfileSettings");
+
+        dRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                String value = dataSnapshot.getValue(String.class);
-                Log.d(LOG, "Value is: " + value);
+            public void onDataChange(DataSnapshot snapshot) {
+
+                Map<String, Object> data = (Map<String,Object>) snapshot.getValue();
+
+                nickname.setText(data.get("nickname").toString());
+                email.setText(data.get("email").toString());
+                ownNumber.setText(data.get("ownCauses").toString());
+                supportedNumber.setText(data.get("supportedCauses").toString());
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w(LOG, "Failed to read value.", error.toException());
+            public void onCancelled(DatabaseError databaseError) {
+                //handle databaseError
             }
         });
-        nickname.setText(ref.getKey());
-
-        ref = mDatabase.child("users").child(user.getUid()).child("ProfileSettings").child("email");
-        email.setText(ref.getKey());
-
-        ref = mDatabase.child("users").child(user.getUid()).child("MyCauses").child("number");
-        ownNumber.setText(ref.getKey());
-
-        ref = mDatabase.child("users").child(user.getUid()).child("SupportedCauses").child("number");
-        supportedNumber.setText(ref.getKey());
     }
+
 }
