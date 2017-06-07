@@ -1,4 +1,4 @@
-package com.community.community;
+package com.community.community.GMaps;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.community.community.BeforeLogin.LoginActivity;
+import com.community.community.R;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class SubmitCauseActivity extends AppCompatActivity implements View.OnClickListener {

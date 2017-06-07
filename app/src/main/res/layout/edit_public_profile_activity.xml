@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.community.community.PublicProfile.EditPublicProfileActivity"
+    android:orientation="vertical"
+    android:background="@color/blue4"
+    android:padding="10dp">
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="15dp"
+        android:id="@+id/linearLayout1"
+        >
+
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_image"
+            android:layout_width="116dp"
+            android:layout_height="116dp"
+            android:src="@drawable/profile"
+            app:civ_border_width="2dp"
+            app:civ_border_color="@color/blue2"
+            android:layout_weight="1.0"
+            />
+
+        <ImageView
+            android:layout_height="48dp"
+            android:layout_width="0dp"
+            android:src="@drawable/arrow_change_icon"
+            android:layout_weight="1.0"
+            />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/change_profile_image"
+            android:layout_height="116dp"
+            android:layout_width="116dp"
+            android:src="@drawable/change_profile_image"
+            app:civ_border_width="2dp"
+            app:civ_border_color="@color/blue2"
+            android:layout_weight="1.0"
+            />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/linearLayout1"
+        android:id="@+id/scrollView">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:orientation="vertical"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/editNickname"
+                android:textColor="@color/blue2"
+                android:layout_marginBottom="2dp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/blue2"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textCursorDrawable="@null"
+                android:textColor="@color/blue5"
+                android:id="@+id/edit_nickname"
+                android:hint="@string/nickname"
+                android:background="@drawable/edittext_login_form"
+                android:layout_marginBottom="10dp"
+                android:maxLines="1"
+                />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/editDescribe"
+                android:textColor="@color/blue2"
+                android:layout_marginBottom="2dp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/blue2"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/edit_describe"
+                android:hint="@string/describe"
+                android:textCursorDrawable="@null"
+                android:background="@drawable/edittext_login_form"
+                android:textColor="@color/blue5"
+                android:minLines="4"
+                android:maxLines="4"
+                android:layout_marginBottom="10dp"
+                />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/editAge"
+                android:textColor="@color/blue2"
+                android:layout_marginBottom="2dp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/blue2"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/edit_age"
+                    android:textSize="20sp"
+                    android:textColor="@color/white"
+                    android:paddingLeft="5dp"
+                    android:paddingRight="5dp"
+                    />
+
+                <SeekBar
+                    android:id="@+id/seek_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:max="90"
+                    />
+
+
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/editAddress"
+                android:textColor="@color/blue2"
+                android:layout_marginBottom="2dp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/blue2"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/edit_address"
+                android:hint="@string/address"
+                android:textCursorDrawable="@null"
+                android:background="@drawable/edittext_login_form"
+                android:textColor="@color/blue5"
+                android:minLines="2"
+                android:maxLines="2"
+                android:layout_marginBottom="10dp"
+                />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_below="@id/scrollView">
+
+        <Button
+            android:id="@+id/submit_changes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save"
+            android:background="@drawable/edittext_login_form_green"
+            android:scaleType="fitXY"
+            android:textColor="@color/white"/>
+        <Button
+            android:id="@+id/cancel_changes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:layout_marginLeft="50dp"
+            android:background="@drawable/edittext_login_form_red"
+            android:textColor="@color/white"
+            />
+
+    </LinearLayout>
+
+</RelativeLayout>

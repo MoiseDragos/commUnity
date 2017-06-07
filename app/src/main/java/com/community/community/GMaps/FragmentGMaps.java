@@ -152,7 +152,7 @@ public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
                         .title(entry.getKey()));
             }
         }
-
+        //TODO: ProgressBar pana termina de adaugat toate obiectivele!
     }
 
 

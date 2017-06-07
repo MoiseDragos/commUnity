@@ -167,6 +167,10 @@
 
     </RelativeLayout>
 
+    <ImageView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/downloaded_ImageView"/>
 
     <android.support.design.widget.NavigationView
         android:id="@+id/navigation_view"

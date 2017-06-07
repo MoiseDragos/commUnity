@@ -40,7 +40,18 @@ dependencies {
 
     // Circle imageview
     compile 'de.hdodenhof:circleimageview:2.1.0'
-//    compile 'jp.wasabeef:blurry:2.1.1'
+
+    // Blur TODO: remove?
+    compile 'jp.wasabeef:blurry:2.1.1'
+
+    // Download Image from Firebase
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+
+    // Justify TODO: remove?
+    compile 'com.github.bluejamesbond:textjustify-android:2.1.6'
+
+    // Percent
+    compile 'com.android.support:percent:25.2.0'
 
     // Settings
     compile 'com.android.support:support-v4:25.2.0'

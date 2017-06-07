@@ -1,48 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.community.community.PublicProfileActivity">
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:background="@color/blue4"
+    tools:context="com.community.community.PublicProfile.PublicProfileActivity">
 
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:background="@color/blue4"
-        android:weightSum="10">
+    <android.support.percent.PercentRelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
 
         <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="4"
+            android:layout_width="fill_parent"
+            app:layout_heightPercent="20%"
             android:id="@+id/blur_profile_image"
-            android:scaleType="fitXY"/>
-            <!--android:src="@drawable/profile"-->
+            android:scaleType="fitXY"
+            />
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/profile_image"
-            android:layout_marginTop="-58dp"
-            android:layout_width="116dp"
-            android:layout_height="116dp"
-            android:layout_gravity="center"
-            app:civ_border_width="2dp"
-            app:civ_border_color="@color/white"/>
-        <!--android:src="@drawable/profile"-->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:paddingBottom="59dp">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/profile_image"
+                android:layout_width="116dp"
+                android:layout_height="116dp"
+                app:civ_border_width="2dp"
+                app:civ_border_color="@color/blue2"
+                android:src="@drawable/profile"/>
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:paddingBottom="59dp"
+            android:paddingRight="20dp">
+
+            <ImageButton
+                android:layout_gravity="right"
+                android:id="@+id/edit_btn"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@mipmap/ic_mode_edit_black_48dp"
+                android:background="@drawable/edittext_login_form"
+                android:visibility="gone"/>
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            app:layout_heightPercent="20%"
+            android:id="@+id/linearLayout1"
+            android:layout_below="@id/blur_profile_image"
+            android:orientation="vertical">
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/userNickname"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_below="@id/blur_profile_image"
+            android:layout_marginTop="62dp"
             android:textSize="20sp"
             android:textCursorDrawable="@null"
             android:background="@null"
@@ -53,8 +78,7 @@
             android:id="@+id/userEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:layout_marginBottom="20dp"
+            android:layout_below="@id/userNickname"
             android:textCursorDrawable="@null"
             android:background="@null"
             android:textColor="@color/blue2"
@@ -62,66 +86,224 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
+            app:layout_heightPercent="10%"
+            android:layout_below="@id/linearLayout1"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:background="@color/blue5">
 
-            <LinearLayout
+            <android.support.percent.PercentRelativeLayout
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:orientation="vertical" >
 
                 <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    app:layout_heightPercent="35%"
                     android:text="@string/added_objectives"
                     android:gravity="center"
                     android:textSize="15sp"
-                    android:textColor="@color/blue2"/>
+                    android:textColor="@color/blue2"
+                    android:id="@+id/textView1"/>
                 <TextView
                     android:id="@+id/own_number"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_below="@id/textView1"
+                    app:layout_heightPercent="65%"
                     android:layout_marginTop="3dp"
                     android:textSize="25sp"
                     android:textColor="@color/white"
                     android:gravity="center"/>
-            </LinearLayout>
+
+            </android.support.percent.PercentRelativeLayout>
 
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
                 android:background="@color/blue2" />
 
-            <LinearLayout
+            <android.support.percent.PercentRelativeLayout
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:orientation="vertical" >
 
                 <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    app:layout_heightPercent="35%"
                     android:text="@string/supported_objectives"
                     android:gravity="center"
                     android:textSize="15sp"
-                    android:textColor="@color/blue2"/>
+                    android:textColor="@color/blue2"
+                    android:id="@+id/textView2"/>
 
                 <TextView
                     android:id="@+id/supported_number"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_below="@id/textView2"
+                    app:layout_heightPercent="65%"
                     android:layout_marginTop="3dp"
                     android:textSize="25sp"
                     android:textColor="@color/white"
                     android:gravity="center"/>
 
-            </LinearLayout>
+            </android.support.percent.PercentRelativeLayout>
 
         </LinearLayout>
 
+    </android.support.percent.PercentRelativeLayout>
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        >
+        <android.support.percent.PercentRelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <android.support.percent.PercentRelativeLayout
+                android:id="@+id/relative_layout_1"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="5dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingBottom="10dp">
+                <View
+                    android:id="@+id/view1"
+                    app:layout_widthPercent="35%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:textSize="18sp"
+                    android:textColor="@color/blue2"
+                    android:text="@string/describe"
+                    android:id="@+id/textViewDes"/>
+
+                <View
+                    android:layout_alignParentRight="true"
+                    app:layout_widthPercent="35%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <!--TODO: Instabil la ultima linie + height ar trebui wrap-->
+                <com.bluejamesbond.text.DocumentView
+                    android:id="@+id/describe_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    xmlns:ext="http://schemas.android.com/apk/res-auto"
+                    ext:documentView_insetPaddingLeft="10dp"
+                    ext:documentView_insetPaddingRight="10dp"
+                    ext:documentView_textAlignment="justified"
+                    ext:documentView_textColor="@color/white"
+                    ext:documentView_textSize="14sp"
+                    android:layout_below="@id/view1"
+                    android:layout_marginTop="14dp"
+                    />
+                <!--android:layout_marginBottom="10dp"-->
+                <!--android:paddingLeft="10dp"-->
+                <!--android:paddingRight="10dp"-->
+                <!--android:textSize="14sp"-->
+                <!--android:textColor="@color/white"-->
+
+            </android.support.percent.PercentRelativeLayout>
+
+            <android.support.percent.PercentRelativeLayout
+                android:id="@+id/relative_layout_2"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="5dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingBottom="10dp"
+                android:layout_below="@id/relative_layout_1"
+                >
+                <View
+                    android:id="@+id/view3"
+                    app:layout_widthPercent="35%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:textSize="18sp"
+                    android:textColor="@color/blue2"
+                    android:text="@string/address"/>
+
+                <View
+                    android:layout_alignParentRight="true"
+                    app:layout_widthPercent="35%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <!--TODO: Instabil la ultima linie + height ar trebui wrap-->
+                <com.bluejamesbond.text.DocumentView
+                    android:id="@+id/address_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    xmlns:ext="http://schemas.android.com/apk/res-auto"
+                    ext:documentView_insetPaddingLeft="10dp"
+                    ext:documentView_insetPaddingRight="10dp"
+                    ext:documentView_textAlignment="justified"
+                    ext:documentView_textColor="@color/white"
+                    ext:documentView_textSize="14sp"
+                    android:layout_marginTop="14dp"
+                    android:layout_below="@id/view3"
+                    />
+                <!--android:layout_marginBottom="10dp"-->
+                <!--android:paddingLeft="10dp"-->
+                <!--android:paddingRight="10dp"-->
+                <!--android:textSize="14sp"-->
+                <!--android:textColor="@color/white"-->
+            </android.support.percent.PercentRelativeLayout>
+
+
+        </android.support.percent.PercentRelativeLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        app:layout_heightPercent="80%">
+        <!--android:background="#00ffffff"-->
+        <Button
+            android:id="@+id/submit_marker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="30dp"
+            android:text="@string/save"
+            android:background="@drawable/edittext_login_form_green"
+            android:scaleType="fitXY"
+            android:textColor="@color/white"/>
+        <Button
+            android:id="@+id/cancel_marker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="30dp"
+            android:text="@string/cancel"
+            android:background="@drawable/edittext_login_form_red"
+            android:scaleType="fitXY"
+            android:textColor="@color/white"
+            />
 
     </LinearLayout>
-</android.support.constraint.ConstraintLayout>
+
+
+
+
+</LinearLayout>

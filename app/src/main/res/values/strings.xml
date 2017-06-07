@@ -98,5 +98,11 @@
     <string name="objectiv_details">Informații obiectiv</string>
     <string name="added_objectives">Obiective adăugate</string>
     <string name="supported_objectives">Obiective susținute</string>
+    <string name="editNickname">NICKNAME</string>
+    <string name="editDescribe">DESCRIERE</string>
+    <string name="editGender">GEN</string>
+    <string name="editAge">VÂRSTĂ</string>
+    <string name="editAddress">ADRESA</string>
+    <string name="address">Adresa</string>
 
 </resources>
