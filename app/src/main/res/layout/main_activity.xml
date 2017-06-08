@@ -115,6 +115,14 @@
             android:layout_below="@id/linear"
             />
 
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@android:style/Widget.ProgressBar.Small"
+            android:layout_marginRight="5dp"
+            android:id="@+id/progress_bar"
+            android:visibility="gone"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -166,11 +174,6 @@
             android:layout_alignParentRight="true"/>
 
     </RelativeLayout>
-
-    <ImageView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:id="@+id/downloaded_ImageView"/>
 
     <android.support.design.widget.NavigationView
         android:id="@+id/navigation_view"

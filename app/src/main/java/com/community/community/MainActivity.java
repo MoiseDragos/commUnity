@@ -1,18 +1,15 @@
 package com.community.community;
 
-import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
-import android.os.Build;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,29 +20,24 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.community.community.BeforeLogin.LoginActivity;
 import com.community.community.GMaps.FragmentGMaps;
 import com.community.community.GMaps.SubmitCauseActivity;
 import com.community.community.General.User;
 import com.community.community.PublicProfile.PublicProfileActivity;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FileDownloadTask;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -59,26 +51,16 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     private String LOG = this.getClass().getSimpleName();
 
     /* Fragments */
-    private FragmentManager fragmentManager = null;
     private FragmentGMaps mapFragment = null;
 
     /* Firebase */
     private FirebaseAuth mAuth = null;
-    private FirebaseAuth.AuthStateListener mAuthListener = null;
     private DatabaseReference mDatabase = null;
-    public static final String FB_STORAGE_PATH = "images/";
 
     /* NavigationView */
     private DrawerLayout mDrawerLayout = null;
     private NavigationView mNavigationView = null;
-    private ImageButton navBtn = null;
-    private TextView mEmail = null;
     private CircleImageView mNavViewImage = null;
-
-    /* Google Maps */
-    private ImageButton addBtn = null;
-    private ImageButton searchBtn = null;
-    private EditText searchEditText = null;
 
     /* Submit Buttons*/
     private Button saveBtn = null;
@@ -87,8 +69,9 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     /* User */
     private User userPublicProfile = null;
 
-    /* Registred */
-    private boolean isRegistred = false;
+    /* Booleans */
+    private boolean isRegistered = false;
+    private boolean localIcon = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,11 +80,11 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
          /* Firebase */
         mAuth = FirebaseAuth.getInstance();
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
+        FirebaseAuth.AuthStateListener mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
 
-                if(firebaseAuth.getCurrentUser() != null){
+                if (firebaseAuth.getCurrentUser() != null) {
 
                     finish();
                     startActivity(new Intent(getApplicationContext(), LoginActivity.class));
@@ -117,38 +100,21 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         userPublicProfile = new User();
         userPublicProfile.setUid(mAuth.getCurrentUser().getUid());
 
-        /* Add new user in Firebase */
-        Bundle extras = getIntent().getExtras();
-        if(extras != null) {
-            if(!isRegistred) {
-                isRegistred = true;
-                Boolean res = extras.getBoolean("isRegistred");
-                Log.d(LOG, "Res: " + res.toString());
-                if(res) {
-                    writeNewUser();
-                } else {
-                    userPublicProfile.updateFirebaseUserProfile();
-                }
-            } else {
-                Log.d(LOG, "Nu am ce cauta aici! isRegistred == true");
-            }
-        } else {
-            Log.d(LOG, "Nu am ce cauta aici! extras == null");
-        }
+        verifyUserState();
 
         /* Fragments */
-        fragmentManager = getFragmentManager();
+//        fragmentManager = getFragmentManager();
         mapFragment = (FragmentGMaps) getSupportFragmentManager().findFragmentById(R.id.map);
 
         /* Google Maps */
-        addBtn = (ImageButton)findViewById(R.id.add_marker);
+        ImageButton addBtn = (ImageButton) findViewById(R.id.add_marker);
         addBtn.setOnClickListener(callImageButtonClickListener);
 
-        searchBtn = (ImageButton)findViewById(R.id.search_marker);
+        ImageButton searchBtn = (ImageButton) findViewById(R.id.search_marker);
         searchBtn.setOnClickListener(callImageButtonClickListener);
 
         /* NavigationView */
-        navBtn = (ImageButton)findViewById(R.id.edit_profile);
+        ImageButton navBtn = (ImageButton) findViewById(R.id.edit_profile);
         navBtn.setOnClickListener(callImageButtonClickListener);
 
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawerLayout);
@@ -160,6 +126,21 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         cancelBtn = (Button)findViewById(R.id.cancel_marker);
         cancelBtn.setOnClickListener(callImageButtonClickListener);
 
+        mNavigationViewListener();
+
+        /* NavigationView Default */
+        mNavViewImage = (CircleImageView) mNavigationView.getHeaderView(0).findViewById(R.id.profile_image);
+
+        Bitmap icon = getLocalIcon();
+        if(localIcon) {
+            mNavViewImage.setImageBitmap(icon);
+        }
+
+        TextView mEmail = (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.userEmail);
+        mEmail.setText(mAuth.getCurrentUser().getEmail());
+    }
+
+    private void mNavigationViewListener() {
         mNavigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
@@ -183,18 +164,28 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                         return true;
                     }
                 });
-
-        /* NavigationView Default */
-        mNavViewImage = (CircleImageView) mNavigationView.getHeaderView(0).findViewById(R.id.profile_image);
-        Bitmap icon = getIcon();
-        mNavViewImage.setImageBitmap(icon);
-
-        mEmail = (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.userEmail);
-        mEmail.setText(mAuth.getCurrentUser().getEmail());
     }
 
-    // TODO: Remove hack!
-//    private boolean imageIconBool = true;
+    private void verifyUserState() {
+        Bundle extras = getIntent().getExtras();
+        if(extras != null) {
+            if(!isRegistered) {
+                isRegistered = true;
+                Boolean res = extras.getBoolean("isRegistred");
+                Log.d(LOG, "Res: " + res.toString());
+                if(res) {
+                    /* Add new user in Firebase */
+                    writeNewUser();
+                } else {
+                    userPublicProfile.updateFirebaseUserProfile();
+                }
+            } else {
+                Log.d(LOG, "Nu am ce cauta aici! isRegistred == true");
+            }
+        } else {
+            Log.d(LOG, "Nu am ce cauta aici! extras == null");
+        }
+    }
 
     private CallImageButtonClickListener callImageButtonClickListener = new CallImageButtonClickListener();
     public class CallImageButtonClickListener implements View.OnClickListener {
@@ -204,12 +195,13 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
             switch (view.getId()) {
 
                 case R.id.edit_profile:
-                    mDrawerLayout.openDrawer(Gravity.START);
-//                    if(imageIconBool) {
-//                        imageIconBool = false;
-//                        Bitmap icon = getIcon();
-//                        mNavViewImage.setImageBitmap(icon);
-//                    }
+                    if(!localIcon) {
+                        Log.d(LOG, "No localIcon!");
+                        setIcon();
+                    } else {
+                        mDrawerLayout.openDrawer(Gravity.START);
+                    }
+
                     break;
                 case R.id.search_marker:
                     onButtonPressed(1);
@@ -233,22 +225,6 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
             }
         }
     }
-//
-//    private void checkPermission() {
-//        if (ContextCompat.checkSelfPermission(this,
-//                android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-//                != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this,
-//                android.Manifest.permission.READ_EXTERNAL_STORAGE)
-//                != PackageManager.PERMISSION_GRANTED) {
-//
-//            ActivityCompat.requestPermissions(this,
-//                    new String[]{
-//                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-//                            android.Manifest.permission.READ_EXTERNAL_STORAGE},
-//                    123);
-//
-//        }
-//    }
 
     //TODO: another way
     private String causeName = null;
@@ -271,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                 if (data.getBooleanExtra("changed", ok)) {
                     Log.d(LOG, "Am lucruri de schimbat!");
                     userPublicProfile.updateLocalUserProfile((User) data.getSerializableExtra("userDetails"));
-                    Bitmap icon = getIcon();
+                    Bitmap icon = getLocalIcon();
                     mNavViewImage.setImageBitmap(icon);
                 } else {
                     Log.d(LOG, "Nu am lucruri de schimbat!");
@@ -323,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     }
 
     public LatLng onSearch() {
-        searchEditText = (EditText) findViewById(R.id.search);
+        EditText searchEditText = (EditText) findViewById(R.id.search);
         String location = searchEditText.getText().toString();
 
         List<Address> addList = null;
@@ -379,97 +355,83 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 //        imageView.setImageResource(resourceImage);
     }
 
-    public Bitmap getIcon() {
+    public Bitmap getLocalIcon() {
         Bitmap icon = null;
 
         try {
             /* The image was saved locally */
             icon = BitmapFactory.decodeStream(MainActivity.this
                     .openFileInput("myImage_" + mAuth.getCurrentUser().getEmail()));
+            Log.d(LOG, "Local image!");
+            localIcon = true;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            icon = BitmapFactory.decodeResource(getApplicationContext().getResources(),
-                    R.drawable.profile);
         }
 
         return icon;
     }
 
-    //TODO: from storage
-    public Bitmap getIcon2() {
-        Bitmap icon = null;
+    public void setIcon() {
 
-        boolean ok = true;
-        try {
-            /* The image was saved locally */
-            icon = BitmapFactory.decodeStream(MainActivity.this
-                    .openFileInput("myImage_" + mAuth.getCurrentUser().getEmail()));
-            ok = false;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            Log.d(LOG, "Nu am imaginea local!");
-        }
+        Log.d(LOG, "userPublicProfile.getImageURL(): " + userPublicProfile.getImageURL());
 
-        if(ok && userPublicProfile.getImageURL() != null){
+        if(userPublicProfile.getImageURL() != null){
             Log.d(LOG, "Caut imaginea pe Firebase!");
             /* Download Image */
-            icon = downloadImage();
-            if(icon != null){
-                mNavViewImage.setImageBitmap(icon);
-                Log.d(LOG, "Am gasit imaginea!");
-                ok = false;
-                /* Save image locally */
-                //TODO: Async
-                createImageFromBitmap(icon);
-                Log.d(LOG, "Am salvat local imaginea!");
-            }
+            downloadImage();
+        } else {
+            Log.d(LOG, "Default!");
+            mNavViewImage.setImageBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(),
+                    R.drawable.profile));
         }
-
-        if(ok) {
-            icon = BitmapFactory.decodeResource(getApplicationContext().getResources(),
-                    R.drawable.profile);
-        }
-
-        return icon;
     }
 
-    private Bitmap downloadImage() {
-//        StorageReference ref = FirebaseStorage.getInstance().getReference().child(FB_STORAGE_PATH +
-//                userPublicProfile.getUid() + "/" + userPublicProfile.getImageName());
+    private void downloadImage() {
 
-        ImageView downloadedImageView = (ImageView)findViewById(R.id.downloaded_ImageView);
-        downloadedImageView.setVisibility(View.GONE);
-        Glide.with(getApplicationContext())
+        Log.d(LOG, "downloadingImage...");
+
+        final ProgressDialog dialog = new ProgressDialog(this);
+        dialog.setTitle("Downloading profile image...");
+        dialog.show();
+
+        Glide
+                .with(this)
                 .load(userPublicProfile.getImageURL())
-                .into(downloadedImageView);
-
-        downloadedImageView.buildDrawingCache();
-
-        return downloadedImageView.getDrawingCache();
+                .asBitmap()
+                .into(new SimpleTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
+                        mNavViewImage.setImageBitmap(resource);
+                        dialog.dismiss();
+                        new saveImageLocal().execute(resource);
+                        mDrawerLayout.openDrawer(Gravity.START);
+                    }
+                });
     }
 
-    public String createImageFromBitmap(Bitmap bitmap) {
+    private class saveImageLocal extends AsyncTask<Bitmap, Void, Bitmap> {
 
-//        if(Build.VERSION.SDK_INT > 22){
+        @Override
+        protected Bitmap doInBackground(Bitmap... params) {
+            //        if(Build.VERSION.SDK_INT > 22){
 //            checkPermission();
 //        }
+            String fileName = "myImage_" + userPublicProfile.getEmail();//no .png or .jpg needed
 
-        String fileName = "myImage_" + userPublicProfile.getEmail();//no .png or .jpg needed
+            try {
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                params[0].compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                FileOutputStream fo = openFileOutput(fileName, Context.MODE_PRIVATE);
+                fo.write(bytes.toByteArray());
+                fo.close();
+                localIcon = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                fileName = null;
+                Log.d(LOG, "--------Nu pot scrie!----------");
+            }
 
-        try {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-//            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 1, bytes);
-            FileOutputStream fo = openFileOutput(fileName, Context.MODE_PRIVATE);
-            fo.write(bytes.toByteArray());
-            fo.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            fileName = null;
-            Log.d(LOG, "--------Nu pot scrie!----------");
+            return null;
         }
-        Log.d(LOG, "Filename: " + fileName);
-        return fileName;
     }
-
 }
