@@ -1,100 +1,218 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<android.support.percent.PercentRelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context="com.community.community.GMaps.SubmitCauseActivity"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/blue5"
-        android:weightSum="10">
+        android:background="@color/blue5">
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="2"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:textSize="30sp"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            android:text="@string/objectiv_details"/>
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        app:layout_heightPercent="18%"
+        android:gravity="center"
+        android:textSize="30sp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:text="@string/objectiv_details"/>
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1.3"/>
-
-        <EditText
-            android:id="@+id/causes_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
-            android:layout_marginLeft="38dp"
-            android:layout_marginRight="38dp"
-            android:background="@drawable/edittext_login_form"
-            android:fontFamily="sans-serif"
-            android:hint="@string/causesName"
-            android:textColorHint="@color/blue2"
-            android:textCursorDrawable="@null" />
-
-        <EditText
-            android:id="@+id/describe_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="38dp"
-            android:layout_marginRight="38dp"
-            android:background="@drawable/edittext_login_form"
-            android:fontFamily="sans-serif"
-            android:hint="@string/describe"
-            android:textColorHint="@color/blue2"
-            android:textCursorDrawable="@null"
-            android:minLines="4"
-            android:maxLines="4"/>
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1.7"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/textView">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
+            android:orientation="vertical"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp">
 
-            <Button
-                android:id="@+id/submit_cause"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="32dp"
-                android:layout_marginTop="30dp"
-                android:layout_marginRight="32dp"
-                android:textColor="@color/white"
-                android:background="@drawable/button_login_form"
-                android:text="@string/save"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/causesName"
+                android:textColor="@color/blue2"
+                android:layout_marginBottom="2dp"
+                android:paddingLeft="15dp"
+                android:textSize="18sp"
+                />
 
-            <Button
-                android:id="@+id/cancel_cause"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="32dp"
-                android:layout_marginTop="30dp"
-                android:layout_marginRight="32dp"
-                android:textColor="@color/white"
-                android:background="@drawable/button_login_form"
-                android:text="@string/cancel"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/blue2"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
+                android:id="@+id/causes_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_marginBottom="15dp"
+                android:background="@drawable/edittext_login_form"
+                android:fontFamily="sans-serif"
+                android:hint="@string/causesName"
+                android:textColorHint="@color/blue2"
+                android:textCursorDrawable="@null"
+                android:minLines="1"
+                android:maxLines="1"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/describe"
+                android:textColor="@color/blue2"
+                android:paddingLeft="15dp"
+                android:layout_marginBottom="2dp"
+                android:textSize="18sp"
+                />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/blue2"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
+                android:id="@+id/describe_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+
+                android:layout_marginBottom="15dp"
+                android:background="@drawable/edittext_login_form"
+                android:fontFamily="sans-serif"
+                android:hint="@string/describe"
+                android:textColorHint="@color/blue2"
+                android:textCursorDrawable="@null"
+                android:minLines="4"
+                android:maxLines="4"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/profile_image"
+                android:textColor="@color/blue2"
+                android:paddingLeft="15dp"
+                android:layout_marginBottom="2dp"
+                android:textSize="18sp"
+                />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/blue2"
+                android:layout_marginBottom="8dp"/>
+
+            <android.support.percent.PercentRelativeLayout
+                android:id="@+id/relative_layout_pic1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="10sp">
+
+                <ImageButton
+                    android:id="@+id/profile_image"
+                    app:layout_aspectRatio="150%"
+                    app:layout_widthPercent="84%"
+                    android:src="@drawable/add_icon"
+                    app:layout_marginLeftPercent="8%"
+                    app:layout_marginRightPercent="8%"
+                    android:scaleType="fitCenter"
+                    android:background="@android:color/transparent"
+                    />
+
+            </android.support.percent.PercentRelativeLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/other_images"
+                android:textColor="@color/blue2"
+                android:paddingLeft="15dp"
+                android:layout_marginBottom="2dp"
+                android:textSize="18sp"
+                />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/blue2"
+                android:layout_marginBottom="8dp"/>
+
+            <android.support.percent.PercentRelativeLayout
+                android:id="@+id/relative_layout_pic2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="10sp"
+                android:layout_marginBottom="15dp">
+
+                <ImageButton
+                    android:id="@+id/pic21"
+                    app:layout_aspectRatio="150%"
+                    app:layout_widthPercent="45%"
+                    app:layout_marginLeftPercent="3%"
+                    app:layout_marginRightPercent="4%"
+                    android:src="@drawable/add_icon"
+                    android:scaleType="fitCenter"
+                    android:background="@android:color/transparent"
+                    />
+
+                <ImageButton
+                    android:id="@+id/pic22"
+                    app:layout_aspectRatio="150%"
+                    app:layout_widthPercent="45%"
+                    app:layout_marginLeftPercent="52%"
+                    app:layout_marginRightPercent="3%"
+                    android:src="@drawable/add_icon"
+                    android:scaleType="fitCenter"
+                    android:background="@android:color/transparent"
+                    />
+
+            </android.support.percent.PercentRelativeLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/submit_cause"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginLeft="32dp"
+                    android:layout_marginTop="30dp"
+                    android:layout_marginRight="32dp"
+                    android:textColor="@color/white"
+                    android:background="@drawable/edittext_login_form_green"
+                    android:text="@string/save"/>
+
+                <Button
+                    android:id="@+id/cancel_cause"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginLeft="32dp"
+                    android:layout_marginTop="30dp"
+                    android:layout_marginRight="32dp"
+                    android:textColor="@color/white"
+                    android:background="@drawable/edittext_login_form_red"
+                    android:text="@string/cancel"/>
 
 
+            </LinearLayout>
         </LinearLayout>
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="5"/>
+    </ScrollView>
 
-    </LinearLayout>
+
+
+    </android.support.percent.PercentRelativeLayout>

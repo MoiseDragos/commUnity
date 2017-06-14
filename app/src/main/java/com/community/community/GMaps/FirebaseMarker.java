@@ -18,16 +18,26 @@ public class FirebaseMarker {
     private double longitude = Double.NaN;
     private Marker markerName = null;
 
-    public FirebaseMarker() { }
 
-    public FirebaseMarker(GoogleMap gMap, String email,double latitude, double longitude) {
+    public FirebaseMarker(String email, LatLng latLng, String name, String description){
+        this.name = name;
+        this.owner = email;
+        this.latitude = latLng.latitude;
+        this.longitude = latLng.longitude;
+        this.description = description;
+
+        if(markerName != null)
+            cancelMarker();
+    }
+
+    public FirebaseMarker(GoogleMap gMap, String email, double latitude, double longitude) {
         this.owner = email;
         this.latitude = latitude;
         this.longitude = longitude;
-        addMarker(gMap);
+        addDraftMarker(gMap);
     }
 
-    public void addMarker(final GoogleMap gMap){
+    public void addDraftMarker(final GoogleMap gMap){
 
         gMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
@@ -59,14 +69,6 @@ public class FirebaseMarker {
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.unsubmited_causes))
                 .draggable(true)
                 .title(owner));
-    }
-
-    public void submitMarker(String name, String description){
-        markerName.setDraggable(false);
-        markerName.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.my_causes));
-        markerName.setTitle(name);
-        this.name = name;
-        this.description = description;
     }
 
     public void cancelMarker(){

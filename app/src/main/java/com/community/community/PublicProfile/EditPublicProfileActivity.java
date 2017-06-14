@@ -217,7 +217,7 @@ public class EditPublicProfileActivity extends AppCompatActivity {
 
     private boolean updateUserDetails() {
 
-        String nick = verifyString(nickname.getText().toString(), 3, 28, 1);
+        String nick = verifyString(nickname.getText().toString(), 3, 24, 1);
         if(nick == null) {
             return false;
         }
@@ -350,6 +350,8 @@ public class EditPublicProfileActivity extends AppCompatActivity {
             }
         }
     }
+
+    // TODO: remove duplicate functions like getThumbnail, getPower...., createImageFro....
 
     public Bitmap getThumbnail(Uri uri) throws FileNotFoundException, IOException{
         Bitmap bitmap;

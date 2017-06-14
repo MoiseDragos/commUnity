@@ -104,5 +104,11 @@
     <string name="editAge">VÂRSTĂ</string>
     <string name="editAddress">ADRESA</string>
     <string name="address">Adresa</string>
+    <string name="added_by">adăugat de</string>
+    <string name="support">Susține</string>
+    <string name="images">Imagini</string>
+    <string name="no_support">Nu susțin</string>
+    <string name="profile_image">Imagine profil</string>
+    <string name="other_images">Alte imagini (opțional)</string>
 
 </resources>

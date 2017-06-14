@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -27,6 +28,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.community.community.BeforeLogin.LoginActivity;
+import com.community.community.GMaps.FirebaseImages;
 import com.community.community.GMaps.FragmentGMaps;
 import com.community.community.GMaps.SubmitCauseActivity;
 import com.community.community.General.User;
@@ -78,12 +80,16 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
+        //TODO: remove
+        Log.d(LOG, "======== onCreate");
+
          /* Firebase */
         mAuth = FirebaseAuth.getInstance();
         FirebaseAuth.AuthStateListener mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
 
+                Log.d(LOG, "MainActivity");
                 if (firebaseAuth.getCurrentUser() != null) {
 
                     finish();
@@ -95,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         };
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
-//        user = new User(mAuth.getCurrentUser().getEmail(), mAuth.getCurrentUser().getUid());
 
         userPublicProfile = new User();
         userPublicProfile.setUid(mAuth.getCurrentUser().getUid());
@@ -103,7 +108,6 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         verifyUserState();
 
         /* Fragments */
-//        fragmentManager = getFragmentManager();
         mapFragment = (FragmentGMaps) getSupportFragmentManager().findFragmentById(R.id.map);
 
         /* Google Maps */
@@ -195,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
             switch (view.getId()) {
 
                 case R.id.edit_profile:
+                    hideVirtualKeyboard();
                     if(!localIcon) {
                         Log.d(LOG, "No localIcon!");
                         setIcon();
@@ -207,13 +212,20 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     onButtonPressed(1);
                     break;
                 case R.id.add_marker:
+                    hideVirtualKeyboard();
                     setVisibility(View.VISIBLE);
                     onButtonPressed(2);
                     break;
                 case R.id.submit_marker:
+//                    Log.d(LOG, "Verify 1: " + mapFragment.verify());
                     setVisibility(View.GONE);
                     Intent i = new Intent(getApplicationContext(), SubmitCauseActivity.class);
+                    Bundle b = new Bundle();
+                    b.putDouble("lat", mapFragment.getCurrentPosition().latitude);
+                    b.putDouble("lng", mapFragment.getCurrentPosition().longitude);
+                    i.putExtras(b);
                     startActivityForResult(i, 1);
+//                    Log.d(LOG, "Verify 2: " + mapFragment.verify());
                     break;
                 case R.id.cancel_marker:
                     setVisibility(View.GONE);
@@ -226,19 +238,42 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         }
     }
 
+    public void hideVirtualKeyboard(){
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
     //TODO: another way
     private String causeName = null;
     private String causeDescription = null;
+    private Double lat = null;
+    private Double lng = null;
+    private FirebaseImages firebaseImages = null;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
-                causeName = data.getStringExtra("NameFiled");
-                causeDescription = data.getStringExtra("DescriptionFiled");;
-                onButtonPressed(4);
+                Log.d(LOG, "Am un obiectiv de salvat!");
+//                causeName = data.getStringExtra("NameFiled");
+//                causeDescription = data.getStringExtra("DescriptionFiled");
+                Bundle b = data.getExtras();
+                if(b != null) {
+                    causeName = b.getString("NameFiled");
+                    causeDescription = b.getString("DescriptionFiled");
+                    lat = b.getDouble("lat");
+                    lng = b.getDouble("lng");
+                    firebaseImages = (FirebaseImages) b.getSerializable("FirebaseImages");
+                    onButtonPressed(4);
+                } else {
+                    Toast.makeText(getApplication(), "Nu am putut salva informațiile", Toast.LENGTH_SHORT).show();
+                }
             } else {
+                Log.d(LOG, "Nu am niciun obiectiv de salvat!");
                 onButtonPressed(3);
             }
         } else if (requestCode == 2){
@@ -269,12 +304,17 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     mapFragment.onAdd();
                     break;
                 case 3:
-                    mapFragment.onCancel();
+                    mapFragment.cancelMarker();
                     break;
                 case 4:
                     int ownCausesNumber = userPublicProfile.getOwnCausesNumber();
                     userPublicProfile.setOwnCausesNumber(ownCausesNumber + 1);
-                    mapFragment.onSubmit(causeName, causeDescription, ownCausesNumber + 1);
+//                    Log.d(LOG, "Verify 5: " + mapFragment.verify());
+                    Log.d(LOG, "ownCausesNumber: " + String.valueOf(ownCausesNumber + 1));
+                    Log.d(LOG, "Lat: " + String.valueOf(lat));
+                    Log.d(LOG, "Lng: " + String.valueOf(lng));
+
+                    mapFragment.onSubmit(causeName, causeDescription, new LatLng(lat, lng), firebaseImages, ownCausesNumber + 1);
                     break;
                 default:
                     break;
@@ -383,6 +423,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
             Log.d(LOG, "Default!");
             mNavViewImage.setImageBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(),
                     R.drawable.profile));
+            mDrawerLayout.openDrawer(Gravity.START);
         }
     }
 
@@ -433,5 +474,37 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
             return null;
         }
+    }
+
+    //TODO: remove
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(LOG, "======== onPause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(LOG, "======== onStop");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(LOG, "======== onRestart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(LOG, "======== onResume");
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(LOG, "======== onStart");
     }
 }

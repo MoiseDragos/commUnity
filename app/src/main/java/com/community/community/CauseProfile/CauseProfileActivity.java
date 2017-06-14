@@ -1,4 +1,4 @@
-package com.community.community.PublicProfile;
+package com.community.community.CauseProfile;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.MediaStore;
 import android.renderscript.Allocation;
 import android.renderscript.Element;
@@ -15,7 +16,6 @@ import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import com.bluejamesbond.text.DocumentView;
 import com.community.community.General.User;
+import com.community.community.PublicProfile.EditPublicProfileActivity;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -43,29 +44,29 @@ import java.io.FileOutputStream;
 import de.hdodenhof.circleimageview.CircleImageView;
 import jp.wasabeef.blurry.Blurry;
 
-public class PublicProfileActivity extends AppCompatActivity {
+public class CauseProfileActivity extends AppCompatActivity {
 
     // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
-    public static final String FB_STORAGE_PATH = "images/users/";
+    public static final String FB_STORAGE_PATH = "images/";
 
     /* Profile details */
-    private android.support.percent.PercentRelativeLayout percentRelativeLayout1 = null;
-    private android.support.percent.PercentRelativeLayout percentRelativeLayout2 = null;
+    private android.support.percent.PercentRelativeLayout percentRelativeLayout3 = null;
+    private android.support.percent.PercentRelativeLayout percentRelativeLayout4 = null;
     private ImageView blurImage = null;
     private CircleImageView circleImage = null;
     private TextView nickname = null;
-    private TextView email = null;
-    private TextView ownNumber = null;
+    private TextView causes_name = null;
     private TextView supportedNumber = null;
     private DocumentView describe = null;
-    private DocumentView address = null;
     private ScrollView scrollView = null;
 
-    /* Submit Buttons*/
+    /* Buttons */
     private Button saveBtn = null;
     private Button cancelBtn = null;
+    private Button supportBtn = null;
+    private Button noMoreSupportBtn = null;
 
     /* User */
     private User userDetails = null;
@@ -79,31 +80,35 @@ public class PublicProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.public_profile_activity);
+        setContentView(R.layout.cause_profile_activity);
 
         /* Prepare to return to MainActivity */
         intent = new Intent();
         intent.putExtra("changed", confirmChanges);
         setResult(RESULT_OK, intent);
 
-        percentRelativeLayout1 = (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_1);
-        percentRelativeLayout2 = (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_2);
+        percentRelativeLayout3 = (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_3);
+        percentRelativeLayout4 = (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_4);
         blurImage = (ImageView) findViewById(R.id.blur_profile_image);
         circleImage = (CircleImageView) findViewById(R.id.profile_image);
         nickname = (TextView) findViewById(R.id.userNickname);
-        email = (TextView) findViewById(R.id.userEmail);
-        ownNumber = (TextView) findViewById(R.id.own_number);
+        causes_name = (TextView) findViewById(R.id.causes_name);
         supportedNumber = (TextView) findViewById(R.id.supported_number);
         describe = (DocumentView) findViewById(R.id.describe_view);
-        address = (DocumentView) findViewById(R.id.address_view);
         scrollView = (ScrollView) findViewById(R.id.scrollView);
 
-        /* Submit Button */
+        /* Submit Buttons */
         saveBtn = (Button)findViewById(R.id.submit_marker);
         saveBtn.setOnClickListener(callImageButtonClickListener);
         cancelBtn = (Button)findViewById(R.id.cancel_marker);
         cancelBtn.setOnClickListener(callImageButtonClickListener);
         setBtnVisibility(View.GONE);
+
+        /* Support Buttons */
+        supportBtn = (Button) findViewById(R.id.supportBtn);
+        supportBtn.setOnClickListener(callImageButtonClickListener);
+        noMoreSupportBtn = (Button) findViewById(R.id.noMoreSupportBtn);
+        noMoreSupportBtn.setOnClickListener(callImageButtonClickListener);
 
         /* Get data from MainActivity */
         userDetails = (User) getIntent().getSerializableExtra("userDetails");
@@ -127,18 +132,29 @@ public class PublicProfileActivity extends AppCompatActivity {
 
     }
 
-    private PublicProfileActivity.CallImageButtonClickListener callImageButtonClickListener = new PublicProfileActivity.CallImageButtonClickListener();
+    private CauseProfileActivity.CallImageButtonClickListener callImageButtonClickListener = new CauseProfileActivity.CallImageButtonClickListener();
     public class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
 
             switch (view.getId()) {
 
+                case R.id.supportBtn:
+                    supportBtn.setVisibility(View.GONE);
+                    noMoreSupportBtn.setVisibility(View.VISIBLE);
+                    break;
+
+                case R.id.noMoreSupportBtn:
+                    noMoreSupportBtn.setVisibility(View.GONE);
+                    supportBtn.setVisibility(View.VISIBLE);
+                    break;
+
                 case R.id.edit_btn:
                     Intent i = new Intent(getApplicationContext(), EditPublicProfileActivity.class);
                     i.putExtra("userDetails", userDetails);
                     startActivityForResult(i, 1);
                     break;
+
                 case R.id.submit_marker:
                     setBtnVisibility(View.GONE);
                     if(newPicture) {
@@ -152,10 +168,12 @@ public class PublicProfileActivity extends AppCompatActivity {
                         finish();
                     }
                     break;
+
                 case R.id.cancel_marker:
                     setBtnVisibility(View.GONE);
                     finish();
                     break;
+
                 default:
                     break;
             }
@@ -186,23 +204,15 @@ public class PublicProfileActivity extends AppCompatActivity {
     private void setProfileDetails() {
 
         nickname.setText(userDetails.getNickname());
-        email.setText(userDetails.getEmail());
-        ownNumber.setText(String.valueOf(userDetails.getOwnCausesNumber()));
         supportedNumber.setText(String.valueOf(userDetails.getSupportedCausesNumber()));
 
         if(userDetails.getDescribe() != null && !userDetails.getDescribe().equals("")){
             describe.setText(userDetails.getDescribe());
-            percentRelativeLayout1.setVisibility(View.VISIBLE);
+            percentRelativeLayout3.setVisibility(View.VISIBLE);
         } else {
-            percentRelativeLayout1.setVisibility(View.GONE);
+            percentRelativeLayout3.setVisibility(View.GONE);
         }
 
-        if(userDetails.getAddress() != null && !userDetails.getAddress().equals("")){
-            address.setText(userDetails.getAddress());
-            percentRelativeLayout2.setVisibility(View.VISIBLE);
-        } else {
-            percentRelativeLayout2.setVisibility(View.GONE);
-        }
     }
 
     private void updateLocalDetails(User editedUserDetails) {
@@ -224,7 +234,7 @@ public class PublicProfileActivity extends AppCompatActivity {
 
         if(!fromCreate) {
             try {
-                icon = BitmapFactory.decodeStream(PublicProfileActivity.this
+                icon = BitmapFactory.decodeStream(CauseProfileActivity.this
                         .openFileInput("draftImage_" + userDetails.getEmail()));
 //                Log.d(LOG, "New picture");
                 newPicture = true;
@@ -236,7 +246,7 @@ public class PublicProfileActivity extends AppCompatActivity {
 
         try {
             if(!newPicture) {
-                icon = BitmapFactory.decodeStream(PublicProfileActivity.this
+                icon = BitmapFactory.decodeStream(CauseProfileActivity.this
                         .openFileInput("myImage_" + userDetails.getEmail()));
 //                Log.d(LOG, "Old picture");
             }
@@ -292,16 +302,21 @@ public class PublicProfileActivity extends AppCompatActivity {
     }
 
     private void uploadImageToFirebase() {
-        //TODO: Cred ca uri-ul il puteam salva mai devreme, fara sa il reconstruim iar (ca la causes)
         Uri uri = getImageUri(getApplicationContext(), newPictureBitmap);
 
         if(uri != null){
-            uploadToFirebase(uri);
+            uploadToFirabase(uri);
         } else {
             Toast.makeText(getApplicationContext(), "No image to upload", Toast.LENGTH_SHORT).show();
         }
 
     }
+
+//    public String getImageExt(Uri uri){
+//        ContentResolver cR = getContentResolver();
+//        MimeTypeMap mTM = MimeTypeMap.getSingleton();
+//        return mTM.getExtensionFromMimeType(cR.getType(uri));
+//    }
 
     private void removeOldImageFromFirebase() {
         // Create a storage reference from our app
@@ -330,7 +345,7 @@ public class PublicProfileActivity extends AppCompatActivity {
     }
 
     @SuppressWarnings("VisibleForTests")
-    private void uploadToFirebase(final Uri uri) {
+    private void uploadToFirabase(final Uri uri) {
 
 
 //        uri.getLastPathSegment();
@@ -439,24 +454,3 @@ public class PublicProfileActivity extends AppCompatActivity {
         return bitmap;
     }
 }
-//        DatabaseReference dRef = FirebaseDatabase.getInstance().getReference().child("users")
-//                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-//                .child("ProfileSettings");
-//
-//        dRef.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot snapshot) {
-//
-//                Map<String, Object> data = (Map<String,Object>) snapshot.getValue();
-//
-//                nickname.setText(data.get("nickname").toString());
-//                email.setText(data.get("email").toString());
-//                ownNumber.setText(data.get("ownCauses").toString());
-//                supportedNumber.setText(data.get("supportedCauses").toString());
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//                //handle databaseError
-//            }
-//        });
