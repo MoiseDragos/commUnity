@@ -291,18 +291,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         return fileName;
     }
 
-    private void uploadImageToFirebase() {
-        //TODO: Cred ca uri-ul il puteam salva mai devreme, fara sa il reconstruim iar (ca la causes)
-        Uri uri = getImageUri(getApplicationContext(), newPictureBitmap);
-
-        if(uri != null){
-            uploadToFirebase(uri);
-        } else {
-            Toast.makeText(getApplicationContext(), "No image to upload", Toast.LENGTH_SHORT).show();
-        }
-
-    }
-
     private void removeOldImageFromFirebase() {
         // Create a storage reference from our app
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
@@ -329,18 +317,20 @@ public class PublicProfileActivity extends AppCompatActivity {
 
     }
 
+    private void uploadImageToFirebase() {
+        Uri uri = getCompressedImageUri(getApplicationContext(), newPictureBitmap);
+
+        if(uri != null){
+            uploadToFirebase(uri);
+        } else {
+            Toast.makeText(getApplicationContext(), "No image to upload", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
     @SuppressWarnings("VisibleForTests")
     private void uploadToFirebase(final Uri uri) {
 
-
-//        uri.getLastPathSegment();
-
-        // Create a storage reference from our app
-//        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-//        Log.d(LOG, "storageRef: " + storageRef.toString());
-
-//        final DatabaseReference mDatabaseRef = FirebaseDatabase.getInstance().getReference(FB_DATABASE_PATH);
-//
         final ProgressDialog dialog = new ProgressDialog(this);
         dialog.setTitle("Uploading image");
         dialog.show();
@@ -351,9 +341,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         Uri file = Uri.fromFile(new File(realPath));
         userDetails.setImageName(file.getLastPathSegment());
         Log.d(LOG, "Name: " + userDetails.getImageName());
-
-//        StorageReference ref = storageRef.child(FB_STORAGE_PATH +
-//                System.currentTimeMillis() + "." + getImageExt(uri));
 
         StorageReference ref = FirebaseStorage.getInstance().getReference().child(FB_STORAGE_PATH +
                 userDetails.getUid() + "/" + userDetails.getImageName());
@@ -373,11 +360,6 @@ public class PublicProfileActivity extends AppCompatActivity {
                     intent.putExtra("changed", confirmChanges);
                     intent.putExtra("userDetails", userDetails);
                     finish();
-
-    //                // Save image info in o firebase database
-    //                String uploadID = mDatabaseRef.push().getKey();
-    //                // TODO: imageUpload <- taskSnapshot.getDownloadUrl().toString()
-    //                mDatabaseRef.child(uploadID).setValue(taskSnapshot.getDownloadUrl().toString());
                 }
             })
             .addOnFailureListener(new OnFailureListener() {
@@ -401,23 +383,25 @@ public class PublicProfileActivity extends AppCompatActivity {
 //                });
     }
 
-    public Uri getImageUri(Context inContext, Bitmap inImage) {
+    public Uri getCompressedImageUri(Context inContext, Bitmap inImage) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        inImage.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
         String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
         return Uri.parse(path);
     }
 
     public  String getRealPath(Uri uri){
-        String realPath = null;
+        String realPath;
 
         String[] filePathColumn = {MediaStore.Images.Media.DATA};
         Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
-        if(cursor.moveToFirst()){
+        if(cursor != null && cursor.moveToFirst()){
             int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
             realPath = cursor.getString(columnIndex);
+            cursor.close();
+        } else {
+            realPath = uri.getPath();
         }
-        cursor.close();
         return realPath;
     }
 

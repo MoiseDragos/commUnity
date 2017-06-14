@@ -77,10 +77,6 @@ public class FragmentGMaps extends Fragment implements OnMapReadyCallback {
     public void onStart() {
         super.onStart();
         Log.d(LOG, "onStart");
-
-        if(mGoogleMap == null){
-            //TODO: !!!
-        }
     }
 
     @Override

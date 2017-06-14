@@ -6,12 +6,15 @@ import java.io.Serializable;
 public class FirebaseImages implements Serializable {
 
     private String profileImageName;
+    private String profileThumbnailURL;
     private String profileImageURL;
 
     private String optionalImageName1;
+    private String optionalThumbnailURL1;
     private String optionalImageURL1;
 
     private String optionalImageName2;
+    private String optionalThumbnailURL2;
     private String optionalImageURL2;
 
 
@@ -61,5 +64,29 @@ public class FirebaseImages implements Serializable {
 
     public void setOptionalImageURL2(String optionalImageURL2) {
         this.optionalImageURL2 = optionalImageURL2;
+    }
+
+    public String getProfileThumbnailURL() {
+        return profileThumbnailURL;
+    }
+
+    public void setProfileThumbnailURL(String profileThumbnailURL) {
+        this.profileThumbnailURL = profileThumbnailURL;
+    }
+
+    public String getOptionalThumbnailURL1() {
+        return optionalThumbnailURL1;
+    }
+
+    public void setOptionalThumbnailURL1(String optionalThumbnailURL1) {
+        this.optionalThumbnailURL1 = optionalThumbnailURL1;
+    }
+
+    public String getOptionalThumbnailURL2() {
+        return optionalThumbnailURL2;
+    }
+
+    public void setOptionalThumbnailURL2(String optionalThumbnailURL2) {
+        this.optionalThumbnailURL2 = optionalThumbnailURL2;
     }
 }
