@@ -17,6 +17,12 @@ public class FirebaseImages implements Serializable {
     private String optionalThumbnailURL2;
     private String optionalImageURL2;
 
+    public FirebaseImages(){}
+
+    public FirebaseImages(String profileImageName, String profileImageURL){
+        this.profileImageName = profileImageName;
+        this.profileImageURL = profileImageURL;
+    }
 
     public String getProfileImageName() {
         return profileImageName;

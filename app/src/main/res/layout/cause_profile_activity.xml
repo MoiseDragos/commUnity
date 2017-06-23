@@ -149,8 +149,8 @@
                 android:background="@drawable/edittext_login_form_green"
                 android:text="@string/support"
                 android:textColor="@color/white"
+                android:visibility="gone"
                 />
-            <!--android:visibility="gone"-->
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -158,8 +158,8 @@
                 android:background="@drawable/edittext_login_form_red"
                 android:text="@string/no_support"
                 android:textColor="@color/white"
+                android:visibility="gone"
                 />
-            <!--android:visibility="gone"-->
         </FrameLayout>
 
     </android.support.percent.PercentRelativeLayout>
@@ -180,7 +180,6 @@
                 android:paddingTop="5dp"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
-                android:visibility="gone"
                 android:paddingBottom="10dp">
                 <View
                     android:id="@+id/view1"
@@ -208,29 +207,27 @@
                 <com.bluejamesbond.text.DocumentView
                     android:id="@+id/describe_view"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     xmlns:ext="http://schemas.android.com/apk/res-auto"
                     ext:documentView_insetPaddingLeft="10dp"
                     ext:documentView_insetPaddingRight="10dp"
                     ext:documentView_textAlignment="justified"
                     ext:documentView_textColor="@color/white"
                     ext:documentView_textSize="14sp"
-                    android:layout_below="@id/view1"
                     android:layout_marginTop="14dp"
+                    android:layout_below="@id/view1"
                     />
 
             </android.support.percent.PercentRelativeLayout>
 
             <android.support.percent.PercentRelativeLayout
-                android:id="@+id/relative_layout_4"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="5dp"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingBottom="10dp"
-                android:layout_below="@id/relative_layout_3"
-                android:visibility="gone">
+                android:layout_below="@id/relative_layout_3">
                 <View
                     android:id="@+id/view3"
                     app:layout_widthPercent="38%"
@@ -258,32 +255,36 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_below="@id/view3"
-                    android:layout_marginTop="10sp"
-                    android:visibility="gone">
+                    android:layout_marginTop="15sp"
+                    android:visibility="gone"
+                    >
 
                     <ImageView
                         android:id="@+id/pic31"
-                        android:layout_height="wrap_content"
+                        app:layout_aspectRatio="150%"
                         app:layout_widthPercent="27%"
                         app:layout_marginLeftPercent="3%"
                         app:layout_marginRightPercent="2%"
+                        android:layout_centerVertical="true"
                         />
 
                     <ImageView
                         android:id="@+id/pic32"
-                        android:layout_height="wrap_content"
+                        app:layout_aspectRatio="150%"
                         app:layout_widthPercent="36%"
                         app:layout_marginLeftPercent="32%"
                         app:layout_marginRightPercent="2%"
+
                         />
 
                     <ImageView
                         android:id="@+id/pic33"
-                        android:layout_height="wrap_content"
+                        app:layout_aspectRatio="150%"
                         app:layout_widthPercent="27%"
                         app:layout_marginLeftPercent="70%"
                         app:layout_marginRightPercent="3%"
                         android:scaleType="fitXY"
+                        android:layout_centerVertical="true"
                         />
 
                 </android.support.percent.PercentRelativeLayout>
@@ -293,12 +294,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_below="@id/view3"
-                    android:layout_marginTop="10sp"
+                    android:layout_marginTop="15sp"
                     android:visibility="gone">
 
                     <ImageView
                         android:id="@+id/pic21"
-                        android:layout_height="wrap_content"
+                        app:layout_aspectRatio="150%"
                         app:layout_widthPercent="45%"
                         app:layout_marginLeftPercent="3%"
                         app:layout_marginRightPercent="4%"
@@ -306,7 +307,7 @@
 
                     <ImageView
                         android:id="@+id/pic22"
-                        android:layout_height="wrap_content"
+                        app:layout_aspectRatio="150%"
                         app:layout_widthPercent="45%"
                         app:layout_marginLeftPercent="52%"
                         app:layout_marginRightPercent="3%"
@@ -319,12 +320,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_below="@id/view3"
-                    android:layout_marginTop="10sp"
+                    android:layout_marginTop="15sp"
                     android:visibility="gone">
 
                     <ImageView
                         android:id="@+id/pic11"
-                        android:layout_height="wrap_content"
+                        app:layout_aspectRatio="150%"
                         app:layout_widthPercent="84%"
                         app:layout_marginLeftPercent="8%"
                         app:layout_marginRightPercent="8%"

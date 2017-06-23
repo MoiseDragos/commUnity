@@ -71,6 +71,12 @@
         </activity>
 
         <activity
+            android:name=".CauseProfile.CauseProfileActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+        <activity
             android:name=".PublicProfile.EditPublicProfileActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="portrait"

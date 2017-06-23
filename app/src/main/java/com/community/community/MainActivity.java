@@ -290,6 +290,8 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
             } else {
                 Log.d(LOG, "Nu am lucruri de schimbat!");
             }
+        } else if (requestCode == 3){
+            Toast.makeText(this, "Am venit din fragment", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -307,6 +309,8 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     mapFragment.cancelMarker();
                     break;
                 case 4:
+
+                    // TODO: bug bug! ownCausesNumber ramane 1 mereu
                     int ownCausesNumber = userPublicProfile.getOwnCausesNumber();
                     userPublicProfile.setOwnCausesNumber(ownCausesNumber + 1);
 //                    Log.d(LOG, "Verify 5: " + mapFragment.verify());

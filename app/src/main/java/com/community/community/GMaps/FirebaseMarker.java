@@ -1,5 +1,6 @@
 package com.community.community.GMaps;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.community.community.R;
@@ -11,27 +12,51 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class FirebaseMarker {
+
+    private Bitmap thumbnailImage = null;
+    private String thumbnailImageURL = null;
+    private String date = null;
     private String name = null;
     private String owner = null;
+    private String ownerUID = null;
     private String description = null;
     private double latitude = Double.NaN;
     private double longitude = Double.NaN;
+    private int supportedBy;
     private Marker markerName = null;
 
-
-    public FirebaseMarker(String email, LatLng latLng, String name, String description){
+    /* From Firebase marker constructor */
+    public FirebaseMarker(Bitmap bitmap, String uid, double lat, double lng, String name){
+        this.thumbnailImage = bitmap;
+        this.ownerUID = uid;
+        this.latitude = lat;
+        this.longitude = lng;
         this.name = name;
-        this.owner = email;
-        this.latitude = latLng.latitude;
-        this.longitude = latLng.longitude;
-        this.description = description;
-
-        if(markerName != null)
-            cancelMarker();
     }
 
-    public FirebaseMarker(GoogleMap gMap, String email, double latitude, double longitude) {
+    /* Submit "causes" marker constructor */
+    public FirebaseMarker(String email, String uid, LatLng latLng, String name, String profileImageURL) {
         this.owner = email;
+        this.ownerUID = uid;
+        this.latitude = latLng.latitude;
+        this.longitude = latLng.longitude;
+        this.name = name;
+        this.thumbnailImageURL = profileImageURL;
+    }
+
+    /* Submit "users" marker constructor */
+    public FirebaseMarker(LatLng latLng, String email, String description, String name, String date) {
+        this.owner = email;
+        this.description = description;
+        this.latitude = latLng.latitude;
+        this.longitude = latLng.longitude;
+        this.name = name;
+        this.date = date;
+        this.supportedBy = 1;
+    }
+
+    /* Draft marker constructor */
+    public FirebaseMarker(GoogleMap gMap, double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
         addDraftMarker(gMap);
@@ -71,10 +96,6 @@ public class FirebaseMarker {
                 .title(owner));
     }
 
-    public void cancelMarker(){
-        markerName.remove();
-    }
-
     public String getName() {
         return name;
     }
@@ -111,5 +132,49 @@ public class FirebaseMarker {
 
     public void setLatitude(double latitude) {
         this.latitude = latitude;
+    }
+
+    public String getOwnerUID() {
+        return ownerUID;
+    }
+
+    public void setOwnerUID(String ownerUID) {
+        this.ownerUID = ownerUID;
+    }
+
+    public Bitmap getThumbnailImage() {
+        return thumbnailImage;
+    }
+
+    public void setThumbnailImage(Bitmap thumbnailImage) {
+        this.thumbnailImage = thumbnailImage;
+    }
+
+    public String getThumbnailImageURL() {
+        return thumbnailImageURL;
+    }
+
+    public void setThumbnailImageURL(String thumbnailImageURL) {
+        this.thumbnailImageURL = thumbnailImageURL;
+    }
+
+    public void cancelMarker(){
+        markerName.remove();
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public int getSupportedBy() {
+        return supportedBy;
+    }
+
+    public void setSupportedBy(int supportedBy) {
+        this.supportedBy = supportedBy;
     }
 }
