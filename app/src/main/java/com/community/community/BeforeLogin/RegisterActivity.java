@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,15 +20,13 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.ProviderQueryResult;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
 public class RegisterActivity extends AppCompatActivity implements View.OnClickListener  {
 
     // TODO: remove
-    private String LOG = this.getClass().getSimpleName();
+//    private String LOG = this.getClass().getSimpleName();
 
     private EditText mEmailField;
     private EditText mPasswordField;
@@ -43,7 +40,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     /* Firebase */
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -71,8 +67,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
             }
         };
-
-        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         mEmailField = (EditText) findViewById(R.id.email_id);
         mPasswordField = (EditText) findViewById(R.id.password_id);
@@ -102,7 +96,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             return true;
         }
 
-        final Task<ProviderQueryResult> queryResultTask = mAuth.fetchProvidersForEmail(email)
+        mAuth.fetchProvidersForEmail(email)
                 .addOnCompleteListener(this, new OnCompleteListener<ProviderQueryResult>() {
                     @Override
                     public void onComplete(@NonNull Task<ProviderQueryResult> task) {

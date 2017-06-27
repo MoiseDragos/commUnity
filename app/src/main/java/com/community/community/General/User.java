@@ -1,6 +1,5 @@
 package com.community.community.General;
 
-import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;

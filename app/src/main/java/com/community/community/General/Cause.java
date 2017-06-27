@@ -16,6 +16,7 @@ public class Cause implements Serializable {
     private String name = null;
     private String supportedBy = null;
     private String description = null;
+    private int numberOfPhotos = 0;
     private FirebaseImages firebaseImages = null;
 
     private Bitmap profileImage = null;
@@ -23,7 +24,7 @@ public class Cause implements Serializable {
     private Bitmap optionalImage2 = null;
 
     public Cause(Bitmap bitmap, String uid, String des, String name, String owner, String supportedBy,
-          String url, String imageName) {
+          String url, String imageName, int imagesNumber) {
 
         this.profileImage = bitmap;
         this.ownerUID = uid;
@@ -32,7 +33,7 @@ public class Cause implements Serializable {
         this.owner = owner;
         this.supportedBy = supportedBy;
         this.firebaseImages = new FirebaseImages(imageName, url);
-
+        this.numberOfPhotos = imagesNumber;
     }
 
     public String getLOG() {
@@ -152,6 +153,14 @@ public class Cause implements Serializable {
 
     public void setOptionalImage2(Bitmap optionalImage2) {
         this.optionalImage2 = optionalImage2;
+    }
+
+    public int getNumberOfPhotos() {
+        return numberOfPhotos;
+    }
+
+    public void setNumberOfPhotos(int numberOfPhotos) {
+        this.numberOfPhotos = numberOfPhotos;
     }
 
 }

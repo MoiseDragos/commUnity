@@ -32,10 +32,8 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class SubmitCauseActivity extends AppCompatActivity implements View.OnClickListener {
@@ -151,6 +149,13 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
     private void uploadImagesToFirebase() {
 
         realNames = new ArrayList<>();
+
+        if(optionalURI2 != null && optionalURI1 == null){
+            optionalURI1 = optionalURI2;
+            optionalBitmap1 = optionalBitmap2;
+            optionalURI2 = null;
+            optionalBitmap2 = null;
+        }
 
         final ProgressDialog dialog = new ProgressDialog(this);
         dialog.setTitle("Uploading profile image...");
@@ -543,7 +548,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
         return str;
     }
 
-    public Bitmap getThumbnail(Uri uri) throws FileNotFoundException, IOException{
+    public Bitmap getThumbnail(Uri uri) throws IOException{
         Bitmap bitmap;
         try {
             InputStream input = this.getContentResolver().openInputStream(uri);

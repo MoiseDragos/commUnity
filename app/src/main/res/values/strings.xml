@@ -110,5 +110,6 @@
     <string name="no_support">Nu susțin</string>
     <string name="profile_image">Imagine profil</string>
     <string name="other_images">Alte imagini (opțional)</string>
+    <string name="edit">edit</string>
 
 </resources>

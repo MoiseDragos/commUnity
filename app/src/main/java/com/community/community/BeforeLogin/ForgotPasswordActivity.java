@@ -91,7 +91,7 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
         progressDialog.setMessage("Verify email...");
         progressDialog.show();
 
-        final Task<ProviderQueryResult> queryResultTask = mAuth.fetchProvidersForEmail(email)
+        mAuth.fetchProvidersForEmail(email)
                 .addOnCompleteListener(this, new OnCompleteListener<ProviderQueryResult>() {
             @Override
             public void onComplete(@NonNull Task<ProviderQueryResult> task) {
@@ -143,9 +143,6 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
             }
         });
 
-    }
-
-    private void function() {
     }
 
     @Override

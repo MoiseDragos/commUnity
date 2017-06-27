@@ -136,7 +136,7 @@ public class EditPublicProfileActivity extends AppCompatActivity {
     }
 
     private EditPublicProfileActivity.CallImageButtonClickListener callImageButtonClickListener = new EditPublicProfileActivity.CallImageButtonClickListener();
-    public class CallImageButtonClickListener implements View.OnClickListener {
+    private class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
 
@@ -353,7 +353,7 @@ public class EditPublicProfileActivity extends AppCompatActivity {
 
     // TODO: remove duplicate functions like getThumbnail, getPower...., createImageFro....
 
-    public Bitmap getThumbnail(Uri uri) throws FileNotFoundException, IOException{
+    public Bitmap getThumbnail(Uri uri) throws IOException{
         Bitmap bitmap;
         try {
             InputStream input = this.getContentResolver().openInputStream(uri);

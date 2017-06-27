@@ -38,6 +38,7 @@
             android:layout_width="0dp"
             android:src="@drawable/arrow_change_icon"
             android:layout_weight="1.0"
+            android:contentDescription="@null"
             />
 
         <de.hdodenhof.circleimageview.CircleImageView
@@ -207,7 +208,8 @@
             android:text="@string/save"
             android:background="@drawable/edittext_login_form_green"
             android:scaleType="fitXY"
-            android:textColor="@color/white"/>
+            android:textColor="@color/white"
+            tools:ignore="ButtonStyle" />
         <Button
             android:id="@+id/cancel_changes"
             android:layout_width="wrap_content"
@@ -216,7 +218,7 @@
             android:layout_marginLeft="50dp"
             android:background="@drawable/edittext_login_form_red"
             android:textColor="@color/white"
-            />
+            tools:ignore="ButtonStyle" />
 
     </LinearLayout>
 

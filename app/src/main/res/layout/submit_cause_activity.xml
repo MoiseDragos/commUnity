@@ -126,7 +126,7 @@
                     app:layout_marginRightPercent="8%"
                     android:scaleType="fitCenter"
                     android:background="@android:color/transparent"
-                    />
+                    android:contentDescription="@null" />
 
             </android.support.percent.PercentRelativeLayout>
 
@@ -162,7 +162,7 @@
                     android:src="@drawable/add_icon"
                     android:scaleType="fitCenter"
                     android:background="@android:color/transparent"
-                    />
+                    android:contentDescription="@null" />
 
                 <ImageButton
                     android:id="@+id/pic22"
@@ -173,7 +173,7 @@
                     android:src="@drawable/add_icon"
                     android:scaleType="fitCenter"
                     android:background="@android:color/transparent"
-                    />
+                    android:contentDescription="@null" />
 
             </android.support.percent.PercentRelativeLayout>
 
@@ -193,7 +193,8 @@
                     android:layout_marginRight="32dp"
                     android:textColor="@color/white"
                     android:background="@drawable/edittext_login_form_green"
-                    android:text="@string/save"/>
+                    android:text="@string/save"
+                    tools:ignore="ButtonStyle" />
 
                 <Button
                     android:id="@+id/cancel_cause"
@@ -205,7 +206,8 @@
                     android:layout_marginRight="32dp"
                     android:textColor="@color/white"
                     android:background="@drawable/edittext_login_form_red"
-                    android:text="@string/cancel"/>
+                    android:text="@string/cancel"
+                    tools:ignore="ButtonStyle" />
 
 
             </LinearLayout>

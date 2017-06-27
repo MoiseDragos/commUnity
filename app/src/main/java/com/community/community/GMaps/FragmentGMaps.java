@@ -95,9 +95,6 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
         intent.putExtra("ownerUID", parts[0]);
         intent.putExtra("causeId", causeId);
         getActivity().startActivityForResult(intent, 3);
-
-        Toast.makeText(getActivity(), "Info window clicked",
-                Toast.LENGTH_SHORT).show();
     }
 
     private void addCausesOnMap() {

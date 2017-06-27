@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
          /* Firebase */
         mAuth = FirebaseAuth.getInstance();
-        FirebaseAuth.AuthStateListener mAuthListener = new FirebaseAuth.AuthStateListener() {
+        new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
 
@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         mNavigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                         switch (menuItem.getItemId()) {
                             case R.id.nav_account:
                                 Intent i = new Intent(getApplicationContext(), PublicProfileActivity.class);
@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     }
 
     private CallImageButtonClickListener callImageButtonClickListener = new CallImageButtonClickListener();
-    public class CallImageButtonClickListener implements View.OnClickListener {
+    private class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
 
@@ -309,15 +309,11 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     mapFragment.cancelMarker();
                     break;
                 case 4:
-
+                    mapFragment.cancelMarker();
                     // TODO: bug bug! ownCausesNumber ramane 1 mereu
                     int ownCausesNumber = userPublicProfile.getOwnCausesNumber();
+                    Log.d(LOG, "ownCausesNumber" + String.valueOf(userPublicProfile.getOwnCausesNumber()));
                     userPublicProfile.setOwnCausesNumber(ownCausesNumber + 1);
-//                    Log.d(LOG, "Verify 5: " + mapFragment.verify());
-                    Log.d(LOG, "ownCausesNumber: " + String.valueOf(ownCausesNumber + 1));
-                    Log.d(LOG, "Lat: " + String.valueOf(lat));
-                    Log.d(LOG, "Lng: " + String.valueOf(lng));
-
                     mapFragment.onSubmit(causeName, causeDescription, new LatLng(lat, lng), firebaseImages, ownCausesNumber + 1);
                     break;
                 default:
@@ -472,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                 localIcon = true;
             } catch (Exception e) {
                 e.printStackTrace();
-                fileName = null;
+//                fileName = null;
                 Log.d(LOG, "--------Nu pot scrie!----------");
             }
 

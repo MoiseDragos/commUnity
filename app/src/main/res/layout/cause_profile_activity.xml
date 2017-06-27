@@ -19,12 +19,13 @@
             app:layout_heightPercent="20%"
             android:id="@+id/relative_layout_2">
             <ImageView
+                android:contentDescription="@null"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/blur_profile_image"
-                android:scaleType="fitXY"
-                android:src="@drawable/profile"
+                android:scaleType="centerCrop"
                 />
+                <!--android:src="@drawable/profile"-->
 
         </RelativeLayout>
 
@@ -38,6 +39,7 @@
             <!--android:visibility="gone"-->
 
             <ImageView
+                android:contentDescription="@null"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:src="@drawable/follow_man"
@@ -55,37 +57,6 @@
 
         </LinearLayout>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="116dp"
-            android:layout_below="@id/relative_layout_2"
-            android:layout_marginTop="-59dp">
-
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/profile_image"
-                android:layout_width="116dp"
-                android:layout_height="116dp"
-                app:civ_border_width="2dp"
-                app:civ_border_color="@color/blue2"
-                android:layout_centerInParent="true"
-                android:layout_marginBottom="-59dp"
-                android:src="@drawable/profile"
-                />
-
-            <ImageButton
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@mipmap/ic_mode_edit_black_48dp"
-                android:background="@drawable/edittext_login_form"
-                android:layout_gravity="right"
-                android:layout_centerVertical="true"
-                android:layout_alignParentRight="true"
-                android:layout_marginRight="10dp"
-                />
-                <!--android:visibility="gone"-->
-        </RelativeLayout>
-
-
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -94,7 +65,8 @@
             android:layout_marginRight="10dp"
             android:paddingTop="5dp"
             android:paddingBottom="10dp"
-            android:id="@+id/frame_2">
+            android:id="@+id/frame_2"
+            tools:ignore="RelativeOverlap">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -112,12 +84,44 @@
                 android:textColor="@color/white"
                 android:layout_gravity="right"
                 android:textSize="16sp"
-                android:text="mmmmmmmmmmmmmmmmmmmmmmm"
                 android:layout_marginTop="26sp"
                 android:onClick="onClick"
                 android:clickable="true"/>
 
         </FrameLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="116dp"
+            android:layout_below="@id/relative_layout_2"
+            android:layout_marginTop="-59dp">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/profile_image"
+                android:layout_width="116dp"
+                android:layout_height="116dp"
+                app:civ_border_width="2dp"
+                app:civ_border_color="@color/blue2"
+                android:layout_centerInParent="true"
+                android:layout_marginBottom="-59dp"
+                />
+                <!--android:src="@drawable/profile"-->
+
+            <ImageButton
+                android:contentDescription="@string/edit"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@mipmap/ic_mode_edit_black_48dp"
+                android:background="@drawable/edittext_login_form"
+                android:layout_gravity="right"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="10dp"
+                />
+                <!--android:visibility="gone"-->
+        </RelativeLayout>
+
+
+
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -132,7 +136,6 @@
                 android:textColor="@color/white"
                 android:gravity="center"
                 android:paddingTop="5dp"
-                android:text="mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
                 android:paddingBottom="5dp"/>
         </FrameLayout>
 
@@ -260,30 +263,35 @@
                     >
 
                     <ImageView
+                        android:contentDescription="@null"
                         android:id="@+id/pic31"
                         app:layout_aspectRatio="150%"
                         app:layout_widthPercent="27%"
                         app:layout_marginLeftPercent="3%"
                         app:layout_marginRightPercent="2%"
                         android:layout_centerVertical="true"
+                        android:scaleType="centerCrop"
                         />
 
                     <ImageView
+                        android:contentDescription="@null"
                         android:id="@+id/pic32"
                         app:layout_aspectRatio="150%"
                         app:layout_widthPercent="36%"
                         app:layout_marginLeftPercent="32%"
                         app:layout_marginRightPercent="2%"
+                        android:scaleType="centerCrop"
 
                         />
 
                     <ImageView
+                        android:contentDescription="@null"
                         android:id="@+id/pic33"
                         app:layout_aspectRatio="150%"
                         app:layout_widthPercent="27%"
                         app:layout_marginLeftPercent="70%"
                         app:layout_marginRightPercent="3%"
-                        android:scaleType="fitXY"
+                        android:scaleType="centerCrop"
                         android:layout_centerVertical="true"
                         />
 
@@ -298,19 +306,23 @@
                     android:visibility="gone">
 
                     <ImageView
+                        android:contentDescription="@null"
                         android:id="@+id/pic21"
                         app:layout_aspectRatio="150%"
                         app:layout_widthPercent="45%"
                         app:layout_marginLeftPercent="3%"
                         app:layout_marginRightPercent="4%"
+                        android:scaleType="centerCrop"
                         />
 
                     <ImageView
+                        android:contentDescription="@null"
                         android:id="@+id/pic22"
                         app:layout_aspectRatio="150%"
                         app:layout_widthPercent="45%"
                         app:layout_marginLeftPercent="52%"
                         app:layout_marginRightPercent="3%"
+                        android:scaleType="centerCrop"
                         />
 
                 </android.support.percent.PercentRelativeLayout>
@@ -324,11 +336,13 @@
                     android:visibility="gone">
 
                     <ImageView
+                        android:contentDescription="@null"
                         android:id="@+id/pic11"
                         app:layout_aspectRatio="150%"
                         app:layout_widthPercent="84%"
                         app:layout_marginLeftPercent="8%"
                         app:layout_marginRightPercent="8%"
+                        android:scaleType="centerCrop"
                         />
 
                 </android.support.percent.PercentRelativeLayout>
@@ -356,7 +370,8 @@
             android:text="@string/save"
             android:background="@drawable/edittext_login_form_green"
             android:scaleType="fitXY"
-            android:textColor="@color/white"/>
+            android:textColor="@color/white"
+            tools:ignore="ButtonStyle" />
         <Button
             android:id="@+id/cancel_marker"
             android:layout_width="wrap_content"
@@ -366,11 +381,8 @@
             android:background="@drawable/edittext_login_form_red"
             android:scaleType="fitXY"
             android:textColor="@color/white"
+            tools:ignore="ButtonStyle"
             />
 
     </LinearLayout>
-
-
-
-
 </LinearLayout>
