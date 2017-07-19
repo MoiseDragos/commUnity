@@ -1,6 +1,5 @@
 package com.community.community.PublicProfile;
 
-import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -9,10 +8,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.renderscript.Allocation;
-import android.renderscript.Element;
-import android.renderscript.RenderScript;
-import android.renderscript.ScriptIntrinsicBlur;
+//import android.renderscript.Allocation;
+//import android.renderscript.Element;
+//import android.renderscript.RenderScript;
+//import android.renderscript.ScriptIntrinsicBlur;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -21,7 +20,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,7 +59,6 @@ public class PublicProfileActivity extends AppCompatActivity {
     private TextView supportedNumber = null;
     private DocumentView describe = null;
     private DocumentView address = null;
-    private ScrollView scrollView = null;
 
     /* Submit Buttons*/
     private Button saveBtn = null;
@@ -96,7 +93,7 @@ public class PublicProfileActivity extends AppCompatActivity {
         supportedNumber = (TextView) findViewById(R.id.supported_number);
         describe = (DocumentView) findViewById(R.id.describe_view);
         address = (DocumentView) findViewById(R.id.address_view);
-        scrollView = (ScrollView) findViewById(R.id.scrollView);
+//        ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
 
         /* Submit Button */
         saveBtn = (Button)findViewById(R.id.submit_marker);
@@ -117,7 +114,7 @@ public class PublicProfileActivity extends AppCompatActivity {
             finish();
         }
 
-        // TODO: Moare aici cand e deschis foarte repede! (inainte sa se incarce obiectivele!)
+        //TODO: Moare aici cand e deschis foarte repede! (inainte sa se incarce obiectivele!)
         /* Set EditButton */
         if(userDetails.getEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())){
             ImageButton editBtn = (ImageButton) findViewById(R.id.edit_btn);
@@ -128,7 +125,7 @@ public class PublicProfileActivity extends AppCompatActivity {
     }
 
     private PublicProfileActivity.CallImageButtonClickListener callImageButtonClickListener = new PublicProfileActivity.CallImageButtonClickListener();
-    public class CallImageButtonClickListener implements View.OnClickListener {
+    private class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
 
@@ -140,27 +137,27 @@ public class PublicProfileActivity extends AppCompatActivity {
                     startActivityForResult(i, 1);
                     break;
                 case R.id.submit_marker:
-                    setBtnVisibility(View.GONE);
+    setBtnVisibility(View.GONE);
                     if(newPicture) {
-                        newPicture = false;
-                        createImageFromBitmap(newPictureBitmap);
-                        removeOldImageFromFirebase();
-                        uploadImageToFirebase();
-                    } else {
-                        intent.putExtra("changed", confirmChanges);
-                        intent.putExtra("userDetails", userDetails);
-                        finish();
-                    }
+        newPicture = false;
+        createImageFromBitmap(newPictureBitmap);
+        removeOldImageFromFirebase();
+        uploadImageToFirebase();
+    } else {
+        intent.putExtra("changed", confirmChanges);
+        intent.putExtra("userDetails", userDetails);
+        finish();
+    }
                     break;
                 case R.id.cancel_marker:
-                    setBtnVisibility(View.GONE);
-                    finish();
+    setBtnVisibility(View.GONE);
+    finish();
                     break;
-                default:
-                    break;
-            }
+    default:
+            break;
+}
         }
-    }
+                }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -226,7 +223,6 @@ public class PublicProfileActivity extends AppCompatActivity {
             try {
                 icon = BitmapFactory.decodeStream(PublicProfileActivity.this
                         .openFileInput("draftImage_" + userDetails.getEmail()));
-//                Log.d(LOG, "New picture");
                 newPicture = true;
                 newPictureBitmap = icon;
             } catch (FileNotFoundException e) {
@@ -238,16 +234,13 @@ public class PublicProfileActivity extends AppCompatActivity {
             if(!newPicture) {
                 icon = BitmapFactory.decodeStream(PublicProfileActivity.this
                         .openFileInput("myImage_" + userDetails.getEmail()));
-//                Log.d(LOG, "Old picture");
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             icon = BitmapFactory.decodeResource(getApplicationContext().getResources(),
                     R.drawable.profile);
-//            Log.d(LOG, "Default picture");
         }
 
-        // TODO: Scaleaza imaginea!
         // TODO: Var 3
         blurImage.setImageBitmap(icon);
         Blurry.with(getApplicationContext())
@@ -405,23 +398,23 @@ public class PublicProfileActivity extends AppCompatActivity {
         return realPath;
     }
 
-    // TODO: Var 1
-    @SuppressLint("NewApi")
-    public static Bitmap blurring(Context context, Bitmap sentBitmap, float radius) {
-
-        Bitmap bitmap = sentBitmap.copy(sentBitmap.getConfig(), true);
-
-        final RenderScript rs = RenderScript.create(context);
-        final Allocation input = Allocation.createFromBitmap(rs, sentBitmap,
-                Allocation.MipmapControl.MIPMAP_NONE, Allocation.USAGE_SCRIPT);
-        final Allocation output = Allocation.createTyped(rs, input.getType());
-        final ScriptIntrinsicBlur script = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
-        script.setRadius(radius);
-        script.setInput(input);
-        script.forEach(output);
-        output.copyTo(bitmap);
-        return bitmap;
-    }
+//    // TODO: Var 1
+//    @SuppressLint("NewApi")
+//    public static Bitmap blurring(Context context, Bitmap sentBitmap, float radius) {
+//
+//        Bitmap bitmap = sentBitmap.copy(sentBitmap.getConfig(), true);
+//
+//        final RenderScript rs = RenderScript.create(context);
+//        final Allocation input = Allocation.createFromBitmap(rs, sentBitmap,
+//                Allocation.MipmapControl.MIPMAP_NONE, Allocation.USAGE_SCRIPT);
+//        final Allocation output = Allocation.createTyped(rs, input.getType());
+//        final ScriptIntrinsicBlur script = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
+//        script.setRadius(radius);
+//        script.setInput(input);
+//        script.forEach(output);
+//        output.copyTo(bitmap);
+//        return bitmap;
+//    }
 }
 //        DatabaseReference dRef = FirebaseDatabase.getInstance().getReference().child("users")
 //                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())

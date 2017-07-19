@@ -23,6 +23,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.community.community.General.UsefulThings;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -40,13 +41,6 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
 
     // TODO: remove
     private String LOG = this.getClass().getSimpleName();
-
-    private static final String FB_STORAGE_PATH = "images/causes/";
-    private static final String PROFILE_URI_KEY = "Profile1";
-    private static final String OPTIONAL_URI_1_KEY = "Optional1";
-    private static final String OPTIONAL_URI_2_KEY = "Optional2";
-    private static final String LAT = "Latitude";
-    private static final String LNG = "Longitude";
 
     private FirebaseImages firebaseImages;
 
@@ -130,7 +124,10 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
 
             case R.id.submit_cause:
                 if(verifyFields()) {
-                    uploadImagesToFirebase();
+                    adjustURLs();
+                    String causeId = lat + "_" + lng;
+                    causeId = causeId.replace(".", "-");
+                    uploadImagesToFirebase(causeId);
                 }
                 break;
 
@@ -145,17 +142,18 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
         }
     }
 
-    @SuppressWarnings("VisibleForTests")
-    private void uploadImagesToFirebase() {
-
-        realNames = new ArrayList<>();
-
+    private void adjustURLs() {
         if(optionalURI2 != null && optionalURI1 == null){
             optionalURI1 = optionalURI2;
             optionalBitmap1 = optionalBitmap2;
             optionalURI2 = null;
             optionalBitmap2 = null;
         }
+    }
+    @SuppressWarnings("VisibleForTests")
+    private void uploadImagesToFirebase(final String causeId) {
+
+//        realNames = new ArrayList<>();
 
         final ProgressDialog dialog = new ProgressDialog(this);
         dialog.setTitle("Uploading profile image...");
@@ -163,8 +161,8 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
 
         final String realName = getImageName(profileURI);
 
-        StorageReference ref = FirebaseStorage.getInstance().getReference().child(FB_STORAGE_PATH +
-                lat + "_" + lng + "/" + realName);
+        StorageReference ref = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
+                causeId + "/" + realName);
         Log.d(LOG, "Ref: " + ref);
 
         ref.putFile(profileURI)
@@ -175,7 +173,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
                         firebaseImages.setProfileImageName(realName);
 
                         Uri uri = getCompressedImageUri(getApplicationContext(), profileBitmap);
-                        uploadCompressedProfileImageToFirebase(uri, realName, dialog);
+                        uploadCompressedProfileImageToFirebase(uri, realName, dialog, causeId);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -188,10 +186,10 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
     }
 
     @SuppressWarnings("VisibleForTests")
-    private void uploadCompressedProfileImageToFirebase(Uri uri, String realName, final ProgressDialog dialog) {
+    private void uploadCompressedProfileImageToFirebase(Uri uri, String realName, final ProgressDialog dialog, final String causeId) {
 
-        StorageReference ref = FirebaseStorage.getInstance().getReference().child(FB_STORAGE_PATH +
-                lat + "_" + lng + "/thumbnail_" + realName);
+        StorageReference ref = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
+                causeId + "/thumbnail_" + realName);
 
         ref.putFile(uri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -203,12 +201,12 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
                             dialog.setTitle("Uploading optional image 1...");
                             dialog.show();
 
-                            uploadOptionalImage1(dialog);
+                            uploadOptionalImage1(dialog, causeId);
                         } else if(optionalURI2 != null) {
                             dialog.setTitle("Uploading optional image 2...");
                             dialog.show();
 
-                            uploadOptionalImage2(dialog);
+                            uploadOptionalImage2(dialog, causeId);
 
                         } else {
                             dialog.dismiss();
@@ -227,12 +225,12 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
     }
 
     @SuppressWarnings("VisibleForTests")
-    private void uploadOptionalImage1(final ProgressDialog dialog) {
+    private void uploadOptionalImage1(final ProgressDialog dialog, final String causeId) {
 
         final String realName = getImageName(optionalURI1);
 
-        StorageReference refOpt1 = FirebaseStorage.getInstance().getReference().child(FB_STORAGE_PATH +
-                lat + "_" + lng + "/" + realName);
+        StorageReference refOpt1 = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
+                causeId + "/" + realName);
         Log.d(LOG, "Ref: " + refOpt1);
 
         refOpt1.putFile(optionalURI1)
@@ -243,7 +241,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
                         firebaseImages.setOptionalImageName1(realName);
 
                         Uri uri = getCompressedImageUri(getApplicationContext(), optionalBitmap1);
-                        uploadCompressedOptionalImage1ToFirebase(uri, realName, dialog);
+                        uploadCompressedOptionalImage1ToFirebase(uri, realName, dialog, causeId);
 
                     }
                 })
@@ -257,10 +255,10 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
     }
 
     @SuppressWarnings("VisibleForTests")
-    private void uploadCompressedOptionalImage1ToFirebase(Uri uri, String realName, final ProgressDialog dialog) {
+    private void uploadCompressedOptionalImage1ToFirebase(Uri uri, String realName, final ProgressDialog dialog, final String causeId) {
 
-        StorageReference ref = FirebaseStorage.getInstance().getReference().child(FB_STORAGE_PATH +
-                lat + "_" + lng + "/thumbnail_" + realName);
+        StorageReference ref = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
+                causeId + "/thumbnail_" + realName);
 
         ref.putFile(uri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -273,7 +271,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
                             dialog.setTitle("Uploading optional image 2...");
                             dialog.show();
 
-                            uploadOptionalImage2(dialog);
+                            uploadOptionalImage2(dialog, causeId);
                         } else {
                             dialog.dismiss();
                             successfulIntent();
@@ -291,11 +289,11 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
     }
 
     @SuppressWarnings("VisibleForTests")
-    private void uploadOptionalImage2(final ProgressDialog dialog) {
+    private void uploadOptionalImage2(final ProgressDialog dialog, final String causeId) {
         final String realName = getImageName(optionalURI2);
 
-        StorageReference refOpt2 = FirebaseStorage.getInstance().getReference().child(FB_STORAGE_PATH +
-                lat + "_" + lng + "/" + realName);
+        StorageReference refOpt2 = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
+                causeId + "/" + realName);
         Log.d(LOG, "Ref: " + refOpt2);
 
         refOpt2.putFile(optionalURI2)
@@ -306,8 +304,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
                         firebaseImages.setOptionalImageName2(realName);
 
                         Uri uri = getCompressedImageUri(getApplicationContext(), optionalBitmap2);
-                        uploadCompressedOptionalImage2ToFirebase(uri, realName, dialog);
-
+                        uploadCompressedOptionalImage2ToFirebase(uri, realName, dialog, causeId);
 
                     }
                 })
@@ -321,10 +318,10 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
     }
 
     @SuppressWarnings("VisibleForTests")
-    private void uploadCompressedOptionalImage2ToFirebase(Uri uri, String realName, final ProgressDialog dialog) {
+    private void uploadCompressedOptionalImage2ToFirebase(Uri uri, String realName, final ProgressDialog dialog, final String causeId) {
 
-        StorageReference ref = FirebaseStorage.getInstance().getReference().child(FB_STORAGE_PATH +
-                lat + "_" + lng + "/thumbnail_" + realName);
+        StorageReference ref = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
+                causeId + "/thumbnail_" + realName);
 
         ref.putFile(uri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -352,7 +349,33 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
         return Uri.parse(path);
     }
 
+    public String getImageName(Uri uri){
+        String realPath = getRealPath(uri);
+        Uri file = Uri.fromFile(new File(realPath));
+
+        realPath = file.getLastPathSegment();
+//        realNames.add(realPath);
+        return realPath;
+    }
+
+    public  String getRealPath(Uri uri){
+        String realPath;
+
+        String[] filePathColumn = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
+        if(cursor != null && cursor.moveToFirst()){
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            realPath = cursor.getString(columnIndex);
+            cursor.close();
+        } else {
+            realPath = uri.getPath();
+        }
+        return realPath;
+    }
+
     private void successfulIntent(){
+
+        Log.d(LOG, "SuccesfulIntent");
         Intent intent = new Intent();
 
         Bundle b = new Bundle();
@@ -374,45 +397,21 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
         finish();
     }
 
-    public String getImageName(Uri uri){
-        String realPath = getRealPath(uri);
-        Uri file = Uri.fromFile(new File(realPath));
-
-        realPath = file.getLastPathSegment();
-        realNames.add(realPath);
-        return realPath;
-    }
-
-    public  String getRealPath(Uri uri){
-        String realPath;
-
-        String[] filePathColumn = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
-        if(cursor != null && cursor.moveToFirst()){
-            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-            realPath = cursor.getString(columnIndex);
-            cursor.close();
-        } else {
-            realPath = uri.getPath();
-        }
-        return realPath;
-    }
-
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
 
         /* Coordinates */
-        if (savedInstanceState.containsKey(LAT)) {
-            lat = savedInstanceState.getDouble(LAT);
+        if (savedInstanceState.containsKey(UsefulThings.LAT)) {
+            lat = savedInstanceState.getDouble(UsefulThings.LAT);
         }
 
 
-        if (savedInstanceState.containsKey(LNG)) {
-            lng = savedInstanceState.getDouble(LNG);
+        if (savedInstanceState.containsKey(UsefulThings.LNG)) {
+            lng = savedInstanceState.getDouble(UsefulThings.LNG);
         }
 
-        if (savedInstanceState.containsKey(PROFILE_URI_KEY)) {
-            profileURI = Uri.parse(savedInstanceState.getString(PROFILE_URI_KEY));
+        if (savedInstanceState.containsKey(UsefulThings.PROFILE_URI_KEY)) {
+            profileURI = Uri.parse(savedInstanceState.getString(UsefulThings.PROFILE_URI_KEY));
             try {
                 profileBitmap = getThumbnail(profileURI);
                 profileImageBtn.setImageBitmap(profileBitmap);
@@ -421,8 +420,8 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
             }
         }
 
-        if (savedInstanceState.containsKey(OPTIONAL_URI_1_KEY)) {
-            optionalURI1 = Uri.parse(savedInstanceState.getString(OPTIONAL_URI_1_KEY));
+        if (savedInstanceState.containsKey(UsefulThings.OPTIONAL_URI_1_KEY)) {
+            optionalURI1 = Uri.parse(savedInstanceState.getString(UsefulThings.OPTIONAL_URI_1_KEY));
             try {
                 optionalBitmap1 = getThumbnail(optionalURI1);
                 optionalImage1.setImageBitmap(optionalBitmap1);
@@ -431,8 +430,8 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
             }
         }
 
-        if (savedInstanceState.containsKey(OPTIONAL_URI_2_KEY)) {
-            optionalURI2 = Uri.parse(savedInstanceState.getString(OPTIONAL_URI_2_KEY));
+        if (savedInstanceState.containsKey(UsefulThings.OPTIONAL_URI_2_KEY)) {
+            optionalURI2 = Uri.parse(savedInstanceState.getString(UsefulThings.OPTIONAL_URI_2_KEY));
             try {
                 optionalBitmap2 = getThumbnail(optionalURI2);
                 optionalImage2.setImageBitmap(optionalBitmap2);
@@ -448,20 +447,20 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
     protected void onSaveInstanceState(Bundle savedInstanceState) {
 
         /* Coordinates */
-        savedInstanceState.putDouble(LAT, lat);
-        savedInstanceState.putDouble(LNG, lng);
+        savedInstanceState.putDouble(UsefulThings.LAT, lat);
+        savedInstanceState.putDouble(UsefulThings.LNG, lng);
 
         /* Images */
         if(profileURI != null) {
-            savedInstanceState.putString(PROFILE_URI_KEY, profileURI.toString());
+            savedInstanceState.putString(UsefulThings.PROFILE_URI_KEY, profileURI.toString());
         }
 
         if(optionalURI1 != null) {
-            savedInstanceState.putString(OPTIONAL_URI_1_KEY, optionalURI1.toString());
+            savedInstanceState.putString(UsefulThings.OPTIONAL_URI_1_KEY, optionalURI1.toString());
         }
 
         if(optionalURI2 != null) {
-            savedInstanceState.putString(OPTIONAL_URI_2_KEY, optionalURI2.toString());
+            savedInstanceState.putString(UsefulThings.OPTIONAL_URI_2_KEY, optionalURI2.toString());
         }
 
         super.onSaveInstanceState(savedInstanceState);
@@ -624,7 +623,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
         for (int i = 0; i < realNames.size(); i++) {
             String name = realNames.get(i);
 
-            StorageReference desertRef = FirebaseStorage.getInstance().getReference().child(FB_STORAGE_PATH +
+            StorageReference desertRef = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
                     lat + "_" + lng + "/" + name);
 
             desertRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -639,7 +638,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
                 }
             });
 
-            desertRef = FirebaseStorage.getInstance().getReference().child(FB_STORAGE_PATH +
+            desertRef = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
                     lat + "_" + lng + "/thumbnail_" + name);
 
             desertRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {

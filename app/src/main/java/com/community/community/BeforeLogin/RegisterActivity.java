@@ -125,6 +125,11 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             return true;
         }
 
+        if(password.length() < 6) {
+            Toast.makeText(this, "Parolă prea scurtă", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+
         //TODO: alte verificari
 
         return false;

@@ -166,7 +166,6 @@ public class EditPublicProfileActivity extends AppCompatActivity {
 
                 case R.id.change_profile_image:
                     if(Build.VERSION.SDK_INT > 22){
-//                        Log.d(LOG, "API: " + Build.VERSION.SDK_INT);
                         checkPermission();
                     }
                     Intent i = new Intent(Intent.ACTION_PICK,
@@ -194,26 +193,6 @@ public class EditPublicProfileActivity extends AppCompatActivity {
 
         }
     }
-
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode,
-//                                           String permissions[], int[] grantResults) {
-//        switch (requestCode) {
-//            case 123: {
-//
-//
-//                if (grantResults.length > 0
-//                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    //Peform your task here if any
-//
-//                } else {
-//
-//                    checkPermission();
-//                }
-//                return;
-//            }
-//        }
-//    }
 
     private boolean updateUserDetails() {
 
@@ -260,43 +239,15 @@ public class EditPublicProfileActivity extends AppCompatActivity {
             userDetails.setAge(progress);
         }
 
-//        Bitmap icon;
-//        try {
-//            icon = BitmapFactory.decodeStream(EditPublicProfileActivity.this
-//                    .openFileInput("myImage_" + userDetails.getEmail()));
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//            icon = BitmapFactory.decodeResource(getApplicationContext().getResources(),
-//                    R.drawable.profile);
-//        }
-
         //TODO: Aceeasi imagine
         if(changedImage != null) {// && !equals(icon, changedImage)){//!icon.sameAs(changedImage)){
-//            Log.d(LOG, "Icon: " + String.valueOf(icon.getHeight()));
-//            Log.d(LOG, "ChangedImage: " + String.valueOf(changedImage.getHeight()));
             Log.d(LOG, "Image!");
             changed = true;
             userDetails.setChangedProfilePic(true);
         }
-//        if(userDetails.getProfileImage() == null || !userDetails.getProfileImage().sameAs(changedImage)){
-//            Log.d(LOG, "Image!");
-//            changed = true;
-//            if(userDetails.getProfileImage() != null)
-//                Log.d(LOG, "InitImage: " + userDetails.getProfileImage().toString());
-//            userDetails.setProfileImage(changedImage);
-//        }
+
         return true;
     }
-
-//    public boolean equals(Bitmap bitmap1, Bitmap bitmap2) {
-//        ByteBuffer buffer1 = ByteBuffer.allocate(bitmap1.getHeight() * bitmap1.getRowBytes());
-//        bitmap1.copyPixelsToBuffer(buffer1);
-//
-//        ByteBuffer buffer2 = ByteBuffer.allocate(bitmap2.getHeight() * bitmap2.getRowBytes());
-//        bitmap2.copyPixelsToBuffer(buffer2);
-//
-//        return Arrays.equals(buffer1.array(), buffer2.array());
-//    }
 
     private String verifyString(String str, int min, int max, int forToast) {
         str = str.replaceAll("\\s+$", "");
@@ -336,7 +287,6 @@ public class EditPublicProfileActivity extends AppCompatActivity {
         if(requestCode == 1) {
             if (resultCode == RESULT_OK) {
                 Uri imageUri = data.getData();
-//                Log.d(LOG, LOG + ": " + imageUri);
                 try {
                     Bitmap bitmap = getThumbnail(imageUri);
 

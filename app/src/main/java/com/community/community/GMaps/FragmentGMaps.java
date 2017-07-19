@@ -17,7 +17,6 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.community.community.CauseProfile.CauseProfileActivity;
-import com.community.community.General.User;
 import com.community.community.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -76,6 +75,12 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
         mGoogleMap.moveCamera( CameraUpdateFactory.newLatLngZoom
                 (new LatLng(45.92109159958021, 25.075808800756928) , 5.687861f) );
 
+        // TODO: remove
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         addCausesOnMap();
         // TODO: mGoogleMap.setMyLocationEnabled(true);
     }
@@ -223,6 +228,14 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
 
         DatabaseReference ref = mDatabase.child("causes").child(firebaseName).child("Info");
         ref.setValue(firebaseNewMarker).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(LOG, e.getLocalizedMessage());
+            }
+        });
+
+        ref = mDatabase.child("causes").child(firebaseName).child("SupportedBy").child("number");
+        ref.setValue(0).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.d(LOG, e.getLocalizedMessage());

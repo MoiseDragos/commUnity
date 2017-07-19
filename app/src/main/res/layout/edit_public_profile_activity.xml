@@ -96,11 +96,12 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/editDescribe"
+                android:text="@string/describe"
                 android:textColor="@color/blue2"
                 android:layout_marginBottom="2dp"
                 android:paddingLeft="5dp"
-                android:paddingRight="5dp"/>
+                android:paddingRight="5dp"
+                android:textAllCaps="true"/>
 
             <View
                 android:layout_width="match_parent"

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">CommUnity</string>
     <string name="email">Email</string>
-    <string name="password">Password</string>
+    <string name="password">Parola</string>
     <string name="login">Login</string>
     <string name="forgotPassword">Ai uitat parola?</string>
     <string name="noAccount">Nu ai cont?</string>
@@ -13,7 +13,7 @@
     <string name="open">Open</string>
     <string name="close">Close</string>
     <string name="publicProfile">Public Profile</string>
-    <string name="settings">Settings</string>
+    <string name="settings">Setări</string>
     <string name="title_activity_settings">Settings</string>
     <string name="nickname">Nickname</string>
     <string name="describe">Descriere</string>
@@ -96,20 +96,42 @@
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="marker_position">Trage de marker pentru a-i modifica poziția</string>
     <string name="objectiv_details">Informații obiectiv</string>
+    <string name="mod_objectiv_details">Modifică informații obiectiv</string>
     <string name="added_objectives">Obiective adăugate</string>
     <string name="supported_objectives">Obiective susținute</string>
     <string name="editNickname">NICKNAME</string>
-    <string name="editDescribe">DESCRIERE</string>
-    <string name="editGender">GEN</string>
-    <string name="editAge">VÂRSTĂ</string>
+    <string name="editAge">VÂRSTA</string>
     <string name="editAddress">ADRESA</string>
     <string name="address">Adresa</string>
     <string name="added_by">adăugat de</string>
     <string name="support">Susține</string>
     <string name="images">Imagini</string>
-    <string name="no_support">Nu susțin</string>
+    <string name="no_support">Nu mai susțin</string>
     <string name="profile_image">Imagine profil</string>
     <string name="other_images">Alte imagini (opțional)</string>
     <string name="edit">edit</string>
+    <string name="privacy">Confidențialitate</string>
+    <string name="hideMyCauses">• ascunde cauzele mele</string>
+    <string name="hideMySupportedCauses">• ascunde cauzele susținute</string>
+    <string name="hideAge">• ascunde vârsta</string>
+    <string name="hideAddress">• ascunde adresa</string>
+    <string name="hideMyDescription">• ascunde descrierea</string>
+    <string name="changePassword">• schimbă parola</string>
+    <string name="deleteAccount">• șterge contul</string>
+    <string name="addUser">• adaugă user</string>
+    <string name="deleteUser">• șterge user</string>
+    <string name="applyNgo">• doresc să devin ONG</string>
+    <string name="cancelNgo">• anulează cererea</string>
+    <string name="accountDetails">Contul meu</string>
+    <string name="old_password">Parola veche</string>
+    <string name="new_password">Parola nouă</string>
+    <string name="confirm_new_password">Confirmă noua parolă</string>
+    <string name="delete">Șterge</string>
+    <string name="ngo_users">Useri organizație</string>
+    <string name="user_email">Email user</string>
+    <string name="add">Adaugă</string>
+    <string name="ngo">Organizație</string>
+    <string name="apply">Aplică</string>
+    <!--<string name="thanks">Mulțumim!</string>-->
 
 </resources>

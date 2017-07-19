@@ -52,7 +52,6 @@ public class FirebaseMarker {
         this.longitude = latLng.longitude;
         this.name = name;
         this.date = date;
-        this.supportedBy = 1;
     }
 
     /* Draft marker constructor */

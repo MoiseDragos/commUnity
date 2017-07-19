@@ -33,6 +33,7 @@ import com.community.community.GMaps.FragmentGMaps;
 import com.community.community.GMaps.SubmitCauseActivity;
 import com.community.community.General.User;
 import com.community.community.PublicProfile.PublicProfileActivity;
+import com.community.community.Settings.UserSettingsActivity;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
     /* User */
     private User userPublicProfile = null;
+    private static final String USER = "User";
 
     /* Booleans */
     private boolean isRegistered = false;
@@ -83,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         //TODO: remove
         Log.d(LOG, "======== onCreate");
 
+        //TODO: daca te intregistrezi de pe mai multe dispozitive in acelasi timp?
          /* Firebase */
         mAuth = FirebaseAuth.getInstance();
         new FirebaseAuth.AuthStateListener() {
@@ -102,10 +105,8 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
+        /* User */
         userPublicProfile = new User();
-        userPublicProfile.setUid(mAuth.getCurrentUser().getUid());
-
-        verifyUserState();
 
         /* Fragments */
         mapFragment = (FragmentGMaps) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -135,14 +136,43 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         /* NavigationView Default */
         mNavViewImage = (CircleImageView) mNavigationView.getHeaderView(0).findViewById(R.id.profile_image);
 
+        TextView mEmail = (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.userEmail);
+        mEmail.setText(mAuth.getCurrentUser().getEmail());
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(USER)) {
+            Log.d(LOG, "Am salvat user!");
+            userPublicProfile = (User) savedInstanceState.getSerializable(USER);
+        } else {
+            userPublicProfile.setUid(mAuth.getCurrentUser().getUid());
+            verifyUserState();
+        }
+
         Bitmap icon = getLocalIcon();
         if(localIcon) {
             mNavViewImage.setImageBitmap(icon);
         }
-
-        TextView mEmail = (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.userEmail);
-        mEmail.setText(mAuth.getCurrentUser().getEmail());
     }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+
+        Log.d(LOG, "======== onRestoreInstanceState");
+        super.onRestoreInstanceState(savedInstanceState);
+//
+//        if (savedInstanceState.containsKey(USER)) {
+//            userPublicProfile = (User) savedInstanceState.getSerializable(USER);
+//            icon = savedInstanceState.getParcelable(ICON);
+//            mNavViewImage.setImageBitmap(icon);
+//        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putSerializable(USER, userPublicProfile);
+    }
+
 
     private void mNavigationViewListener() {
         mNavigationView.setNavigationItemSelectedListener(
@@ -156,7 +186,13 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                                 startActivityForResult(i, 2);
                                 break;
                             case R.id.nav_settings:
-                                startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+                                Intent intent = new Intent(getApplicationContext(), UserSettingsActivity.class);
+                                intent.putExtra("email", userPublicProfile.getEmail());
+                                intent.putExtra("type", userPublicProfile.getType());
+                                intent.putExtra("uid", userPublicProfile.getUid());
+                                intent.putExtra("nickname", userPublicProfile.getNickname());
+                                startActivity(intent);
+//                                startActivity(new Intent(getApplicationContext(), SettingsActivity2.class));
                                 break;
                             case R.id.nav_logout:
                                 mAuth.signOut();
@@ -255,7 +291,9 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(LOG, "onActivityResult");
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d(LOG, "requestCode: " + requestCode + "\nresultCode: " + resultCode);
         if (requestCode == 1) {
             if(resultCode == RESULT_OK) {
                 Log.d(LOG, "Am un obiectiv de salvat!");
@@ -310,9 +348,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     break;
                 case 4:
                     mapFragment.cancelMarker();
-                    // TODO: bug bug! ownCausesNumber ramane 1 mereu
                     int ownCausesNumber = userPublicProfile.getOwnCausesNumber();
-                    Log.d(LOG, "ownCausesNumber" + String.valueOf(userPublicProfile.getOwnCausesNumber()));
                     userPublicProfile.setOwnCausesNumber(ownCausesNumber + 1);
                     mapFragment.onSubmit(causeName, causeDescription, new LatLng(lat, lng), firebaseImages, ownCausesNumber + 1);
                     break;
@@ -375,6 +411,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         userPublicProfile.setEmail(email);
         userPublicProfile.setOwnCausesNumber(0);
         userPublicProfile.setSupportedCausesNumber(0);
+        userPublicProfile.setType("user");
 
         /* Firebase */
         DatabaseReference rootRef = mDatabase.child("users").child(user.getUid()).child("ProfileSettings");
@@ -388,8 +425,11 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         ref.setValue("0");
         ref = rootRef.child("supportedCauses");
         ref.setValue("0");
-
-
+        ref = rootRef.child("type");
+        ref.setValue("user");
+        String nick = email.replace(".", "-");
+        ref = mDatabase.child("nicknames").child(nick);
+        ref.setValue(email + "~" + user.getUid());
 //        CircleImageView imageView = (CircleImageView) mapFragment.getView().findViewById(R.id.edit_profile);
 //        int resourceImage = this.getResources().getIdentifier("profile", "drawable", this.getPackageName());
 //        imageView.setImageResource(resourceImage);

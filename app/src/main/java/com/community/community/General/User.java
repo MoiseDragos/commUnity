@@ -23,6 +23,7 @@ public class User implements Serializable {
     private String address = null;
     private String uid = null;
     private String status = null;
+    private String type = null;
     private int age = 0;
     private int ownCausesNumber = 0;
     private int supportedCausesNumber = 0;
@@ -73,17 +74,34 @@ public class User implements Serializable {
                 //handle databaseError
             }
         });
+
+        dRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                Map<String, Object> data = (Map<String,Object>) snapshot.getValue();
+                type = data.get("type").toString();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void updateLocalUserProfile(User user) {
 
-        DatabaseReference dRef = FirebaseDatabase.getInstance().getReference().child("users")
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        DatabaseReference dRef = mDatabase.child("users")
+                .child(user.getUid())
                 .child("ProfileSettings");
 
         if(!user.nickname.equals(nickname)){
+            mDatabase.child("nicknames").child(nickname.replace(".", "-")).removeValue();
             nickname = user.nickname;
             dRef.child("nickname").setValue(nickname);
+            mDatabase.child("nicknames").child(nickname.replace(".", "-")).setValue(user.getEmail() + "~" + user.getUid());
         }
 
         if(describe == null) {
@@ -241,6 +259,14 @@ public class User implements Serializable {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }
 

@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,6 +18,8 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.community.community.General.Cause;
 import com.community.community.R;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -35,12 +38,17 @@ public class CauseProfileActivity extends AppCompatActivity {
     private String LOG = this.getClass().getSimpleName();
 
     // TODO: timestamp pentru modificari!
+    // TODO: cacheCauses = null la schimbarea de user / intrarea in aplicatie!
     public static HashMap<String, Cause> cacheCauses = new HashMap<>();
+    private static final String CACHE = "Cache";
 
 //    public static final String FB_STORAGE_PATH = "images/";
 
+    private DatabaseReference mDatabase = null;
+
     /* Profile details */
     private ImageView blurImage = null;
+    private ImageButton editBtn = null;
     private CircleImageView circleImage = null;
     private TextView nickname = null;
     private TextView causes_name = null;
@@ -56,11 +64,17 @@ public class CauseProfileActivity extends AppCompatActivity {
 
     /* causeInfo */
     private Cause causeInfo = null;
+    private long number = -1;
+    private String ownerUID = null;
+    private String causeId = null;
+    private String currentUserUID = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cause_profile_activity);
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         /* Profile details */
         blurImage = (ImageView) findViewById(R.id.blur_profile_image);
@@ -77,40 +91,78 @@ public class CauseProfileActivity extends AppCompatActivity {
         noMoreSupportBtn = (Button) findViewById(R.id.noMoreSupportBtn);
         noMoreSupportBtn.setOnClickListener(callImageButtonClickListener);
 
+        /* Edit Button */
+        editBtn = (ImageButton) findViewById(R.id.edit_btn);
+        editBtn.setOnClickListener(callImageButtonClickListener);
+
         /* Submit Buttons */
         saveBtn = (Button)findViewById(R.id.submit_marker);
         saveBtn.setOnClickListener(callImageButtonClickListener);
         cancelBtn = (Button)findViewById(R.id.cancel_marker);
         cancelBtn.setOnClickListener(callImageButtonClickListener);
 
+        //TODO: in MAIN!
+        if (savedInstanceState != null && savedInstanceState.containsKey(CACHE)) {
+            Log.d(LOG, "Am CACHE!");
+            cacheCauses = (HashMap<String, Cause>) savedInstanceState.getSerializable(CACHE);
+        }
+
         /* Get Data*/
         getCauseData();
 
     }
+
     private void getCauseData(){
 
         Intent intent = getIntent();
-        String ownerUID = intent.getStringExtra("ownerUID");
-        String causeId = intent.getStringExtra("causeId");
+        //TODO: removeIt
+        Boolean removeIt = false;
+        Boolean changed = intent.getBooleanExtra("changed", removeIt);
+        ownerUID = intent.getStringExtra("ownerUID");
+        causeId = intent.getStringExtra("causeId");
 
         Cause cacheData = cacheCauses.get(causeId);
 
-        if(cacheData != null){
+        if(changed || cacheData == null) {
+            Log.d(LOG, "FirebaseData");
+            getFirebaseCauseData();
+        } else {
             Log.d(LOG, "CacheData");
             setCauseData(cacheData);
-        } else {
-            Log.d(LOG, "FirebaseData");
-            getFirebaseCauseData(ownerUID, causeId);
         }
     }
 
-    private void setCauseData(Cause cacheData){
+    //TODO: in MAIN!
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
 
+        Log.d(LOG, "======== onRestoreInstanceState");
+//        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        Log.d(LOG, "======== onBackPressed");
+        super.onBackPressed();
+    }
+
+    //TODO: in MAIN!
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+
+        Log.d(LOG, "======== onSaveInstanceState");
+        super.onSaveInstanceState(savedInstanceState);
+//        savedInstanceState.putSerializable(CACHE, cacheCauses);
+    }
+
+    private void setCauseData(Cause cacheData){
+        Log.d(LOG, "2");
         //TODO: Pentru un cuvant foarte lung nu merge DocumentText.setText()....
         describe.setText(cacheData.getDescription());
         causes_name.setText(cacheData.getName());
         nickname.setText(cacheData.getOwner());
-        supportedNumber.setText(cacheData.getSupportedBy());
+
 
         Bitmap profileImage = cacheData.getProfileImage();
 
@@ -122,6 +174,11 @@ public class CauseProfileActivity extends AppCompatActivity {
                 .into(blurImage);
 
         circleImage.setImageBitmap(profileImage);
+
+        if(causeInfo == null) {
+            causeInfo = new Cause(profileImage, ownerUID, cacheData.getDescription(),
+                    cacheData.getName(), cacheData.getOwner());
+        }
 
         switch (cacheData.getNumberOfPhotos()){
             case 1:
@@ -146,6 +203,9 @@ public class CauseProfileActivity extends AppCompatActivity {
 
                 ImageView pic22 = (ImageView) findViewById(R.id.pic22);
                 pic22.setImageBitmap(cacheData.getOptionalImage1());
+
+                causeInfo.setOptionalImage1(cacheData.getOptionalImage1());
+
                 break;
             case 3:
                 /* Three pictures uploaded */
@@ -162,11 +222,15 @@ public class CauseProfileActivity extends AppCompatActivity {
 
                 ImageView pic33 = (ImageView) findViewById(R.id.pic33);
                 pic33.setImageBitmap(cacheData.getOptionalImage2());
+
+                causeInfo.setOptionalImage1(cacheData.getOptionalImage1());
+                causeInfo.setOptionalImage2(cacheData.getOptionalImage2());
         }
 
+        setSupportedBtn();
     }
 
-    private void getFirebaseCauseData(final String ownerUID, final String causeId){
+    private void getFirebaseCauseData(){
 
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference()
                 .child("users").child(ownerUID).child("MyCauses").child(causeId);//.child("Info");
@@ -183,7 +247,6 @@ public class CauseProfileActivity extends AppCompatActivity {
 //                double lng = (double) info.get("longitude");
                 final String name = (String) ref.get("name");
                 final String owner = (String) ref.get("owner");
-                final String supportedString = String.valueOf(ref.get("supportedBy"));
                 final String profileImageName = (String) ref.get("profileImageName");
 
                 /* Cause Images */
@@ -206,7 +269,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                             @Override
                             public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
                                 causeInfo = new Cause(resource, ownerUID, description,
-                                        name, owner, supportedString, profileURL, profileImageName, imagesNumber);
+                                        name, owner, profileURL, profileImageName, imagesNumber);
 
                                 causeInfo.setProfileImage(resource);
 
@@ -270,6 +333,55 @@ public class CauseProfileActivity extends AppCompatActivity {
         });
     }
 
+    private void setSupportedBtn(){
+        final DatabaseReference dRef = mDatabase.child("causes").child(causeId).child("SupportedBy");
+        dRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+
+                currentUserUID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+                Map ref = (Map) snapshot.getValue();
+                Log.d(LOG, "CauseID:" + causeId);
+                number = (long) ref.get("number");
+                Log.d(LOG, "Number: " + number);
+
+                if(!currentUserUID.equals(ownerUID)){
+                    Log.d(LOG, "AltUser!");
+
+                    boolean ok = false;
+                    for(long i = 1; i <= number; i++){
+                        if(ref.get(String.valueOf(i)) != null && ref.get(String.valueOf(i)).equals(currentUserUID)){
+                            ok = true;
+                            break;
+                        }
+                    }
+
+                    if(!ok) {
+                        noMoreSupportBtn.setVisibility(View.GONE);
+                        supportBtn.setVisibility(View.VISIBLE);
+                    } else {
+                        noMoreSupportBtn.setVisibility(View.VISIBLE);
+                        supportBtn.setVisibility(View.GONE);
+                    }
+                } else {
+                    editBtn.setVisibility(View.VISIBLE);
+                    Log.d(LOG, "Acelasi user!");
+                }
+
+                if(causeInfo != null) {
+                    causeInfo.setSupportedBy(String.valueOf(number));
+                }
+                supportedNumber.setText(String.valueOf(number + 1));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     private void setImageNumber(String optionalURL1, String optionalURL2) {
 
         if(optionalURL1 != null){
@@ -287,44 +399,13 @@ public class CauseProfileActivity extends AppCompatActivity {
         }
     }
 
-
-//    private void setImageLayoutVisibility(String optionalURL1, String optionalURL2) {
-//
-//        if(optionalURL1 != null){
-//            if(optionalURL2 != null) {
-//                android.support.percent.PercentRelativeLayout relative_layout_pic3 =
-//                        (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_pic3);
-//                relative_layout_pic3.setVisibility(View.VISIBLE);
-//                imagesNumber = 3;
-//            } else {
-//                android.support.percent.PercentRelativeLayout relative_layout_pic2 =
-//                        (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_pic2);
-//                relative_layout_pic2.setVisibility(View.VISIBLE);
-//                imagesNumber = 2;
-//            }
-//        } else {
-//            if(optionalURL2 != null) {
-//                android.support.percent.PercentRelativeLayout relative_layout_pic2 =
-//                        (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_pic2);
-//                relative_layout_pic2.setVisibility(View.VISIBLE);
-//                imagesNumber = 2;
-//            } else {
-//                android.support.percent.PercentRelativeLayout relative_layout_pic1 =
-//                        (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_pic1);
-//                relative_layout_pic1.setVisibility(View.VISIBLE);
-//                imagesNumber = 1;
-//            }
-//        }
-//    }
-
-    private CauseProfileActivity.CallImageButtonClickListener callImageButtonClickListener = new CauseProfileActivity.CallImageButtonClickListener();
-
     public void onClick(View view) {
 
         //TODO: click pe nume
 
     }
 
+    private CauseProfileActivity.CallImageButtonClickListener callImageButtonClickListener = new CauseProfileActivity.CallImageButtonClickListener();
     private class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
@@ -332,20 +413,18 @@ public class CauseProfileActivity extends AppCompatActivity {
             switch (view.getId()) {
 
                 case R.id.supportBtn:
-                    supportBtn.setVisibility(View.GONE);
-                    noMoreSupportBtn.setVisibility(View.VISIBLE);
+                    support();
                     break;
 
                 case R.id.noMoreSupportBtn:
-                    noMoreSupportBtn.setVisibility(View.GONE);
-                    supportBtn.setVisibility(View.VISIBLE);
+                    unSupport();
                     break;
 
                 case R.id.edit_btn:
-//                    Intent i = new Intent(getApplicationContext(), EditCauseProfileActivity.class);
-//                    i.putExtra("userDetails", userDetails);
-//                    startActivityForResult(i, 1);
-                    Toast.makeText(getApplication(), "EditBtn", Toast.LENGTH_SHORT).show();
+                    Intent i = new Intent(getApplicationContext(), EditCauseProfileActivity.class);
+                    i.putExtra("causeId", causeId);
+                    i.putExtra("ownerUID", ownerUID);
+                    startActivityForResult(i, 1);
                     break;
 
                 case R.id.submit_marker:
@@ -363,6 +442,195 @@ public class CauseProfileActivity extends AppCompatActivity {
                     break;
             }
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case 1:
+                if (resultCode == RESULT_OK) {
+                    Boolean removeIt = false;
+                    if(data.getBooleanExtra("changed", removeIt)){
+                        removeIt = true;
+                        Log.d(LOG, "Au aparut schimbari! " + removeIt);
+
+                    } else {
+                        Log.d(LOG, "Nu au aparut schimbari!");
+                    }
+                }
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    private void unSupport() {
+
+        supportBtn.setClickable(false);
+        noMoreSupportBtn.setClickable(false);
+
+        final DatabaseReference dRef = mDatabase.child("causes").child(causeId).child("SupportedBy");
+
+        dRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+
+                if(snapshot.hasChild(currentUserUID)){
+                    dRef.child(currentUserUID).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            DatabaseReference ref = mDatabase.child("users").child(currentUserUID).child("Supporting");
+                            ref.child(causeId).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    DatabaseReference ref = mDatabase.child("causes").child(causeId).child("SupportedBy").child("number");
+                                    ref.setValue(--number).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                         @Override
+                                         public void onSuccess(Void aVoid) {
+                                            noMoreSupportBtn.setVisibility(View.GONE);
+                                            supportBtn.setVisibility(View.VISIBLE);
+                                            noMoreSupportBtn.setClickable(true);
+                                            supportBtn.setClickable(true);
+                                         }
+                                     });
+                                }
+                            });
+                        }
+                    });
+                }
+//                Map all = (Map) snapshot.getValue();
+//                Log.d(LOG, "number: " + number);
+//                long pos = 0;
+//                for(long i = 1; i <= number; i++){
+//                    if(all.get(String.valueOf(i)).equals(currentUserUID)){
+//                        pos = i;
+//                        break;
+//                    }
+//                }
+//
+//                Log.d(LOG, "pos: " + pos);
+//
+//                if(pos != number) {
+//                    String replace = String.valueOf(all.get(String.valueOf(number)));
+//                    Log.d(LOG, "all.get(number): " + replace);
+//
+//                    dRef.child(String.valueOf(pos)).setValue(replace).addOnSuccessListener(new OnSuccessListener<Void>() {
+//                        @Override
+//                        public void onSuccess(Void aVoid) {
+//                            removeLastElement(dRef);
+//                        }
+//                    });
+//                } else {
+//                    removeLastElement(dRef);
+//                }
+            }
+
+            private void removeLastElement(final DatabaseReference dRef) {
+                dRef.child(String.valueOf(number)).getRef().removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        dRef.child("number").setValue(--number).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("Supporting");
+                                ref.child(causeId).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                  @Override
+                                  public void onSuccess(Void aVoid) {
+                                      noMoreSupportBtn.setVisibility(View.GONE);
+                                      supportBtn.setVisibility(View.VISIBLE);
+                                      noMoreSupportBtn.setClickable(true);
+                                      supportBtn.setClickable(true);
+                                  }
+                              });
+                            }
+                        });
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+    }
+
+    private void support() {
+
+        noMoreSupportBtn.setClickable(false);
+        supportBtn.setClickable(false);
+
+        number = number + 1;
+        final DatabaseReference[] ref = {mDatabase.child("causes").child(causeId).child("SupportedBy")};
+        ref[0].child("number").setValue(number).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+
+                DatabaseReference dRef = mDatabase.child("users").child(currentUserUID).child("Supporting");
+                dRef.child(causeId).setValue("-").addOnSuccessListener(new OnSuccessListener<Void>() {
+                     @Override
+                     public void onSuccess(Void aVoid) {
+//                         ref[0] = ref[0].child(String.valueOf(number));
+//                         ref[0].setValue(currentUserUID).addOnSuccessListener(new OnSuccessListener<Void>() {
+                         ref[0] = ref[0].child(currentUserUID);
+                         ref[0].setValue("-").addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                supportBtn.setVisibility(View.GONE);
+                                noMoreSupportBtn.setVisibility(View.VISIBLE);
+                                supportBtn.setClickable(true);
+                                noMoreSupportBtn.setClickable(true);
+                            }
+                         });
+                     }
+                });
+            }
+        });
+
+
+    }
+
+    //TODO: remove
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(LOG, "======== onPause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(LOG, "======== onStop");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(LOG, "======== onRestart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(LOG, "======== onResume");
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(LOG, "======== onStart");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(LOG, "======== onDestroy");
     }
 
     public void setBtnVisibility(int visibility){
