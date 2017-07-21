@@ -151,6 +151,11 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         if(localIcon) {
             mNavViewImage.setImageBitmap(icon);
         }
+
+        //TODO:
+//        if(userPublicProfile.getType().equals("ngo")){
+//            MenuItem item = (MenuItem) findViewById(R.id.nav_members);
+//        }
     }
 
     @Override
@@ -180,11 +185,13 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     @Override
                     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                         switch (menuItem.getItemId()) {
+
                             case R.id.nav_account:
                                 Intent i = new Intent(getApplicationContext(), PublicProfileActivity.class);
                                 i.putExtra("userDetails", userPublicProfile);
                                 startActivityForResult(i, 2);
                                 break;
+
                             case R.id.nav_settings:
                                 Intent intent = new Intent(getApplicationContext(), UserSettingsActivity.class);
                                 intent.putExtra("email", userPublicProfile.getEmail());
@@ -194,6 +201,30 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                                 startActivity(intent);
 //                                startActivity(new Intent(getApplicationContext(), SettingsActivity2.class));
                                 break;
+
+                            case R.id.nav_my_causes:
+                                Intent in = new Intent(getApplicationContext(), MyCausesActivity.class);
+                                in.putExtra("uid", userPublicProfile.getUid());
+                                in.putExtra("type", userPublicProfile.getType());
+                                startActivity(in);
+                                break;
+
+                            case R.id.nav_supported_causes:
+                                Toast.makeText(getApplicationContext(), "Cauze susținute", Toast.LENGTH_SHORT).show();
+                                break;
+
+                            case R.id.nav_all_causes:
+                                Toast.makeText(getApplicationContext(), "Toate cauzele", Toast.LENGTH_SHORT).show();
+                                break;
+
+                            case R.id.nav_members:
+                                Toast.makeText(getApplicationContext(), "Membri", Toast.LENGTH_SHORT).show();
+                                break;
+
+                            case R.id.nav_proposals:
+                                Toast.makeText(getApplicationContext(), "Propuneri", Toast.LENGTH_SHORT).show();
+                                break;
+
                             case R.id.nav_logout:
                                 mAuth.signOut();
                                 finish();

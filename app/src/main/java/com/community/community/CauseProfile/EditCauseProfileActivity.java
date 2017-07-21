@@ -23,7 +23,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.community.community.GMaps.SubmitCauseActivity;
 import com.community.community.General.Cause;
 import com.community.community.General.UsefulThings;
 import com.community.community.R;

@@ -12,7 +12,7 @@
     <string name="sendEmail">Send email</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
-    <string name="publicProfile">Public Profile</string>
+    <string name="publicProfile">Profil public</string>
     <string name="settings">Setări</string>
     <string name="title_activity_settings">Settings</string>
     <string name="nickname">Nickname</string>
@@ -132,6 +132,13 @@
     <string name="add">Adaugă</string>
     <string name="ngo">Organizație</string>
     <string name="apply">Aplică</string>
+    <string name="myCauses">Cauzele mele</string>
+    <string name="ngoCauses">Cauzele organizației</string>
+    <string name="supported_causes">Cauzele susținute</string>
+    <string name="all_causes">Toate cauzele</string>
+    <string name="members">Membri</string>
+    <string name="proposals">Propuneri</string>
+    <string name="no_causes">Nu există niciun obiectiv\nadăugat de dumneavoastră</string>
     <!--<string name="thanks">Mulțumim!</string>-->
 
 </resources>

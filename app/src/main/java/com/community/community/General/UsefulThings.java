@@ -9,10 +9,12 @@ public class UsefulThings {
     public static final String LAT = "Latitude";
     public static final String LNG = "Longitude";
 
-    public static final String MY_CAUSES = "MyCuases";
-    public static final String MY_SUPPORTED_CAUSES = "MySupportedCuases";
+    public static final String MY_CAUSES = "MyCauses";
+    public static final String MY_SUPPORTED_CAUSES = "MySupportedCauses";
     public static final String MY_AGE = "MyAge";
     public static final String MY_ADDRESS = "MyAddress";
     public static final String MY_DESCRIPTION = "MyDescription";
+
+    public static int INTERMEDIATE_IDS = 5;
 
 }

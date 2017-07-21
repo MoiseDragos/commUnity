@@ -62,6 +62,13 @@
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
 
+        <activity
+            android:name=".MyCausesActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait">
+        </activity>
+
         <!--<activity-->
             <!--android:name=".SettingsActivity2"-->
             <!--android:label="@string/title_activity_settings"-->

@@ -486,14 +486,22 @@ public class CauseProfileActivity extends AppCompatActivity {
                             ref.child(causeId).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {
+                                    --number;
                                     DatabaseReference ref = mDatabase.child("causes").child(causeId).child("SupportedBy").child("number");
-                                    ref.setValue(--number).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    ref.setValue(number).addOnSuccessListener(new OnSuccessListener<Void>() {
                                          @Override
                                          public void onSuccess(Void aVoid) {
-                                            noMoreSupportBtn.setVisibility(View.GONE);
-                                            supportBtn.setVisibility(View.VISIBLE);
-                                            noMoreSupportBtn.setClickable(true);
-                                            supportBtn.setClickable(true);
+                                             DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("MyCauses")
+                                                     .child(causeId).child("Info").child("supportedBy");
+                                             ref.setValue(number).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                 @Override
+                                                 public void onSuccess(Void aVoid) {
+                                                     noMoreSupportBtn.setVisibility(View.GONE);
+                                                     supportBtn.setVisibility(View.VISIBLE);
+                                                     noMoreSupportBtn.setClickable(true);
+                                                     supportBtn.setClickable(true);
+                                                 }
+                                             });
                                          }
                                      });
                                 }
@@ -501,54 +509,6 @@ public class CauseProfileActivity extends AppCompatActivity {
                         }
                     });
                 }
-//                Map all = (Map) snapshot.getValue();
-//                Log.d(LOG, "number: " + number);
-//                long pos = 0;
-//                for(long i = 1; i <= number; i++){
-//                    if(all.get(String.valueOf(i)).equals(currentUserUID)){
-//                        pos = i;
-//                        break;
-//                    }
-//                }
-//
-//                Log.d(LOG, "pos: " + pos);
-//
-//                if(pos != number) {
-//                    String replace = String.valueOf(all.get(String.valueOf(number)));
-//                    Log.d(LOG, "all.get(number): " + replace);
-//
-//                    dRef.child(String.valueOf(pos)).setValue(replace).addOnSuccessListener(new OnSuccessListener<Void>() {
-//                        @Override
-//                        public void onSuccess(Void aVoid) {
-//                            removeLastElement(dRef);
-//                        }
-//                    });
-//                } else {
-//                    removeLastElement(dRef);
-//                }
-            }
-
-            private void removeLastElement(final DatabaseReference dRef) {
-                dRef.child(String.valueOf(number)).getRef().removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        dRef.child("number").setValue(--number).addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("Supporting");
-                                ref.child(causeId).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                  @Override
-                                  public void onSuccess(Void aVoid) {
-                                      noMoreSupportBtn.setVisibility(View.GONE);
-                                      supportBtn.setVisibility(View.VISIBLE);
-                                      noMoreSupportBtn.setClickable(true);
-                                      supportBtn.setClickable(true);
-                                  }
-                              });
-                            }
-                        });
-                    }
-                });
             }
 
             @Override
@@ -575,16 +535,22 @@ public class CauseProfileActivity extends AppCompatActivity {
                 dRef.child(causeId).setValue("-").addOnSuccessListener(new OnSuccessListener<Void>() {
                      @Override
                      public void onSuccess(Void aVoid) {
-//                         ref[0] = ref[0].child(String.valueOf(number));
-//                         ref[0].setValue(currentUserUID).addOnSuccessListener(new OnSuccessListener<Void>() {
                          ref[0] = ref[0].child(currentUserUID);
                          ref[0].setValue("-").addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {
-                                supportBtn.setVisibility(View.GONE);
-                                noMoreSupportBtn.setVisibility(View.VISIBLE);
-                                supportBtn.setClickable(true);
-                                noMoreSupportBtn.setClickable(true);
+
+                                DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("MyCauses")
+                                        .child(causeId).child("Info").child("supportedBy");
+                                ref.setValue(number).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        supportBtn.setVisibility(View.GONE);
+                                        noMoreSupportBtn.setVisibility(View.VISIBLE);
+                                        supportBtn.setClickable(true);
+                                        noMoreSupportBtn.setClickable(true);
+                                    }
+                                });
                             }
                          });
                      }
@@ -638,3 +604,52 @@ public class CauseProfileActivity extends AppCompatActivity {
         cancelBtn.setVisibility(visibility);
     }
 }
+
+//                Map all = (Map) snapshot.getValue();
+//                Log.d(LOG, "number: " + number);
+//                long pos = 0;
+//                for(long i = 1; i <= number; i++){
+//                    if(all.get(String.valueOf(i)).equals(currentUserUID)){
+//                        pos = i;
+//                        break;
+//                    }
+//                }
+//
+//                Log.d(LOG, "pos: " + pos);
+//
+//                if(pos != number) {
+//                    String replace = String.valueOf(all.get(String.valueOf(number)));
+//                    Log.d(LOG, "all.get(number): " + replace);
+//
+//                    dRef.child(String.valueOf(pos)).setValue(replace).addOnSuccessListener(new OnSuccessListener<Void>() {
+//                        @Override
+//                        public void onSuccess(Void aVoid) {
+//                            removeLastElement(dRef);
+//                        }
+//                    });
+//                } else {
+//                    removeLastElement(dRef);
+//                }
+//
+//            private void removeLastElement(final DatabaseReference dRef) {
+//                dRef.child(String.valueOf(number)).getRef().removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+//                    @Override
+//                    public void onSuccess(Void aVoid) {
+//                        dRef.child("number").setValue(--number).addOnSuccessListener(new OnSuccessListener<Void>() {
+//                            @Override
+//                            public void onSuccess(Void aVoid) {
+//                                DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("Supporting");
+//                                ref.child(causeId).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+//                                  @Override
+//                                  public void onSuccess(Void aVoid) {
+//                                      noMoreSupportBtn.setVisibility(View.GONE);
+//                                      supportBtn.setVisibility(View.VISIBLE);
+//                                      noMoreSupportBtn.setClickable(true);
+//                                      supportBtn.setClickable(true);
+//                                  }
+//                              });
+//                            }
+//                        });
+//                    }
+//                });
+//            }

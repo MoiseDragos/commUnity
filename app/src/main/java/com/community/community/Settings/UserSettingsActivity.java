@@ -1,9 +1,9 @@
 package com.community.community.Settings;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.percent.PercentRelativeLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -42,7 +42,9 @@ public class UserSettingsActivity extends AppCompatActivity implements View.OnCl
     // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
-    SharedPreferences sharedPreferences = null;
+    private SharedPreferences sharedPreferences = null;
+    private SharedPreferences.Editor editor = null;
+
     private DatabaseReference mDatabase = null;
     private PercentRelativeLayout addUserLayout = null;
     private PercentRelativeLayout deleteUserLayout = null;
@@ -80,7 +82,7 @@ public class UserSettingsActivity extends AppCompatActivity implements View.OnCl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
 
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+//        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
         switchMyCauses = (Switch) findViewById(R.id.switchMyCauses);
@@ -127,8 +129,89 @@ public class UserSettingsActivity extends AppCompatActivity implements View.OnCl
             }
         }
 
+        sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
+        Log.d(LOG, sharedPreferences.getAll().toString());
         onCheckedListeners();
+        setUpSharedPreferences();
 
+    }
+
+    private void setUpSharedPreferences() {
+
+        if(sharedPreferences.getAll().isEmpty()) {
+            updateSharedPreferencesFromFirebase();
+        } else {
+            boolean res, ref = false;
+            res = sharedPreferences.getBoolean(UsefulThings.MY_CAUSES, ref);
+            switchMyCauses.setChecked(res);
+
+            res = sharedPreferences.getBoolean(UsefulThings.MY_SUPPORTED_CAUSES, ref);
+            switchMySupportedCauses.setChecked(res);
+
+            res = sharedPreferences.getBoolean(UsefulThings.MY_AGE, ref);
+            switchAge.setChecked(res);
+
+            res = sharedPreferences.getBoolean(UsefulThings.MY_ADDRESS, ref);
+            switchAddress.setChecked(res);
+
+            res = sharedPreferences.getBoolean(UsefulThings.MY_DESCRIPTION, ref);
+            switchDescription.setChecked(res);
+        }
+    }
+
+    private void updateSharedPreferencesFromFirebase() {
+
+        final DatabaseReference ref = mDatabase.child("users").child(uid);
+        ref.addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.hasChild("GeneralSettings")) {
+                            DatabaseReference dRef = ref.child("GeneralSettings");
+                            dRef.addListenerForSingleValueEvent(
+                                    new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                            Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
+
+                                            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                                                String str = entry.getKey();
+                                                switch (str) {
+                                                    case UsefulThings.MY_CAUSES:
+                                                        switchMyCauses.setChecked((boolean) entry.getValue());
+                                                        break;
+                                                    case UsefulThings.MY_SUPPORTED_CAUSES:
+                                                        switchMySupportedCauses.setChecked((boolean) entry.getValue());
+                                                        break;
+                                                    case UsefulThings.MY_AGE:
+                                                        switchAge.setChecked((boolean) entry.getValue());
+                                                        break;
+                                                    case UsefulThings.MY_ADDRESS:
+                                                        switchAddress.setChecked((boolean) entry.getValue());
+                                                        break;
+                                                    case UsefulThings.MY_DESCRIPTION:
+                                                        switchDescription.setChecked((boolean) entry.getValue());
+                                                    default:
+                                                        break;
+                                                }
+                                            }
+
+                                        }
+
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
+
+                                        }
+                                    });
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
     }
 
     @Override
@@ -189,38 +272,40 @@ public class UserSettingsActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void onCheckedListeners() {
+
+        editor = sharedPreferences.edit();
         switchMyCauses.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                sharedPreferences.edit().putBoolean(UsefulThings.MY_CAUSES, isChecked).apply();
+                editor.putBoolean(UsefulThings.MY_CAUSES, isChecked).apply();
             }
         });
 
         switchMySupportedCauses.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                sharedPreferences.edit().putBoolean(UsefulThings.MY_SUPPORTED_CAUSES, isChecked).apply();
+                editor.putBoolean(UsefulThings.MY_SUPPORTED_CAUSES, isChecked).apply();
             }
         });
 
         switchAge.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                sharedPreferences.edit().putBoolean(UsefulThings.MY_AGE, isChecked).apply();
+                editor.putBoolean(UsefulThings.MY_AGE, isChecked).apply();
             }
         });
 
         switchAddress.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                sharedPreferences.edit().putBoolean(UsefulThings.MY_ADDRESS, isChecked).apply();
+                editor.putBoolean(UsefulThings.MY_ADDRESS, isChecked).apply();
             }
         });
 
         switchDescription.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                sharedPreferences.edit().putBoolean(UsefulThings.MY_DESCRIPTION, isChecked).apply();
+                editor.putBoolean(UsefulThings.MY_DESCRIPTION, isChecked).apply();
             }
         });
 
@@ -445,10 +530,6 @@ public class UserSettingsActivity extends AppCompatActivity implements View.OnCl
     }
 
     private boolean passwordEmptyFields() {
-
-//        Log.d(LOG, "OldPass: " + oldPassword.getText());
-//        Log.d(LOG, "NewPass: " + newPassword.getText());
-//        Log.d(LOG, "ConfPass: " + confirmNewPassword.getText());
 
         if(oldPassword == null || oldPassword.getText().length() < 6){
             Toast.makeText(getApplicationContext(), "Parola veche este prea scurtă", Toast.LENGTH_SHORT).show();
@@ -735,6 +816,22 @@ public class UserSettingsActivity extends AppCompatActivity implements View.OnCl
         switchDeleteUser.setChecked(false);
         deleteUserEditText.setText("");
         deleteAccountLayout.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        mDatabase.child("users").child(uid).child("GeneralSettings").setValue(sharedPreferences.getAll()).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    finish();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Preferintele nu au putut fi salvate", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            }
+        });
     }
 
 }
