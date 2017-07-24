@@ -138,7 +138,9 @@
     <string name="all_causes">Toate cauzele</string>
     <string name="members">Membri</string>
     <string name="proposals">Propuneri</string>
-    <string name="no_causes">Nu există niciun obiectiv\nadăugat de dumneavoastră</string>
+    <string name="no_my_causes">Nu există niciun obiectiv\nadăugat de dumneavoastră</string>
+    <string name="no_supported_causes">Nu există niciun obiectiv\nsusținut de dumneavoastră</string>
+    <string name="no_causes">Nu există cauze adăugate</string>
     <!--<string name="thanks">Mulțumim!</string>-->
 
 </resources>

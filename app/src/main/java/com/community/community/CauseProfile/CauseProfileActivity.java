@@ -342,16 +342,18 @@ public class CauseProfileActivity extends AppCompatActivity {
                 currentUserUID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
                 Map ref = (Map) snapshot.getValue();
-                Log.d(LOG, "CauseID:" + causeId);
                 number = (long) ref.get("number");
-                Log.d(LOG, "Number: " + number);
+
+                Log.d(LOG, "number: " + number);
 
                 if(!currentUserUID.equals(ownerUID)){
                     Log.d(LOG, "AltUser!");
 
+                    Map<String, Object> map = (Map<String, Object>) snapshot.getValue();
                     boolean ok = false;
-                    for(long i = 1; i <= number; i++){
-                        if(ref.get(String.valueOf(i)) != null && ref.get(String.valueOf(i)).equals(currentUserUID)){
+
+                    for (Map.Entry<String, Object> entry : map.entrySet()) {
+                        if(entry.getKey().equals(currentUserUID)){
                             ok = true;
                             break;
                         }
@@ -516,8 +518,6 @@ public class CauseProfileActivity extends AppCompatActivity {
 
             }
         });
-
-
     }
 
     private void support() {
@@ -532,11 +532,11 @@ public class CauseProfileActivity extends AppCompatActivity {
             public void onSuccess(Void aVoid) {
 
                 DatabaseReference dRef = mDatabase.child("users").child(currentUserUID).child("Supporting");
-                dRef.child(causeId).setValue("-").addOnSuccessListener(new OnSuccessListener<Void>() {
+                dRef.child(causeId).setValue(ownerUID).addOnSuccessListener(new OnSuccessListener<Void>() {
                      @Override
                      public void onSuccess(Void aVoid) {
                          ref[0] = ref[0].child(currentUserUID);
-                         ref[0].setValue("-").addOnSuccessListener(new OnSuccessListener<Void>() {
+                         ref[0].setValue(ownerUID).addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {
 
@@ -604,6 +604,25 @@ public class CauseProfileActivity extends AppCompatActivity {
         cancelBtn.setVisibility(visibility);
     }
 }
+
+
+
+//                    boolean ok = false;
+//                    for(long i = 1; i <= number; i++){
+//                        if(ref.get(String.valueOf(i)) != null && ref.get(String.valueOf(i)).equals(currentUserUID)){
+//                            ok = true;
+//                            break;
+//                        }
+//                    }
+//
+//                    if(!ok) {
+//                        noMoreSupportBtn.setVisibility(View.GONE);
+//                        supportBtn.setVisibility(View.VISIBLE);
+//                    } else {
+//                        noMoreSupportBtn.setVisibility(View.VISIBLE);
+//                        supportBtn.setVisibility(View.GONE);
+//                    }
+
 
 //                Map all = (Map) snapshot.getValue();
 //                Log.d(LOG, "number: " + number);

@@ -63,7 +63,7 @@
         </activity>
 
         <activity
-            android:name=".MyCausesActivity"
+            android:name=".CausesActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="portrait">

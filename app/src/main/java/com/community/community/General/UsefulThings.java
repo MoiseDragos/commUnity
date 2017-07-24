@@ -15,6 +15,11 @@ public class UsefulThings {
     public static final String MY_ADDRESS = "MyAddress";
     public static final String MY_DESCRIPTION = "MyDescription";
 
-    public static int INTERMEDIATE_IDS = 5;
+    public static final String MY_CAUSES_ACTIVITY = "MyCau";
+    public static final String MY_SUPPORTED_CAUSES_ACTIVITY = "MySupp";
+    public static final String ALL_CAUSES_ACTIVITY = "AllCau";
+
+
+    public static final int INTERMEDIATE_IDS = 5;
 
 }

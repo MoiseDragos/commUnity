@@ -31,6 +31,7 @@ import com.community.community.BeforeLogin.LoginActivity;
 import com.community.community.GMaps.FirebaseImages;
 import com.community.community.GMaps.FragmentGMaps;
 import com.community.community.GMaps.SubmitCauseActivity;
+import com.community.community.General.UsefulThings;
 import com.community.community.General.User;
 import com.community.community.PublicProfile.PublicProfileActivity;
 import com.community.community.Settings.UserSettingsActivity;
@@ -203,18 +204,27 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                                 break;
 
                             case R.id.nav_my_causes:
-                                Intent in = new Intent(getApplicationContext(), MyCausesActivity.class);
+                                Intent in = new Intent(getApplicationContext(), CausesActivity.class);
+                                in.putExtra("activity", UsefulThings.MY_CAUSES_ACTIVITY);
                                 in.putExtra("uid", userPublicProfile.getUid());
                                 in.putExtra("type", userPublicProfile.getType());
                                 startActivity(in);
                                 break;
 
                             case R.id.nav_supported_causes:
-                                Toast.makeText(getApplicationContext(), "Cauze susținute", Toast.LENGTH_SHORT).show();
+                                Intent in2 = new Intent(getApplicationContext(), CausesActivity.class);
+                                in2.putExtra("activity", UsefulThings.MY_SUPPORTED_CAUSES_ACTIVITY);
+                                in2.putExtra("uid", userPublicProfile.getUid());
+                                in2.putExtra("type", userPublicProfile.getType());
+                                startActivity(in2);
                                 break;
 
                             case R.id.nav_all_causes:
-                                Toast.makeText(getApplicationContext(), "Toate cauzele", Toast.LENGTH_SHORT).show();
+                                Intent in3 = new Intent(getApplicationContext(), CausesActivity.class);
+                                in3.putExtra("activity", UsefulThings.ALL_CAUSES_ACTIVITY);
+                                in3.putExtra("uid", userPublicProfile.getUid());
+                                in3.putExtra("type", userPublicProfile.getType());
+                                startActivity(in3);
                                 break;
 
                             case R.id.nav_members:
