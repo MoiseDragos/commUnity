@@ -28,13 +28,14 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.community.community.BeforeLogin.LoginActivity;
+import com.community.community.CauseProfile.CausesActivity;
 import com.community.community.GMaps.FirebaseImages;
 import com.community.community.GMaps.FragmentGMaps;
 import com.community.community.GMaps.SubmitCauseActivity;
 import com.community.community.General.UsefulThings;
 import com.community.community.General.User;
 import com.community.community.PublicProfile.PublicProfileActivity;
-import com.community.community.Settings.UserSettingsActivity;
+import com.community.community.Settings.AllSettingsActivity;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -179,7 +180,6 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         savedInstanceState.putSerializable(USER, userPublicProfile);
     }
 
-
     private void mNavigationViewListener() {
         mNavigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                                 break;
 
                             case R.id.nav_settings:
-                                Intent intent = new Intent(getApplicationContext(), UserSettingsActivity.class);
+                                Intent intent = new Intent(getApplicationContext(), AllSettingsActivity.class);
                                 intent.putExtra("email", userPublicProfile.getEmail());
                                 intent.putExtra("type", userPublicProfile.getType());
                                 intent.putExtra("uid", userPublicProfile.getUid());
@@ -228,11 +228,17 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                                 break;
 
                             case R.id.nav_members:
-                                Toast.makeText(getApplicationContext(), "Membri", Toast.LENGTH_SHORT).show();
+                                Intent in4 = new Intent(getApplicationContext(), NgoActivity.class);
+                                in4.putExtra("uid", userPublicProfile.getUid());
+                                in4.putExtra("type", userPublicProfile.getType());
+                                startActivity(in4);
                                 break;
 
                             case R.id.nav_proposals:
-                                Toast.makeText(getApplicationContext(), "Propuneri", Toast.LENGTH_SHORT).show();
+                                Intent in5 = new Intent(getApplicationContext(), ProposalsActivity.class);
+                                in5.putExtra("uid", userPublicProfile.getUid());
+                                in5.putExtra("type", userPublicProfile.getType());
+                                startActivity(in5);
                                 break;
 
                             case R.id.nav_logout:

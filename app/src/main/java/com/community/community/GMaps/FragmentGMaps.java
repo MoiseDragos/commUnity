@@ -56,6 +56,8 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
     private DatabaseReference mDatabase;
     private FirebaseMarker firebaseNewMarker;
 
+    private String type;
+
     // TODO: remove?
     private ArrayList<FirebaseMarker> firebaseMarkers;
 
@@ -99,6 +101,7 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
         Intent intent = new Intent(getActivity(), CauseProfileActivity.class);
         intent.putExtra("ownerUID", parts[0]);
         intent.putExtra("causeId", causeId);
+        intent.putExtra("type", type);
         getActivity().startActivityForResult(intent, 3);
     }
 
@@ -112,7 +115,7 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
                     Map all = (Map) snapshot.getValue();
                     Map<String,Object> causes = (Map<String,Object>) all.get("causes");
 
-                    firebaseMarkers = new ArrayList<FirebaseMarker>();
+                    firebaseMarkers = new ArrayList<>();
                     Map singleCauseMap;
 
                     for (Map.Entry<String, Object> entry : causes.entrySet()) {
@@ -290,7 +293,27 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mDatabase =  FirebaseDatabase.getInstance().getReference();
+        getTypeFromFirebase();
 //        Log.d(LOG, "onCreate");
+    }
+
+    private void getTypeFromFirebase(){
+
+        String userUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        DatabaseReference reference = mDatabase.child("users").child(userUid).child("ProfileSettings").child("type");
+        reference.addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        type = String.valueOf(dataSnapshot.getValue());
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
     }
 
     @Override

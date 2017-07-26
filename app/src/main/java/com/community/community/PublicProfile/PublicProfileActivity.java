@@ -8,11 +8,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
-//import android.renderscript.Allocation;
-//import android.renderscript.Element;
-//import android.renderscript.RenderScript;
-//import android.renderscript.ScriptIntrinsicBlur;
 import android.support.annotation.NonNull;
+import android.support.percent.PercentRelativeLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +18,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +28,11 @@ import com.community.community.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -37,16 +41,23 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import jp.wasabeef.blurry.Blurry;
 
+//TODO: upload details cand ies din aplicatie (nu salveaza cand vin din 'nickname')
 public class PublicProfileActivity extends AppCompatActivity {
 
     // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
     public static final String FB_STORAGE_PATH = "images/users/";
+
+    private DatabaseReference mDatabase = null;
 
     /* Profile details */
     private android.support.percent.PercentRelativeLayout percentRelativeLayout1 = null;
@@ -60,17 +71,27 @@ public class PublicProfileActivity extends AppCompatActivity {
     private DocumentView describe = null;
     private DocumentView address = null;
 
-    /* Submit Buttons*/
+    /* Submit */
     private Button saveBtn = null;
     private Button cancelBtn = null;
+    private LinearLayout submit_layout = null;
+
+    /* Ngo Buttons */
+    private LinearLayout proposalsLayout = null;
+    private Button userOngBtn = null;
+    private Button acceptBtn = null;
 
     /* User */
     private User userDetails = null;
+    private String currentUserUid = null;
+    private String currentUserType = null;
+    private String status = null;
     private Intent intent = null;
 
     /* Confirm changes */
     private boolean confirmChanges = false;
     private boolean newPicture = false;
+    private boolean isUserOng = false;
     private Bitmap newPictureBitmap = null;
 
     @Override
@@ -78,13 +99,17 @@ public class PublicProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.public_profile_activity);
 
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
         /* Prepare to return to MainActivity */
         intent = new Intent();
         intent.putExtra("changed", confirmChanges);
         setResult(RESULT_OK, intent);
 
-        percentRelativeLayout1 = (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_1);
-        percentRelativeLayout2 = (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_2);
+        percentRelativeLayout1 = (android.support.percent.PercentRelativeLayout)
+                findViewById(R.id.relative_layout_1);
+        percentRelativeLayout2 = (android.support.percent.PercentRelativeLayout)
+                findViewById(R.id.relative_layout_2);
         blurImage = (ImageView) findViewById(R.id.blur_profile_image);
         circleImage = (CircleImageView) findViewById(R.id.profile_image);
         nickname = (TextView) findViewById(R.id.userNickname);
@@ -93,38 +118,80 @@ public class PublicProfileActivity extends AppCompatActivity {
         supportedNumber = (TextView) findViewById(R.id.supported_number);
         describe = (DocumentView) findViewById(R.id.describe_view);
         address = (DocumentView) findViewById(R.id.address_view);
-//        ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
 
-        /* Submit Button */
+        /* Submit */
         saveBtn = (Button)findViewById(R.id.submit_marker);
-        saveBtn.setOnClickListener(callImageButtonClickListener);
+        saveBtn.setOnClickListener(callButtonClickListener);
         cancelBtn = (Button)findViewById(R.id.cancel_marker);
-        cancelBtn.setOnClickListener(callImageButtonClickListener);
-        setBtnVisibility(View.GONE);
+        cancelBtn.setOnClickListener(callButtonClickListener);
+
+        submit_layout = (LinearLayout) findViewById(R.id.submit_layout);
+
+        /* Ngo */
+        proposalsLayout = (LinearLayout) findViewById(R.id.proposalsLayout);
+
+        acceptBtn = (Button) findViewById(R.id.acceptBtn);
+        acceptBtn.setOnClickListener(callButtonClickListener);
+
+        Button rejectBtn = (Button) findViewById(R.id.rejectBtn);
+        rejectBtn.setOnClickListener(callButtonClickListener);
+
+        userOngBtn = (Button) findViewById(R.id.userOngBtn);
+        userOngBtn.setOnClickListener(callButtonClickListener);
 
         /* Get data from MainActivity */
-        userDetails = (User) getIntent().getSerializableExtra("userDetails");
-        Log.d(LOG, "Initial imageName: " + userDetails.getImageName());
+        Intent intent = getIntent();
+
+        if(intent != null){
+            userDetails = (User) intent.getSerializableExtra("userDetails");
+            currentUserUid = intent.getStringExtra("currentUserUid");
+            currentUserType = intent.getStringExtra("type");
+        }
 
         if(userDetails != null) {
             setProfileDetails();
             setProfilePicture(true);
+
+            //TODO: Moare aici cand e deschis foarte repede! (inainte sa se incarce obiectivele!)
+            /* Set EditButton */
+            if(userDetails.getEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())){
+                ImageButton editBtn = (ImageButton) findViewById(R.id.edit_btn);
+                editBtn.setVisibility(View.VISIBLE);
+                editBtn.setOnClickListener(callButtonClickListener);
+            } else {
+                if(currentUserType.equals("ngo") && userDetails.getType().equals("user")){
+                    verifyMember("Members");
+                } else if (currentUserType.equals("user") && userDetails.getType().equals("ngo")) {
+                    isUserOng = true;
+                    verifyMember("MemberOf");
+                }
+            }
         } else {
             Log.d(LOG, "Nu am primit detaliile!");
             finish();
         }
-
-        //TODO: Moare aici cand e deschis foarte repede! (inainte sa se incarce obiectivele!)
-        /* Set EditButton */
-        if(userDetails.getEmail().equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())){
-            ImageButton editBtn = (ImageButton) findViewById(R.id.edit_btn);
-            editBtn.setVisibility(View.VISIBLE);
-            editBtn.setOnClickListener(callImageButtonClickListener);
-        }
-
     }
 
-    private PublicProfileActivity.CallImageButtonClickListener callImageButtonClickListener = new PublicProfileActivity.CallImageButtonClickListener();
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1){
+            if(resultCode == RESULT_OK) {
+                if(data.getBooleanExtra("changed", confirmChanges)){
+                    Log.d(LOG, "Au aparut schimbari!");
+                    confirmChanges = true;
+                    submit_layout.setVisibility(View.VISIBLE);
+                    updateLocalDetails((User) data.getSerializableExtra("userDetails"));
+                } else {
+                    Log.d(LOG, "Nu au aparut schimbari!");
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+    private PublicProfileActivity.CallImageButtonClickListener
+            callButtonClickListener = new PublicProfileActivity.CallImageButtonClickListener();
     private class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
@@ -137,48 +204,504 @@ public class PublicProfileActivity extends AppCompatActivity {
                     startActivityForResult(i, 1);
                     break;
                 case R.id.submit_marker:
-    setBtnVisibility(View.GONE);
+                    submit_layout.setVisibility(View.GONE);
                     if(newPicture) {
-        newPicture = false;
-        createImageFromBitmap(newPictureBitmap);
-        removeOldImageFromFirebase();
-        uploadImageToFirebase();
-    } else {
-        intent.putExtra("changed", confirmChanges);
-        intent.putExtra("userDetails", userDetails);
-        finish();
-    }
+                        newPicture = false;
+                        createImageFromBitmap(newPictureBitmap);
+                        removeOldImageFromFirebase();
+                        uploadImageToFirebase();
+                    } else {
+                        intent.putExtra("changed", confirmChanges);
+                        intent.putExtra("userDetails", userDetails);
+                        finish();
+                    }
                     break;
                 case R.id.cancel_marker:
-    setBtnVisibility(View.GONE);
-    finish();
+                    submit_layout.setVisibility(View.GONE);
+                    finish();
                     break;
-    default:
-            break;
-}
-        }
-                }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1){
+                case R.id.userOngBtn:
+                    Log.d(LOG, "Status: " + status);
+                    switch (status) {
+                        case "Members":
+                            manageProposal(6);
+                            break;
+                        case "MemberOf":
+                            manageProposal(7);
+                            break;
+                        case "ProposalsMade":
+                            manageProposal(4);
+                            break;
+                        case "ProposalsMadeRejected":
+                            if(isUserOng){
+                                Toast.makeText(getApplicationContext(),
+                                        "Nu puteți formula altă solicitare acestui ONG",
+                                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getApplicationContext(),
+                                        "Nu puteți formula altă solicitare acestui user",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                            break;
+                        case "ProposalsReceivedRejected":
+                            manageProposal(3);
+                            break;
+                        case "NoProposal":
+                            manageProposal(5);
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
 
-//            scrollView.fullScroll(ScrollView.FOCUS_UP);
-//            scrollView.smoothScrollTo(0,0);
+                case R.id.acceptBtn:
+                    manageProposal(1);
+                    break;
 
-            if(resultCode == RESULT_OK) {
-                if(data.getBooleanExtra("changed", confirmChanges)){
-                    Log.d(LOG, "Au aparut schimbari!");
-                    confirmChanges = true;
-                    setBtnVisibility(View.VISIBLE);
-                    updateLocalDetails((User) data.getSerializableExtra("userDetails"));
-                } else {
-                    Log.d(LOG, "Nu au aparut schimbari!");
-                }
+                case R.id.rejectBtn:
+                    manageProposal(2);
+                    break;
+
+                default:
+                    break;
             }
         }
-        super.onActivityResult(requestCode, resultCode, data);
     }
+
+    /* ------------ NGO Section ------------ */
+    private void verifyMember(final String childText) {
+        DatabaseReference ref = mDatabase.child("users").child(currentUserUid);
+        ref.addValueEventListener(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+//                        Log.d(LOG, "verifyMember" + childText);
+                        if (dataSnapshot.hasChild(childText)) {
+                            Map map = (Map) dataSnapshot.getValue();
+                            Map<String, Object> mapChild = (Map<String, Object>) map.get(childText);
+
+                            if (mapChild.containsKey(userDetails.getUid())) {
+                                setBtnDetails(childText, R.drawable.edit_text_form_red,
+                                        R.color.white, R.string.remove_from_ngo,
+                                        R.string.remove_user_from_ngo);
+                            } else {
+                                verifyProposalsReceived("ProposalsReceived");
+                            }
+                        } else {
+                            verifyProposalsReceived("ProposalsReceived");
+                        }
+                    }
+
+                    private void verifyProposalsReceived(final String childText) {
+                        DatabaseReference dRef = mDatabase.child("users")
+                                .child(currentUserUid).child(childText);
+                        dRef.addListenerForSingleValueEvent(
+                                new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if(dataSnapshot.getValue() != null){
+                                            Map map = (Map) dataSnapshot.getValue();
+                                            if (map.containsKey(userDetails.getUid())) {
+                                                userOngBtn.setVisibility(View.GONE);
+
+                                                if(isUserOng){
+                                                    acceptBtn.setText(R.string.accept_ngo);
+                                                } else {
+                                                    acceptBtn.setText(R.string.accept_user);
+                                                }
+                                                proposalsLayout.setVisibility(View.VISIBLE);
+                                            } else {
+                                                verifyProposalsMade("ProposalsMade");
+                                            }
+                                        } else {
+                                            verifyProposalsMade("ProposalsMade");
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                    }
+
+                    private void verifyProposalsMade(final String childText) {
+                        DatabaseReference dRef = mDatabase.child("users")
+                                .child(currentUserUid).child(childText);
+                        dRef.addListenerForSingleValueEvent(
+                                new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if(dataSnapshot.getValue() != null){
+                                            Map map = (Map) dataSnapshot.getValue();
+                                            if (map.containsKey(userDetails.getUid())) {
+                                                setBtnDetails(childText,
+                                                        R.drawable.edit_text_form_blue,
+                                                        R.color.white,
+                                                        R.string.remove_proposal_to_ngo,
+                                                        R.string.remove_proposal_to_user);
+                                            } else {
+                                                verifyProposalsMadeRejected("ProposalsMadeRejected");
+                                            }
+                                        } else {
+                                            verifyProposalsMadeRejected("ProposalsMadeRejected");
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                    }
+
+                    private void verifyProposalsMadeRejected(final String childText) {
+
+                        DatabaseReference dRef = mDatabase.child("users")
+                                .child(currentUserUid).child(childText);
+                        dRef.addListenerForSingleValueEvent(
+                                new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if(dataSnapshot.getValue() != null){
+                                            Map map = (Map) dataSnapshot.getValue();
+                                            if (map.containsKey(userDetails.getUid())) {
+                                                setBtnDetails(childText,
+                                                        R.drawable.edit_text_form_gray,
+                                                        R.color.black,
+                                                        R.string.rejected_proposal_from_ngo,
+                                                        R.string.rejected_proposal_from_user);
+                                            } else {
+                                                verifyProposalsReceivedRejected("ProposalsReceivedRejected");
+                                            }
+                                        } else {
+                                            verifyProposalsReceivedRejected("ProposalsReceivedRejected");
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                    }
+
+                    private void verifyProposalsReceivedRejected(final String childText) {
+
+                        DatabaseReference dRef = mDatabase.child("users")
+                                .child(currentUserUid).child(childText);
+                        dRef.addListenerForSingleValueEvent(
+                                new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if(dataSnapshot.getValue() != null){
+                                            Map map = (Map) dataSnapshot.getValue();
+                                            if (map.containsKey(userDetails.getUid())) {
+                                                setBtnDetails(childText,
+                                                        R.drawable.edit_text_form_gray,
+                                                        R.color.black,
+                                                        R.string.reject_ngo,
+                                                        R.string.reject_user);
+                                            } else {
+                                                setBtnDetails("NoProposal",
+                                                        R.drawable.edit_text_form_green,
+                                                        R.color.white,
+                                                        R.string.add_to_ngo,
+                                                        R.string.add_user_in_ngo);
+                                            }
+                                        } else {
+                                            setBtnDetails("NoProposal",
+                                                    R.drawable.edit_text_form_green,
+                                                    R.color.white,
+                                                    R.string.add_to_ngo,
+                                                    R.string.add_user_in_ngo);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                    }
+
+                    private void setBtnDetails(String childText, int background, int color,
+                                               int text_1, int text_2) {
+
+                        proposalsLayout.setVisibility(View.GONE);
+                        status = childText;
+                        userOngBtn.setBackground(ContextCompat.getDrawable(getApplicationContext(),
+                                background));
+                        userOngBtn.setTextColor(ContextCompat.getColor(getApplicationContext(),
+                                color));
+                        if(isUserOng) {
+                            userOngBtn.setText(text_1);
+                        } else {
+                            userOngBtn.setText(text_2);
+                        }
+                        userOngBtn.setVisibility(View.VISIBLE);
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
+    private void manageProposal(final int number){
+
+        final PercentRelativeLayout popUpLayout = (PercentRelativeLayout) findViewById(R.id.popUpLayout);
+
+        TextView textAreYouSure = (TextView) findViewById(R.id.textAreYouSure);
+        switch (number) {
+            case 1:
+                textAreYouSure.setText("Ești sigur că vrei să accepți\nsolicitarea venită de la\n"
+                        + userDetails.getNickname() + "?");
+                break;
+            case 2:
+                textAreYouSure.setText("Ești sigur că vrei să refuzi\nsolicitarea venită de la\n"
+                        + userDetails.getNickname() + "?");
+                break;
+            case 3:
+                textAreYouSure.setText("Ești sigur că vrei\nsă schimbi decizia luată anterior?");
+                break;
+            case 4:
+                textAreYouSure.setText("Ești sigur că vrei să anulezi\nsolicitarea făcută lui\n"
+                        + userDetails.getNickname() + "?");
+                break;
+            case 5:
+                textAreYouSure.setText("Ești sigur că vrei să trimiți\no solicitarea către:\n"
+                        + userDetails.getNickname() + "?");
+                break;
+            case 6:
+                textAreYouSure.setText("Ești sigur că vrei\nsă renunți la membrul:\n"
+                        + userDetails.getNickname() + "?");
+                break;
+            case 7:
+                textAreYouSure.setText("Ești sigur că vrei\nsă renunți calitatea de membru?");
+                break;
+            default:
+                break;
+        }
+
+        Button im_sure = (Button) findViewById(R.id.im_sure);
+        im_sure.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                switch (number) {
+                    case 1:
+                        if (isUserOng) {
+                            add("MemberOf", "Members");
+                            getOngSupportedNumber(userDetails.getUid(), true);
+                        } else {
+                            add("Members", "MemberOf");
+                            getOngSupportedNumber(currentUserUid, true);
+                        }
+                        remove("ProposalsReceived", "ProposalsMade", number);
+                        break;
+                    case 2:
+                        add("ProposalsReceivedRejected", "ProposalsMadeRejected");
+                        remove("ProposalsReceived", "ProposalsMade", number);
+                        break;
+                    case 3:
+                        add("ProposalsReceived", "ProposalsMade");
+                        remove("ProposalsReceivedRejected", "ProposalsMadeRejected", number);
+                        break;
+                    case 4:
+                        remove("ProposalsMade", "ProposalsReceived", number);
+                        break;
+                    case 5:
+                        add("ProposalsMade", "ProposalsReceived");
+                        Toast.makeText(getApplicationContext(),
+                                "Solicitarea a fost trimisă!",
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                    case 6:
+                        remove("Members", "MemberOf", number);
+                        getOngSupportedNumber(currentUserUid, false);
+                        break;
+                    case 7:
+                        remove("MemberOf", "Members", number);
+                        getOngSupportedNumber(userDetails.getUid(), false);
+                    default:
+                        break;
+                }
+                popUpLayout.setVisibility(View.GONE);
+            }
+        });
+
+        Button im_not_sure = (Button) findViewById(R.id.im_not_sure);
+        im_not_sure.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                popUpLayout.setVisibility(View.GONE);
+            }
+
+        });
+
+        popUpLayout.setVisibility(View.VISIBLE);
+    }
+
+    private void remove(final String childText_1, final String childText_2, final int number) {
+
+        mDatabase.child("users").child(currentUserUid)
+                .child(childText_1).child(userDetails.getUid()).removeValue()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                   @Override
+                   public void onSuccess(Void aVoid) {
+                       mDatabase.child("users").child(userDetails.getUid())
+                               .child(childText_2).child(currentUserUid).removeValue()
+                               .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                   @Override
+                                   public void onSuccess(Void aVoid) {
+                                       switch(number){
+                                           case 1:
+                                               if (isUserOng) {
+                                                   Toast.makeText(getApplicationContext(),
+                                                           "Felicitări! Ai devenit membru!",
+                                                           Toast.LENGTH_SHORT).show();
+                                               } else {
+                                                   Toast.makeText(getApplicationContext(),
+                                                           "Felicitări! Ai un nou membru!",
+                                                           Toast.LENGTH_SHORT).show();
+                                               }
+                                               break;
+                                           case 2:
+                                               Toast.makeText(getApplicationContext(),
+                                                       "Solicitarea a fost refuzată!",
+                                                       Toast.LENGTH_SHORT).show();
+                                               break;
+                                           case 3:
+                                               Toast.makeText(getApplicationContext(),
+                                                       "Decizia a fost schimbată!",
+                                                       Toast.LENGTH_SHORT).show();
+                                               break;
+                                           case 4:
+                                               Toast.makeText(getApplicationContext(),
+                                                       "Solicitarea a fost anulată!",
+                                                       Toast.LENGTH_SHORT).show();
+                                               break;
+                                           case 6:
+                                               Toast.makeText(getApplicationContext(),
+                                                       "Membrul a fost înlăturat!",
+                                                       Toast.LENGTH_SHORT).show();
+                                               break;
+                                           case 7:
+                                               Toast.makeText(getApplicationContext(),
+                                                       "Nu mai ești membru!",
+                                                       Toast.LENGTH_SHORT).show();
+                                               break;
+                                           default:
+                                               break;
+                                       }
+                                   }
+                               });
+                   }
+               });
+    }
+
+    private void add(final String childText_1, final String childText_2) {
+
+        final DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+
+        DatabaseReference ref = mDatabase.child("users").child(currentUserUid)
+                .child(childText_1).child(userDetails.getUid());
+        ref.setValue(String.valueOf(dateFormat.format(new Date())))
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        DatabaseReference dRef = mDatabase.child("users").child(userDetails.getUid())
+                                .child(childText_2).child(currentUserUid);
+                        dRef.setValue(String.valueOf(dateFormat.format(new Date())))
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        //TODO: Toast
+                                    }
+                                });
+                    }
+                });
+    }
+
+    //TODO: update number de fiecare data cand un user isi modifica ownCauses (nu aici, in alta activitate)
+    private void getOngSupportedNumber(String ongUid, final boolean addNumber) {
+
+        Log.d(LOG, "UID: " + ongUid);
+        final DatabaseReference ref = mDatabase.child("users").child(ongUid)
+                .child("ProfileSettings").child("membersCauses");
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.getValue() != null) {
+                    String number = String.valueOf(dataSnapshot.getValue());
+                    Log.d(LOG, "NgoNumber: " + number);
+
+                    if (isUserOng) {
+                        Log.d(LOG, "A");
+                        getUserSupportedNumber(Integer.valueOf(number), currentUserUid, ref, addNumber);
+                    } else {
+                        Log.d(LOG, "B");
+                        getUserSupportedNumber(Integer.valueOf(number), userDetails.getUid(), ref, addNumber);
+                    }
+                } else {
+                    Log.d(LOG, "C");
+                    getUserSupportedNumber(0, currentUserUid, ref, addNumber);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+
+            private void getUserSupportedNumber(final int number, String userUid,
+                                                final DatabaseReference reference,
+                                                final boolean addNumber) {
+
+                Log.d(LOG, "Ajung aici!  " + userUid);
+                final DatabaseReference ref = mDatabase.child("users").child(userUid)
+                        .child("ProfileSettings").child("ownCauses");
+                ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Log.d(LOG, "UserNumber: " + dataSnapshot.getValue());
+                        if(addNumber) {
+                            reference.setValue(number
+                                    + Integer.valueOf(String.valueOf(dataSnapshot.getValue())))
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+
+                                        }
+                                    });
+                        } else {
+                            reference.setValue(number
+                                    - Integer.valueOf(String.valueOf(dataSnapshot.getValue())))
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+
+                                        }
+                                    });
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+        });
+    }
+
+    /* ------------ End of NGO Section ------------ */
+
+    /* ------------ Profile Details Section ------------ */
 
     private void setProfileDetails() {
 
@@ -219,6 +742,7 @@ public class PublicProfileActivity extends AppCompatActivity {
     private void setProfilePicture(boolean fromCreate) {
         Bitmap icon = null;
 
+        Log.d(LOG, "Ajung aici!");
         if(!fromCreate) {
             try {
                 icon = BitmapFactory.decodeStream(PublicProfileActivity.this
@@ -262,11 +786,6 @@ public class PublicProfileActivity extends AppCompatActivity {
 //        Bitmap.createScaledBitmap(icon, icon.getWidth() * 4, icon.getHeight() * 4, true);
 
 
-    }
-
-    public void setBtnVisibility(int visibility){
-        saveBtn.setVisibility(visibility);
-        cancelBtn.setVisibility(visibility);
     }
 
     public String createImageFromBitmap(Bitmap bitmap) {
@@ -376,14 +895,14 @@ public class PublicProfileActivity extends AppCompatActivity {
 //                });
     }
 
-    public Uri getCompressedImageUri(Context inContext, Bitmap inImage) {
+    private Uri getCompressedImageUri(Context inContext, Bitmap inImage) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         inImage.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
         String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
         return Uri.parse(path);
     }
 
-    public  String getRealPath(Uri uri){
+    private String getRealPath(Uri uri){
         String realPath;
 
         String[] filePathColumn = {MediaStore.Images.Media.DATA};
@@ -398,42 +917,5 @@ public class PublicProfileActivity extends AppCompatActivity {
         return realPath;
     }
 
-//    // TODO: Var 1
-//    @SuppressLint("NewApi")
-//    public static Bitmap blurring(Context context, Bitmap sentBitmap, float radius) {
-//
-//        Bitmap bitmap = sentBitmap.copy(sentBitmap.getConfig(), true);
-//
-//        final RenderScript rs = RenderScript.create(context);
-//        final Allocation input = Allocation.createFromBitmap(rs, sentBitmap,
-//                Allocation.MipmapControl.MIPMAP_NONE, Allocation.USAGE_SCRIPT);
-//        final Allocation output = Allocation.createTyped(rs, input.getType());
-//        final ScriptIntrinsicBlur script = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
-//        script.setRadius(radius);
-//        script.setInput(input);
-//        script.forEach(output);
-//        output.copyTo(bitmap);
-//        return bitmap;
-//    }
+    /* ------------ End of Profile Details Section ------------ */
 }
-//        DatabaseReference dRef = FirebaseDatabase.getInstance().getReference().child("users")
-//                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-//                .child("ProfileSettings");
-//
-//        dRef.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot snapshot) {
-//
-//                Map<String, Object> data = (Map<String,Object>) snapshot.getValue();
-//
-//                nickname.setText(data.get("nickname").toString());
-//                email.setText(data.get("email").toString());
-//                ownNumber.setText(data.get("ownCauses").toString());
-//                supportedNumber.setText(data.get("supportedCauses").toString());
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//                //handle databaseError
-//            }
-//        });

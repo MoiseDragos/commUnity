@@ -113,7 +113,7 @@
                     <!--&gt;-->
 
                     <!--<ImageView-->
-                        <!--android:background="@drawable/edittext_login_form_green"-->
+                        <!--android:background="@drawable/edit_text_form_green"-->
                         <!--android:contentDescription="@null"-->
                         <!--android:src="@drawable/follow_man"-->
                         <!--android:layout_width="match_parent"-->
@@ -130,7 +130,7 @@
                     <!--app:layout_widthPercent="8%"-->
                     <!--&gt;-->
                     <!--<TextView-->
-                        <!--android:background="@drawable/edittext_login_form_green"-->
+                        <!--android:background="@drawable/edit_text_form_green"-->
                         <!--android:gravity="center"-->
                         <!--android:textColor="@color/white"-->
                         <!--android:textSize="12sp"-->
@@ -228,7 +228,7 @@
                 <!--<ImageView-->
                     <!--android:id="@+id/supported_2"-->
                     <!--android:layout_below="@id/title_2"-->
-                    <!--android:background="@drawable/edittext_login_form_green"-->
+                    <!--android:background="@drawable/edit_text_form_green"-->
                     <!--android:contentDescription="@null"-->
                     <!--android:src="@drawable/follow_man"-->
                     <!--app:layout_heightPercent="25%"-->
@@ -239,7 +239,7 @@
                 <!--<TextView-->
                     <!--android:id="@+id/supported_number_2"-->
                     <!--android:layout_below="@id/title_2"-->
-                    <!--android:background="@drawable/edittext_login_form_green"-->
+                    <!--android:background="@drawable/edit_text_form_green"-->
                     <!--android:gravity="center"-->
                     <!--android:textColor="@color/white"-->
                     <!--android:textSize="12sp"-->

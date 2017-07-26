@@ -114,7 +114,8 @@ public class EditCauseProfileActivity extends AppCompatActivity {
         Log.d(LOG, causeId);
 
         if(causeId != null) {
-            causeDetails = CauseProfileActivity.cacheCauses.get(causeId);
+//            causeDetails = CauseProfileActivity.cacheCauses.get(causeId);
+            causeDetails = CauseProfileActivity.causeCaches.get(causeId);
         } else if (savedInstanceState != null) {
             Log.d(LOG, "Ajung aici!");
             causeDetails = new Cause();
@@ -688,10 +689,6 @@ public class EditCauseProfileActivity extends AppCompatActivity {
             return false;
         }
 
-//        Log.d(LOG, "nick: " + nick + "\nlength" + nick.length());
-//        Log.d(LOG, "causeDetails.getName(): " + causeDetails.getName() + "\nlength" + causeDetails.getName().length());
-//        Log.d(LOG, "A: " + !causeDetails.getName().equals(nick));
-
         if(!causeDetails.getName().equals(nick)) {
             changed = true;
             causeDetails.setName(nick);
@@ -701,10 +698,6 @@ public class EditCauseProfileActivity extends AppCompatActivity {
         if(des == null) {
             return false;
         }
-
-//        Log.d(LOG, "des: " + des + "\nlength" + des.length());
-//        Log.d(LOG, "causeDetails.getDescription(): " + causeDetails.getDescription() + "\nlength" + causeDetails.getDescription().length());
-//        Log.d(LOG, "B: " + !causeDetails.getDescription().equals(des));
 
         if(!causeDetails.getDescription().equals(des)) {
             changed = true;

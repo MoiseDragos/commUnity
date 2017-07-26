@@ -16,7 +16,11 @@ import com.bluejamesbond.text.DocumentView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.util.LruCache;
 import com.community.community.General.Cause;
+import com.community.community.General.UsefulThings;
+import com.community.community.General.User;
+import com.community.community.PublicProfile.PublicProfileActivity;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,7 +30,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -39,8 +42,9 @@ public class CauseProfileActivity extends AppCompatActivity {
 
     // TODO: timestamp pentru modificari!
     // TODO: cacheCauses = null la schimbarea de user / intrarea in aplicatie!
-    public static HashMap<String, Cause> cacheCauses = new HashMap<>();
-    private static final String CACHE = "Cache";
+//    public static HashMap<String, Cause> cacheCauses = new HashMap<>();
+    public static LruCache<String, Cause> causeCaches = new LruCache<>(UsefulThings.cacheSize);
+    private static final String CAUSE_ID = "cause_id";
 
 //    public static final String FB_STORAGE_PATH = "images/";
 
@@ -68,6 +72,7 @@ public class CauseProfileActivity extends AppCompatActivity {
     private String ownerUID = null;
     private String causeId = null;
     private String currentUserUID = null;
+    private String currentUserType = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,10 +106,9 @@ public class CauseProfileActivity extends AppCompatActivity {
         cancelBtn = (Button)findViewById(R.id.cancel_marker);
         cancelBtn.setOnClickListener(callImageButtonClickListener);
 
-        //TODO: in MAIN!
-        if (savedInstanceState != null && savedInstanceState.containsKey(CACHE)) {
-            Log.d(LOG, "Am CACHE!");
-            cacheCauses = (HashMap<String, Cause>) savedInstanceState.getSerializable(CACHE);
+        if(savedInstanceState != null && savedInstanceState.containsKey(CAUSE_ID)) {
+            Log.d(LOG, "Am cache: " + savedInstanceState.getString(CAUSE_ID));
+//            causeId = savedInstanceState.getString(CAUSE_ID);
         }
 
         /* Get Data*/
@@ -115,13 +119,17 @@ public class CauseProfileActivity extends AppCompatActivity {
     private void getCauseData(){
 
         Intent intent = getIntent();
-        //TODO: removeIt
         Boolean removeIt = false;
         Boolean changed = intent.getBooleanExtra("changed", removeIt);
         ownerUID = intent.getStringExtra("ownerUID");
         causeId = intent.getStringExtra("causeId");
+        currentUserType = intent.getStringExtra("type");
 
-        Cause cacheData = cacheCauses.get(causeId);
+//        Cause cacheData = cacheCauses.get(causeId);
+        Cause cacheData = causeCaches.get(causeId);
+
+        if(cacheData != null)
+            Log.d(LOG, "cacheData: " + cacheData.toString());
 
         if(changed || cacheData == null) {
             Log.d(LOG, "FirebaseData");
@@ -132,14 +140,6 @@ public class CauseProfileActivity extends AppCompatActivity {
         }
     }
 
-    //TODO: in MAIN!
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-
-        Log.d(LOG, "======== onRestoreInstanceState");
-//        super.onRestoreInstanceState(savedInstanceState);
-    }
-
     @Override
     public void onBackPressed() {
 
@@ -147,12 +147,13 @@ public class CauseProfileActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
-    //TODO: in MAIN!
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
 
         Log.d(LOG, "======== onSaveInstanceState");
         super.onSaveInstanceState(savedInstanceState);
+
+        savedInstanceState.putString(CAUSE_ID, causeId);
 //        savedInstanceState.putSerializable(CACHE, cacheCauses);
     }
 
@@ -232,8 +233,8 @@ public class CauseProfileActivity extends AppCompatActivity {
 
     private void getFirebaseCauseData(){
 
-        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference()
-                .child("users").child(ownerUID).child("MyCauses").child(causeId);//.child("Info");
+        DatabaseReference rootRef = mDatabase.child("users").child(ownerUID)
+                .child("MyCauses").child(causeId);
         rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
@@ -241,10 +242,7 @@ public class CauseProfileActivity extends AppCompatActivity {
 
                 /* Cause Info */
                 Map ref = (Map) all.get("Info");
-//                String date = (String) info.get("date");
                 final String description = (String) ref.get("description");
-//                double lat = (double) info.get("latitude");
-//                double lng = (double) info.get("longitude");
                 final String name = (String) ref.get("name");
                 final String owner = (String) ref.get("owner");
                 final String profileImageName = (String) ref.get("profileImageName");
@@ -254,9 +252,6 @@ public class CauseProfileActivity extends AppCompatActivity {
                 final String profileURL = (String) ref.get("profileThumbnailURL");
                 final String optionalURL1 = (String) ref.get("optionalThumbnailURL1");
                 final String optionalURL2 = (String) ref.get("optionalThumbnailURL2");
-//                Log.d(LOG, "ProfileURL: " + profileURL);
-//                Log.d(LOG, "opt1URL: " + optionalURL1);
-//                Log.d(LOG, "opt2URL: " + optionalURL2);
 
                 setImageNumber(optionalURL1, optionalURL2);
                 final Map finalRef = ref;
@@ -300,14 +295,16 @@ public class CauseProfileActivity extends AppCompatActivity {
                                                                         causeInfo.setOptionalImage2(resource);
 
                                                                         //TODO: daca obiectivul este eliminat de un alt utilizator?
-                                                                        cacheCauses.put(causeId, causeInfo);
+//                                                                        cacheCauses.put(causeId, causeInfo);
+                                                                        causeCaches.put(causeId, causeInfo);
 
                                                                         setCauseData(causeInfo);
                                                                         Log.d(LOG, "Glide");
                                                                     }
                                                                 });
                                                     } else {
-                                                        cacheCauses.put(causeId, causeInfo);
+//                                                        cacheCauses.put(causeId, causeInfo);
+                                                        causeCaches.put(causeId, causeInfo);
 
                                                         setCauseData(causeInfo);
                                                         Log.d(LOG, "Glide");
@@ -316,7 +313,8 @@ public class CauseProfileActivity extends AppCompatActivity {
                                                 }
                                             });
                                 } else {
-                                    cacheCauses.put(causeId, causeInfo);
+//                                    cacheCauses.put(causeId, causeInfo);
+                                    causeCaches.put(causeId, causeInfo);
 
                                     setCauseData(causeInfo);
                                     Log.d(LOG, "Glide");
@@ -328,7 +326,7 @@ public class CauseProfileActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                //TODO
+
             }
         });
     }
@@ -403,7 +401,55 @@ public class CauseProfileActivity extends AppCompatActivity {
 
     public void onClick(View view) {
 
-        //TODO: click pe nume
+//        final ProgressDialog dialog = new ProgressDialog(this);
+//        dialog.setTitle("Downloading details...");
+//        dialog.show();
+
+        DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("ProfileSettings");
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+               @Override
+               public void onDataChange(DataSnapshot snapshot) {
+
+                   User mUser = new User();
+                   Map mapRef = (Map) snapshot.getValue();
+
+                   mUser.setNickname(String.valueOf(mapRef.get("nickname")));
+                   mUser.setEmail(String.valueOf(mapRef.get("email")));
+                   mUser.setType(String.valueOf(mapRef.get("type")));
+                   mUser.setUid(ownerUID);
+                   mUser.setOwnCausesNumber(Integer.valueOf(String.valueOf(mapRef.get("ownCauses"))));
+                   mUser.setSupportedCausesNumber(Integer.valueOf(String.valueOf(mapRef.get("supportedCauses"))));
+
+                   Object ref = mapRef.get("address");
+                   if(ref != null) {
+                       mUser.setAddress(String.valueOf(ref));
+                   }
+
+                   ref = mapRef.get("describe");
+                   if(ref != null) {
+                       mUser.setDescribe(String.valueOf(ref));
+                   }
+
+                   if(ref != null) {
+                       mUser.setAge(Integer.valueOf(String.valueOf(mapRef.get("age"))));
+                   }
+
+//                   dialog.dismiss();
+                   Intent i = new Intent(getApplicationContext(), PublicProfileActivity.class);
+                   i.putExtra("userDetails", mUser);
+                   i.putExtra("currentUserUid", currentUserUID);
+                   i.putExtra("type", currentUserType);
+                   startActivity(i);
+               }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+        });
+
+
+
 
     }
 
@@ -560,8 +606,6 @@ public class CauseProfileActivity extends AppCompatActivity {
 
 
     }
-
-    //TODO: remove
 
     @Override
     protected void onPause() {

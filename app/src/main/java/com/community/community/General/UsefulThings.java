@@ -1,5 +1,9 @@
 package com.community.community.General;
 
+import android.graphics.Bitmap;
+
+import com.bumptech.glide.util.LruCache;
+
 public class UsefulThings {
 
     public static final String FB_STORAGE_PATH = "images/causes/";
@@ -19,7 +23,14 @@ public class UsefulThings {
     public static final String MY_SUPPORTED_CAUSES_ACTIVITY = "MySupp";
     public static final String ALL_CAUSES_ACTIVITY = "AllCau";
 
+    public static final int CAUSE_INTERMEDIATE_IDS = 5;
+    public static final int NGO_INTERMEDIATE_IDS = 1;
 
-    public static final int INTERMEDIATE_IDS = 5;
+    public static int cacheSize = 8 * 1024 * 1024; // 8MiB
+//    public static LruCache<String, Bitmap> bitmapCache = new LruCache<String, Bitmap>(cacheSize) {
+//        protected int sizeOf(String key, Bitmap value) {
+//            return value.getByteCount();
+//        }
+//    };
 
 }

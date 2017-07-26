@@ -29,7 +29,7 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:src="@drawable/edit_user"
-                android:background="@drawable/edittext_login_form"
+                android:background="@drawable/edit_text_form_white"
                 android:scaleType="fitXY"/>
 
             <LinearLayout
@@ -103,7 +103,7 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:src="@mipmap/ic_search_black_24dp"
-                android:background="@drawable/edittext_login_form"
+                android:background="@drawable/edit_text_form_white"
                 android:scaleType="fitXY"
                 android:contentDescription="@null" />
 
@@ -129,7 +129,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="30dp"
                 android:text="@string/save"
-                android:background="@drawable/edittext_login_form_green"
+                android:background="@drawable/edit_text_form_green"
                 android:scaleType="fitXY"
                 android:textColor="@color/white"
                 android:visibility="gone"
@@ -140,7 +140,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="30dp"
                 android:text="@string/cancel"
-                android:background="@drawable/edittext_login_form_red"
+                android:background="@drawable/edit_text_form_red"
                 android:scaleType="fitXY"
                 android:textColor="@color/white"
                 android:visibility="gone"
@@ -156,7 +156,7 @@
             android:layout_height="60dp"
             android:layout_margin="10dp"
             android:src="@drawable/add_icon"
-            android:background="@drawable/edittext_login_form"
+            android:background="@drawable/edit_text_form_white"
             android:scaleType="fitXY"
             android:layout_below="@id/linear"
             android:layout_alignParentRight="true"

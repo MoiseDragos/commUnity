@@ -173,182 +173,6 @@
 
             </android.support.percent.PercentRelativeLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:id="@+id/ngoLayout"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/ngo_users"
-                    android:textColor="@color/blue2"
-                    android:layout_marginBottom="2dp"
-                    android:textSize="20sp"
-                    android:paddingLeft="5dp"
-                    android:paddingRight="5dp"
-                    />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/blue2"
-                    android:layout_marginBottom="8dp"/>
-
-                <android.support.percent.PercentRelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp">
-
-                    <TextView
-                        android:id="@+id/addUser"
-                        android:layout_height="28sp"
-                        app:layout_widthPercent="65%"
-                        app:layout_marginLeftPercent="10%"
-                        android:gravity="center_vertical"
-                        android:textColor="@color/white"
-                        android:textSize="16sp"
-                        android:text="@string/addUser"
-                        />
-
-                    <Switch
-                        android:id="@+id/switchUser"
-                        android:layout_height="28sp"
-                        app:layout_widthPercent="20%"
-                        app:layout_marginLeftPercent="75%"
-                        />
-
-                </android.support.percent.PercentRelativeLayout>
-
-                <android.support.percent.PercentRelativeLayout
-                    android:id="@+id/addUserLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:visibility="gone"
-                    >
-
-                    <EditText
-                        android:id="@+id/addUserEditText"
-                        app:layout_widthPercent="85%"
-                        android:layout_height="wrap_content"
-                        app:layout_marginLeftPercent="10%"
-                        android:layout_marginBottom="10dp"
-                        android:background="@drawable/edittext_login_form"
-                        android:fontFamily="sans-serif"
-                        android:inputType="textEmailAddress"
-                        android:hint="@string/user_email"
-                        android:textColorHint="@color/blue2"
-                        android:textCursorDrawable="@null" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center"
-                        android:layout_below="@id/addUserEditText">
-
-                        <Button
-                            android:id="@+id/submit_add"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/add"
-                            android:background="@drawable/edittext_login_form_green"
-                            android:scaleType="fitXY"
-                            android:textColor="@color/white"
-                            tools:ignore="ButtonStyle" />
-                        <Button
-                            android:id="@+id/cancel_add"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/cancel"
-                            android:layout_marginLeft="50dp"
-                            android:background="@drawable/edittext_login_form_red"
-                            android:textColor="@color/white"
-                            tools:ignore="ButtonStyle" />
-
-                    </LinearLayout>
-                </android.support.percent.PercentRelativeLayout>
-
-                <android.support.percent.PercentRelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp">
-
-                    <TextView
-                        android:id="@+id/deleteUser"
-                        android:layout_height="28sp"
-                        app:layout_widthPercent="65%"
-                        app:layout_marginLeftPercent="10%"
-                        android:gravity="center_vertical"
-                        android:textColor="@color/white"
-                        android:textSize="16sp"
-                        android:text="@string/deleteUser"
-                        />
-
-                    <Switch
-                        android:id="@+id/switchDeleteUser"
-                        android:layout_height="28sp"
-                        app:layout_widthPercent="20%"
-                        app:layout_marginLeftPercent="75%"
-                        />
-
-                </android.support.percent.PercentRelativeLayout>
-
-                <android.support.percent.PercentRelativeLayout
-                    android:id="@+id/deleteUserLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:visibility="gone"
-                >
-
-                <EditText
-                    android:id="@+id/deleteUserEditText"
-                    app:layout_widthPercent="85%"
-                    android:layout_height="wrap_content"
-                    app:layout_marginLeftPercent="10%"
-                    android:layout_marginBottom="10dp"
-                    android:background="@drawable/edittext_login_form"
-                    android:fontFamily="sans-serif"
-                    android:inputType="textEmailAddress"
-                    android:hint="@string/user_email"
-                    android:textColorHint="@color/blue2"
-                    android:textCursorDrawable="@null" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:layout_below="@id/deleteUserEditText">
-
-                    <Button
-                        android:id="@+id/submit_delete_user"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/delete"
-                        android:background="@drawable/edittext_login_form_green"
-                        android:scaleType="fitXY"
-                        android:textColor="@color/white"
-                        tools:ignore="ButtonStyle" />
-                    <Button
-                        android:id="@+id/cancel_delete_user"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/cancel"
-                        android:layout_marginLeft="50dp"
-                        android:background="@drawable/edittext_login_form_red"
-                        android:textColor="@color/white"
-                        tools:ignore="ButtonStyle" />
-
-                </LinearLayout>
-            </android.support.percent.PercentRelativeLayout>
-            </LinearLayout>
-
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -404,7 +228,7 @@
                     android:layout_height="wrap_content"
                     app:layout_marginLeftPercent="10%"
                     android:layout_marginBottom="10dp"
-                    android:background="@drawable/edittext_login_form"
+                    android:background="@drawable/edit_text_form_white"
                     android:fontFamily="sans-serif"
                     android:inputType="textPassword"
                     android:hint="@string/old_password"
@@ -417,7 +241,7 @@
                     android:layout_height="wrap_content"
                     app:layout_marginLeftPercent="10%"
                     android:layout_marginBottom="10dp"
-                    android:background="@drawable/edittext_login_form"
+                    android:background="@drawable/edit_text_form_white"
                     android:fontFamily="sans-serif"
                     android:inputType="textPassword"
                     android:hint="@string/new_password"
@@ -431,7 +255,7 @@
                     android:layout_height="wrap_content"
                     app:layout_marginLeftPercent="10%"
                     android:layout_marginBottom="10dp"
-                    android:background="@drawable/edittext_login_form"
+                    android:background="@drawable/edit_text_form_white"
                     android:fontFamily="sans-serif"
                     android:inputType="textPassword"
                     android:hint="@string/confirm_new_password"
@@ -451,7 +275,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/save"
-                        android:background="@drawable/edittext_login_form_green"
+                        android:background="@drawable/edit_text_form_green"
                         android:scaleType="fitXY"
                         android:textColor="@color/white"
                         tools:ignore="ButtonStyle" />
@@ -461,7 +285,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/cancel"
                         android:layout_marginLeft="50dp"
-                        android:background="@drawable/edittext_login_form_red"
+                        android:background="@drawable/edit_text_form_red"
                         android:textColor="@color/white"
                         tools:ignore="ButtonStyle" />
 
@@ -507,7 +331,7 @@
                     android:layout_height="wrap_content"
                     app:layout_marginLeftPercent="10%"
                     android:layout_marginBottom="10dp"
-                    android:background="@drawable/edittext_login_form"
+                    android:background="@drawable/edit_text_form_white"
                     android:fontFamily="sans-serif"
                     android:inputType="textPassword"
                     android:hint="@string/password"
@@ -526,7 +350,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/cancel"
-                        android:background="@drawable/edittext_login_form_green"
+                        android:background="@drawable/edit_text_form_green"
                         android:scaleType="fitXY"
                         android:textColor="@color/white"
                         tools:ignore="ButtonStyle" />
@@ -536,7 +360,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/delete"
                         android:layout_marginLeft="50dp"
-                        android:background="@drawable/edittext_login_form_red"
+                        android:background="@drawable/edit_text_form_red"
                         android:textColor="@color/white"
                         tools:ignore="ButtonStyle" />
 
@@ -589,7 +413,7 @@
                         android:textSize="12sp"
                         android:text="@string/apply"
                         android:textColor="@color/white"
-                        android:background="@drawable/edittext_login_form_green"
+                        android:background="@drawable/edit_text_form_green"
                         />
 
                 </android.support.percent.PercentRelativeLayout>
@@ -617,7 +441,7 @@
                         android:text="@string/cancel"
                         android:textSize="12sp"
                         android:textColor="@color/white"
-                        android:background="@drawable/edittext_login_form_red"
+                        android:background="@drawable/edit_text_form_red"
                         />
 
                 </android.support.percent.PercentRelativeLayout>

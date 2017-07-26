@@ -88,7 +88,7 @@
                 android:textColor="@color/blue5"
                 android:id="@+id/edit_nickname"
                 android:hint="@string/nickname"
-                android:background="@drawable/edittext_login_form"
+                android:background="@drawable/edit_text_form_white"
                 android:layout_marginBottom="10dp"
                 android:maxLines="1"
                 />
@@ -115,7 +115,7 @@
                 android:id="@+id/edit_describe"
                 android:hint="@string/describe"
                 android:textCursorDrawable="@null"
-                android:background="@drawable/edittext_login_form"
+                android:background="@drawable/edit_text_form_white"
                 android:textColor="@color/blue5"
                 android:minLines="4"
                 android:maxLines="4"
@@ -185,7 +185,7 @@
                 android:id="@+id/edit_address"
                 android:hint="@string/address"
                 android:textCursorDrawable="@null"
-                android:background="@drawable/edittext_login_form"
+                android:background="@drawable/edit_text_form_white"
                 android:textColor="@color/blue5"
                 android:minLines="2"
                 android:maxLines="2"
@@ -207,7 +207,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/save"
-            android:background="@drawable/edittext_login_form_green"
+            android:background="@drawable/edit_text_form_green"
             android:scaleType="fitXY"
             android:textColor="@color/white"
             tools:ignore="ButtonStyle" />
@@ -217,7 +217,7 @@
             android:layout_height="wrap_content"
             android:text="@string/cancel"
             android:layout_marginLeft="50dp"
-            android:background="@drawable/edittext_login_form_red"
+            android:background="@drawable/edit_text_form_red"
             android:textColor="@color/white"
             tools:ignore="ButtonStyle" />
 

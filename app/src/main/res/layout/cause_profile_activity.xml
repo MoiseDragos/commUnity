@@ -14,10 +14,12 @@
         android:layout_height="wrap_content"
         android:id="@+id/relative_layout_1">
 
-        <RelativeLayout
+        <android.support.percent.PercentRelativeLayout
+            android:id="@+id/relative_layout_2"
             android:layout_width="match_parent"
             app:layout_heightPercent="20%"
-            android:id="@+id/relative_layout_2">
+            >
+
             <ImageView
                 android:contentDescription="@null"
                 android:layout_width="match_parent"
@@ -27,7 +29,7 @@
                 />
                 <!--android:src="@drawable/profile"-->
 
-        </RelativeLayout>
+        </android.support.percent.PercentRelativeLayout>
 
         <LinearLayout
             android:layout_width="100dp"
@@ -43,12 +45,12 @@
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:src="@drawable/follow_man"
-                android:background="@drawable/edittext_login_form_green"/>
+                android:background="@drawable/edit_text_form_green"/>
             <TextView
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:id="@+id/supported_number"
-                android:background="@drawable/edittext_login_form_green"
+                android:background="@drawable/edit_text_form_green"
                 android:textSize="20sp"
                 android:textColor="@color/white"
                 android:gravity="center"
@@ -89,6 +91,7 @@
                 android:clickable="true"/>
 
         </FrameLayout>
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="116dp"
@@ -111,7 +114,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:src="@mipmap/ic_mode_edit_black_48dp"
-                android:background="@drawable/edittext_login_form"
+                android:background="@drawable/edit_text_form_white"
                 android:layout_gravity="right"
                 android:layout_centerVertical="true"
                 android:layout_alignParentRight="true"
@@ -127,7 +130,7 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_below="@id/frame_2"
-            android:id="@+id/frame_1">
+            android:id="@+id/userOng">
             <TextView
                 android:id="@+id/causes_name"
                 android:layout_width="match_parent"
@@ -143,14 +146,14 @@
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/frame_1"
+            android:layout_below="@id/userOng"
             android:layout_centerInParent="true">
 
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/supportBtn"
-                android:background="@drawable/edittext_login_form_green"
+                android:background="@drawable/edit_text_form_green"
                 android:text="@string/support"
                 android:textColor="@color/white"
                 android:visibility="gone"
@@ -159,7 +162,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/noMoreSupportBtn"
-                android:background="@drawable/edittext_login_form_red"
+                android:background="@drawable/edit_text_form_red"
                 android:text="@string/no_support"
                 android:textColor="@color/white"
                 android:visibility="gone"
@@ -368,7 +371,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="30dp"
             android:text="@string/save"
-            android:background="@drawable/edittext_login_form_green"
+            android:background="@drawable/edit_text_form_green"
             android:scaleType="fitXY"
             android:textColor="@color/white"
             tools:ignore="ButtonStyle" />
@@ -378,7 +381,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="30dp"
             android:text="@string/cancel"
-            android:background="@drawable/edittext_login_form_red"
+            android:background="@drawable/edit_text_form_red"
             android:scaleType="fitXY"
             android:textColor="@color/white"
             tools:ignore="ButtonStyle"

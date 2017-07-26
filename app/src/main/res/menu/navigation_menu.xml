@@ -19,7 +19,7 @@
 
     <item android:id="@+id/nav_members"
         android:icon="@drawable/logout"
-        android:title="@string/members"/>
+        android:title="@string/ngo_title"/>
 
     <item android:id="@+id/nav_proposals"
         android:icon="@drawable/logout"

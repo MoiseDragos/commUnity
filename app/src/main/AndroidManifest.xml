@@ -58,12 +58,26 @@
         </activity>
 
         <activity
-            android:name=".Settings.UserSettingsActivity"
+            android:name=".Settings.AllSettingsActivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
 
         <activity
-            android:name=".CausesActivity"
+            android:name=".CauseProfile.CausesActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity
+            android:name=".NgoActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity
+            android:name=".ProposalsActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="portrait">

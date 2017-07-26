@@ -1,4 +1,4 @@
-package com.community.community;
+package com.community.community.CauseProfile;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -21,8 +21,8 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
-import com.community.community.CauseProfile.CauseProfileActivity;
 import com.community.community.General.UsefulThings;
+import com.community.community.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -308,7 +308,7 @@ public class CausesActivity extends AppCompatActivity {
         a = (Map<String, Object>) data.get("Images");
         String imageURL = a.get("profileThumbnailURL").toString();
 
-        number += UsefulThings.INTERMEDIATE_IDS;
+        number += UsefulThings.CAUSE_INTERMEDIATE_IDS;
         keysSparseArray.put(number, key);
         idsSparseArray.put(number, uid);
 
@@ -320,13 +320,14 @@ public class CausesActivity extends AppCompatActivity {
         @Override
         public void onClick(View view) {
 
-            for(int i = UsefulThings.INTERMEDIATE_IDS; i <= number + 1; i += UsefulThings.INTERMEDIATE_IDS) {
+            for(int i = UsefulThings.CAUSE_INTERMEDIATE_IDS; i <= number + 1; i += UsefulThings.CAUSE_INTERMEDIATE_IDS) {
                 if(view.getId() == i){
 //                    Log.d(LOG, "Accesez cauza cu numarul: " + i/UsefulThings.INTERMEDIATE_IDS);
 //                    Log.d(LOG, "ID: " + hmap.get(i - 1));
                     Intent intent = new Intent(getApplicationContext(), CauseProfileActivity.class);
                     intent.putExtra("ownerUID", idsSparseArray.get(i - 1));
                     intent.putExtra("causeId", keysSparseArray.get(i - 1));
+                    intent.putExtra("type", type);
                     startActivity(intent);
                     break;
                 }
@@ -342,7 +343,7 @@ public class CausesActivity extends AppCompatActivity {
         setImage(imageURL, parent);
         setTitle(name, parent);
         setSupportedImage(parent);
-        Log.d(LOG, supportedBy);
+//        Log.d(LOG, supportedBy);
         setSupportedText(supportedBy, parent);
         setDate(date, parent);
         setDescription(description, parent);
@@ -355,7 +356,7 @@ public class CausesActivity extends AppCompatActivity {
         parent.addView(child);
 
         PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.INTERMEDIATE_IDS - 2);
+        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 2);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.56f;
         info.heightPercent = 0.34f;
@@ -390,7 +391,7 @@ public class CausesActivity extends AppCompatActivity {
         parent.addView(child);
 
         PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.INTERMEDIATE_IDS - 3);
+        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 3);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.56f;
         info.heightPercent = 0.25f;
@@ -424,7 +425,7 @@ public class CausesActivity extends AppCompatActivity {
         parent.addView(child);
 
         PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.INTERMEDIATE_IDS - 3);
+        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 3);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.08f;
         info.heightPercent = 0.25f;
@@ -441,7 +442,7 @@ public class CausesActivity extends AppCompatActivity {
         TextView title = new TextView(getApplicationContext());
         child.addView(title);
 
-        title.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.edittext_login_form_green));
+        title.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.edit_text_form_green));
         title.setLayoutParams(new PercentRelativeLayout.LayoutParams
                 (PercentRelativeLayout.LayoutParams.MATCH_PARENT,
                         PercentRelativeLayout.LayoutParams.MATCH_PARENT));
@@ -458,7 +459,7 @@ public class CausesActivity extends AppCompatActivity {
         parent.addView(child);
 
         PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.INTERMEDIATE_IDS - 3);
+        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 3);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.1f;
         info.heightPercent = 0.25f;
@@ -479,7 +480,7 @@ public class CausesActivity extends AppCompatActivity {
                 (PercentRelativeLayout.LayoutParams.MATCH_PARENT,
                         PercentRelativeLayout.LayoutParams.MATCH_PARENT));
 
-        image.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.edittext_login_form_green));
+        image.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.edit_text_form_green));
         image.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.follow_man));
     }
 
@@ -569,7 +570,7 @@ public class CausesActivity extends AppCompatActivity {
         PercentRelativeLayout.LayoutParams params = (PercentRelativeLayout.LayoutParams) parent.getLayoutParams();
 
         if(number != 1) {
-            params.addRule(PercentRelativeLayout.BELOW, number - UsefulThings.INTERMEDIATE_IDS);
+            params.addRule(PercentRelativeLayout.BELOW, number - UsefulThings.CAUSE_INTERMEDIATE_IDS);
         }
 
         PercentLayoutHelper.PercentLayoutInfo info = params.getPercentLayoutInfo();
