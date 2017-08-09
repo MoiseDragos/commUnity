@@ -408,10 +408,10 @@
                     <Button
                         android:id="@+id/applyBtn"
                         android:layout_height="28sp"
-                        app:layout_widthPercent="22%"
-                        app:layout_marginLeftPercent="77%"
+                        app:layout_widthPercent="18%"
+                        app:layout_marginLeftPercent="78%"
                         android:textSize="12sp"
-                        android:text="@string/apply"
+                        android:text="✓"
                         android:textColor="@color/white"
                         android:background="@drawable/edit_text_form_green"
                         />
@@ -436,9 +436,9 @@
                     <Button
                         android:id="@+id/cancelBtn"
                         android:layout_height="28sp"
-                        app:layout_widthPercent="22%"
-                        app:layout_marginLeftPercent="77%"
-                        android:text="@string/cancel"
+                        app:layout_widthPercent="18%"
+                        app:layout_marginLeftPercent="78%"
+                        android:text="✗"
                         android:textSize="12sp"
                         android:textColor="@color/white"
                         android:background="@drawable/edit_text_form_red"

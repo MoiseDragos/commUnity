@@ -365,7 +365,7 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
                                     Log.d(LOG, e.getLocalizedMessage());
                                 }
                             });
-                            Toast.makeText(getApplicationContext(), "Aplicația a fost anulată", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Cererea a fost anulată", Toast.LENGTH_SHORT).show();
                         }
                     }
 

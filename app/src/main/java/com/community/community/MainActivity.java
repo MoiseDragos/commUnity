@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
                 Log.d(LOG, "MainActivity");
                 if (firebaseAuth.getCurrentUser() != null) {
-
+                    Log.d(LOG, "++MainActivity");
                     finish();
                     startActivity(new Intent(getApplicationContext(), LoginActivity.class));
 

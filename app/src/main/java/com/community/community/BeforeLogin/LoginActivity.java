@@ -21,17 +21,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
-
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
-    // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
     private EditText mEmailField;
     private EditText mPasswordField;
-    private Button mLoginBtn;
-    private TextView mRegisterAct;
-    private TextView mForgotPassAct;
 
     private ProgressDialog progressDialog;
 
@@ -39,25 +34,38 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
 
+    private boolean login;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(LOG, "onDestroy");
+    }
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_activity);
+        Log.d(LOG, "onCreate");
 
         /* Firebase */
         mAuth = FirebaseAuth.getInstance();
+
+        login = true;
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
 
-                if(mAuth.getCurrentUser() != null){
+                Log.d(LOG, "Login: " + login);
+                if(mAuth.getCurrentUser() != null && login){
 
+                    login = false;
                     Log.d(LOG, "LoginActivity");
-                    finish();
                     Intent i = new Intent(getApplicationContext(), MainActivity.class);
                     i.putExtra("isRegistred", false);
                     startActivity(i);
+                    finish();
 //                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
 
                 }
@@ -67,9 +75,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         mEmailField = (EditText) findViewById(R.id.email_id);
         mPasswordField = (EditText) findViewById(R.id.password_id);
-        mLoginBtn = (Button) findViewById(R.id.login_id);
-        mRegisterAct = (TextView) findViewById(R.id.register_id);
-        mForgotPassAct = (TextView) findViewById(R.id.forgot_password_id);
+        Button mLoginBtn = (Button) findViewById(R.id.login_id);
+        TextView mRegisterAct = (TextView) findViewById(R.id.register_id);
+        TextView mForgotPassAct = (TextView) findViewById(R.id.forgot_password_id);
 
         progressDialog = new ProgressDialog(this);
 
@@ -91,7 +99,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             return true;
         }
 
-        //TODO: alte verificari
+        if(email.length() < 3) {
+            Toast.makeText(this, "Email prea scurt", Toast.LENGTH_SHORT).show();
+            return true;
+        }
 
         return false;
     }
@@ -103,7 +114,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             return true;
         }
 
-        //TODO: alte verificari
+        if(password.length() < 5) {
+            Toast.makeText(this, "Parolă prea scurtă", Toast.LENGTH_SHORT).show();
+            return true;
+        }
 
         return false;
     }
@@ -124,13 +138,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(task.isSuccessful()){
-                            //Toast.makeText(LoginActivity.this, "Înregistrare reușită", Toast.LENGTH_SHORT).show();
-                            //TODO: Mai multe pagini deschise?! Back
-                            finish();
-                            startActivity(new Intent(getApplicationContext(), LoginActivity.class));
-                        } else {
-                            Toast.makeText(LoginActivity.this, "Logare nereușită", Toast.LENGTH_SHORT).show();
+                        if(!task.isSuccessful()){
+//                            Intent i = new Intent(getApplicationContext(), MainActivity.class);
+//                            i.putExtra("isRegistred", false);
+//                            startActivity(i);
+//                            finish();
+//                        } else {
+                            Toast.makeText(LoginActivity.this,
+                                    "Logare nereușită", Toast.LENGTH_SHORT).show();
                         }
 
                         progressDialog.dismiss();
@@ -142,19 +157,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onClick(View v) {
 
-        if(v == mLoginBtn ){
-            loginUser();
+        switch (v.getId()) {
+            case R.id.login_id:
+                loginUser();
+                break;
+            case R.id.register_id:
+                startActivity(new Intent(this, RegisterActivity.class));
+                finish();
+                break;
+            case R.id.forgot_password_id:
+                startActivity(new Intent(this, ForgotPasswordActivity.class));
+                finish();
+                break;
+            default:
+                break;
         }
-
-        if(v == mRegisterAct){
-            finish();
-            startActivity(new Intent(this, RegisterActivity.class));
-        }
-
-        if(v == mForgotPassAct){
-            finish();
-            startActivity(new Intent(this, ForgotPasswordActivity.class));
-        }
-
     }
 }

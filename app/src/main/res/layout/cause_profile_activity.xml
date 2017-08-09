@@ -124,9 +124,6 @@
                 />
         </RelativeLayout>
 
-
-
-
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_below="@id/frame_2"
@@ -143,15 +140,18 @@
                 android:paddingBottom="5dp"/>
         </FrameLayout>
 
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <android.support.percent.PercentRelativeLayout
+            android:id="@+id/buttonsLayout"
+            android:layout_width="match_parent"
+            app:layout_heightPercent="6%"
             android:layout_below="@id/userOng"
-            android:layout_centerInParent="true">
+            android:layout_centerInParent="true"
+            android:visibility="gone">
 
             <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                app:layout_widthPercent="55%"
+                android:layout_centerInParent="true"
+                android:layout_height="match_parent"
                 android:id="@+id/supportBtn"
                 android:background="@drawable/edit_text_form_green"
                 android:text="@string/support"
@@ -159,15 +159,16 @@
                 android:visibility="gone"
                 />
             <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                app:layout_widthPercent="55%"
+                android:layout_centerInParent="true"
+                android:layout_height="match_parent"
                 android:id="@+id/noMoreSupportBtn"
                 android:background="@drawable/edit_text_form_red"
                 android:text="@string/no_support"
                 android:textColor="@color/white"
                 android:visibility="gone"
                 />
-        </FrameLayout>
+        </android.support.percent.PercentRelativeLayout>
 
     </android.support.percent.PercentRelativeLayout>
 

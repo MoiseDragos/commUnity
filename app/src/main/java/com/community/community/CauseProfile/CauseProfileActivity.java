@@ -3,6 +3,7 @@ package com.community.community.CauseProfile;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.percent.PercentRelativeLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -43,9 +44,11 @@ public class CauseProfileActivity extends AppCompatActivity {
     // TODO: timestamp pentru modificari!
     // TODO: cacheCauses = null la schimbarea de user / intrarea in aplicatie!
 //    public static HashMap<String, Cause> cacheCauses = new HashMap<>();
-    public static LruCache<String, Cause> causeCaches = new LruCache<>(UsefulThings.cacheSize);
+    public static LruCache<String, Cause> causeCaches
+            = new LruCache<>(UsefulThings.causeCacheSize);
     private static final String CAUSE_ID = "cause_id";
 
+    private PercentRelativeLayout buttonsLayout = null;
 //    public static final String FB_STORAGE_PATH = "images/";
 
     private DatabaseReference mDatabase = null;
@@ -69,6 +72,7 @@ public class CauseProfileActivity extends AppCompatActivity {
     /* causeInfo */
     private Cause causeInfo = null;
     private long number = -1;
+    private long currentSupportedNumber;
     private String ownerUID = null;
     private String causeId = null;
     private String currentUserUID = null;
@@ -80,6 +84,7 @@ public class CauseProfileActivity extends AppCompatActivity {
         setContentView(R.layout.cause_profile_activity);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        currentUserUID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         /* Profile details */
         blurImage = (ImageView) findViewById(R.id.blur_profile_image);
@@ -96,6 +101,8 @@ public class CauseProfileActivity extends AppCompatActivity {
         noMoreSupportBtn = (Button) findViewById(R.id.noMoreSupportBtn);
         noMoreSupportBtn.setOnClickListener(callImageButtonClickListener);
 
+        buttonsLayout = (PercentRelativeLayout) findViewById(R.id.buttonsLayout);
+
         /* Edit Button */
         editBtn = (ImageButton) findViewById(R.id.edit_btn);
         editBtn.setOnClickListener(callImageButtonClickListener);
@@ -106,14 +113,33 @@ public class CauseProfileActivity extends AppCompatActivity {
         cancelBtn = (Button)findViewById(R.id.cancel_marker);
         cancelBtn.setOnClickListener(callImageButtonClickListener);
 
-        if(savedInstanceState != null && savedInstanceState.containsKey(CAUSE_ID)) {
-            Log.d(LOG, "Am cache: " + savedInstanceState.getString(CAUSE_ID));
+//        if(savedInstanceState != null && savedInstanceState.containsKey(CAUSE_ID)) {
+//            Log.d(LOG, "Am cache: " + savedInstanceState.getString(CAUSE_ID));
 //            causeId = savedInstanceState.getString(CAUSE_ID);
-        }
+//        }
 
         /* Get Data*/
         getCauseData();
 
+        setSupportedNumberListener();
+    }
+
+    private void setSupportedNumberListener(){
+        DatabaseReference ref = mDatabase.child("users")
+                .child(currentUserUID).child("ProfileSettings")
+                .child("supportedCauses");
+        ref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                Log.d(LOG, "SupportedCauses: " + snapshot.getValue());
+                currentSupportedNumber = Long.valueOf(String.valueOf(snapshot.getValue()));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void getCauseData(){
@@ -337,8 +363,6 @@ public class CauseProfileActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
 
-                currentUserUID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
                 Map ref = (Map) snapshot.getValue();
                 number = (long) ref.get("number");
 
@@ -346,6 +370,8 @@ public class CauseProfileActivity extends AppCompatActivity {
 
                 if(!currentUserUID.equals(ownerUID)){
                     Log.d(LOG, "AltUser!");
+
+                    buttonsLayout.setVisibility(View.VISIBLE);
 
                     Map<String, Object> map = (Map<String, Object>) snapshot.getValue();
                     boolean ok = false;
@@ -365,6 +391,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                         supportBtn.setVisibility(View.GONE);
                     }
                 } else {
+                    buttonsLayout.setVisibility(View.GONE);
                     editBtn.setVisibility(View.VISIBLE);
                     Log.d(LOG, "Acelasi user!");
                 }
@@ -447,10 +474,6 @@ public class CauseProfileActivity extends AppCompatActivity {
 
                 }
         });
-
-
-
-
     }
 
     private CauseProfileActivity.CallImageButtonClickListener callImageButtonClickListener = new CauseProfileActivity.CallImageButtonClickListener();
@@ -527,27 +550,43 @@ public class CauseProfileActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot snapshot) {
 
                 if(snapshot.hasChild(currentUserUID)){
-                    dRef.child(currentUserUID).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                    dRef.child(currentUserUID).removeValue().addOnSuccessListener(
+                            new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
-                            DatabaseReference ref = mDatabase.child("users").child(currentUserUID).child("Supporting");
-                            ref.child(causeId).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                            DatabaseReference ref = mDatabase.child("users")
+                                    .child(currentUserUID).child("Supporting");
+                            ref.child(causeId).removeValue().addOnSuccessListener(
+                                    new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {
                                     --number;
-                                    DatabaseReference ref = mDatabase.child("causes").child(causeId).child("SupportedBy").child("number");
-                                    ref.setValue(number).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    DatabaseReference ref = mDatabase.child("causes")
+                                            .child(causeId).child("SupportedBy").child("number");
+                                    ref.setValue(number).addOnSuccessListener(
+                                            new OnSuccessListener<Void>() {
                                          @Override
                                          public void onSuccess(Void aVoid) {
-                                             DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("MyCauses")
+                                             DatabaseReference ref = mDatabase.child("users")
+                                                     .child(ownerUID).child("MyCauses")
                                                      .child(causeId).child("Info").child("supportedBy");
-                                             ref.setValue(number).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                             ref.setValue(number).addOnSuccessListener(
+                                                     new OnSuccessListener<Void>() {
                                                  @Override
                                                  public void onSuccess(Void aVoid) {
-                                                     noMoreSupportBtn.setVisibility(View.GONE);
-                                                     supportBtn.setVisibility(View.VISIBLE);
-                                                     noMoreSupportBtn.setClickable(true);
-                                                     supportBtn.setClickable(true);
+                                                     DatabaseReference ref = mDatabase.child("users")
+                                                             .child(currentUserUID).child("ProfileSettings")
+                                                             .child("supportedCauses");
+                                                     ref.setValue(currentSupportedNumber - 1).addOnSuccessListener(
+                                                             new OnSuccessListener<Void>() {
+                                                                 @Override
+                                                                 public void onSuccess(Void aVoid) {
+                                                                     noMoreSupportBtn.setVisibility(View.GONE);
+                                                                     supportBtn.setVisibility(View.VISIBLE);
+                                                                     noMoreSupportBtn.setClickable(true);
+                                                                     supportBtn.setClickable(true);
+                                                                 }
+                                                             });
                                                  }
                                              });
                                          }
@@ -573,7 +612,8 @@ public class CauseProfileActivity extends AppCompatActivity {
 
         number = number + 1;
         final DatabaseReference[] ref = {mDatabase.child("causes").child(causeId).child("SupportedBy")};
-        ref[0].child("number").setValue(number).addOnSuccessListener(new OnSuccessListener<Void>() {
+        ref[0].child("number").setValue(number).addOnSuccessListener(
+                new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
 
@@ -591,10 +631,19 @@ public class CauseProfileActivity extends AppCompatActivity {
                                 ref.setValue(number).addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
-                                        supportBtn.setVisibility(View.GONE);
-                                        noMoreSupportBtn.setVisibility(View.VISIBLE);
-                                        supportBtn.setClickable(true);
-                                        noMoreSupportBtn.setClickable(true);
+                                        DatabaseReference ref = mDatabase.child("users")
+                                                .child(currentUserUID).child("ProfileSettings")
+                                                .child("supportedCauses");
+                                        ref.setValue(currentSupportedNumber + 1).addOnSuccessListener(
+                                                new OnSuccessListener<Void>() {
+                                              @Override
+                                              public void onSuccess(Void aVoid) {
+                                                supportBtn.setVisibility(View.GONE);
+                                                noMoreSupportBtn.setVisibility(View.VISIBLE);
+                                                supportBtn.setClickable(true);
+                                                noMoreSupportBtn.setClickable(true);
+                                              }
+                                          });
                                     }
                                 });
                             }

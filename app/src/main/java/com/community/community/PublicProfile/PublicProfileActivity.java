@@ -13,7 +13,9 @@ import android.support.percent.PercentRelativeLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -81,6 +83,9 @@ public class PublicProfileActivity extends AppCompatActivity {
     private Button userOngBtn = null;
     private Button acceptBtn = null;
 
+    /* Supporter */
+    private TextView supportBtn = null;
+
     /* User */
     private User userDetails = null;
     private String currentUserUid = null;
@@ -139,6 +144,25 @@ public class PublicProfileActivity extends AppCompatActivity {
         userOngBtn = (Button) findViewById(R.id.userOngBtn);
         userOngBtn.setOnClickListener(callButtonClickListener);
 
+        /* Supporter */
+        supportBtn = (TextView) findViewById(R.id.supportBtn);
+        supportBtn.setOnClickListener(callButtonClickListener);
+
+        DisplayMetrics dm = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        if(dm.heightPixels < 801) {
+            TextView tv1 = (TextView) findViewById(R.id.textView1);
+            tv1.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+
+            TextView tv2 = (TextView) findViewById(R.id.textView2);
+            tv2.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+
+            email.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            ownNumber.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+            supportedNumber.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+        }
+//        Toast.makeText(getApplicationContext(), String.valueOf(dm.heightPixels), Toast.LENGTH_LONG).show();
+
         /* Get data from MainActivity */
         Intent intent = getIntent();
 
@@ -164,6 +188,8 @@ public class PublicProfileActivity extends AppCompatActivity {
                 } else if (currentUserType.equals("user") && userDetails.getType().equals("ngo")) {
                     isUserOng = true;
                     verifyMember("MemberOf");
+                    verifySupportedBtn();
+                    //TODO: Set supportedBtn
                 }
             }
         } else {
@@ -171,6 +197,8 @@ public class PublicProfileActivity extends AppCompatActivity {
             finish();
         }
     }
+
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -252,6 +280,14 @@ public class PublicProfileActivity extends AppCompatActivity {
                             break;
                         default:
                             break;
+                    }
+                    break;
+
+                case R.id.supportBtn:
+                    if(supportBtn.getText().equals(getString(R.string.support_NGO))){
+                        supportNGO();
+                    } else {
+                        unsupportNGO();
                     }
                     break;
 
@@ -496,9 +532,11 @@ public class PublicProfileActivity extends AppCompatActivity {
                         if (isUserOng) {
                             add("MemberOf", "Members");
                             getOngSupportedNumber(userDetails.getUid(), true);
+//                            unsupportNGO();
                         } else {
                             add("Members", "MemberOf");
                             getOngSupportedNumber(currentUserUid, true);
+//                            unsupportNGO();
                         }
                         remove("ProposalsReceived", "ProposalsMade", number);
                         break;
@@ -701,6 +739,124 @@ public class PublicProfileActivity extends AppCompatActivity {
 
     /* ------------ End of NGO Section ------------ */
 
+    /* ------------ Supporter Section ------------ */
+
+    private void verifySupportedBtn() {
+        DatabaseReference ref = mDatabase.child("users")
+                .child(currentUserUid).child("MemberOf");
+        ref.addValueEventListener(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.getValue() != null) {
+                            Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+
+                            if (!map.containsKey(userDetails.getUid())) {
+                                setSupportedBtn();
+                            } else {
+                                supportBtn.setVisibility(View.GONE);
+                            }
+                        } else {
+                            setSupportedBtn();
+                        }
+                    }
+
+                    private void setSupportedBtn() {
+                        DatabaseReference ref = mDatabase.child("users")
+                                .child(currentUserUid).child("SupporterOf");
+                        ref.addListenerForSingleValueEvent(
+                                new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if(dataSnapshot.getValue() != null){
+                                            Map<String, Object> map =
+                                                    (Map<String, Object>) dataSnapshot.getValue();
+
+                                            if (!map.containsKey(userDetails.getUid())) {
+                                                supportBtn.setText(R.string.support_NGO);
+                                                supportBtn.setBackground(ContextCompat.getDrawable(
+                                                        getApplicationContext(),
+                                                        R.drawable.edit_text_form_green));
+                                            } else {
+                                                supportBtn.setText(R.string.no_support_NGO);
+                                                supportBtn.setBackground(ContextCompat.getDrawable(
+                                                        getApplicationContext(),
+                                                        R.drawable.edit_text_form_red));
+                                            }
+                                        } else {
+                                            supportBtn.setText(R.string.support_NGO);
+                                            supportBtn.setBackground(ContextCompat.getDrawable(
+                                                    getApplicationContext(),
+                                                    R.drawable.edit_text_form_green));
+                                        }
+                                        supportBtn.setVisibility(View.VISIBLE);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
+    private void supportNGO() {
+
+        final DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+
+        DatabaseReference ref = mDatabase.child("users")
+                .child(userDetails.getUid()).child("Supporters").child(currentUserUid);
+        ref.setValue(String.valueOf(dateFormat.format(new Date())))
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        DatabaseReference ref = mDatabase.child("users")
+                                .child(currentUserUid).child("SupporterOf").child(userDetails.getUid());
+                        ref.setValue(String.valueOf(dateFormat.format(new Date())))
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        supportBtn.setText(R.string.no_support_NGO);
+                                        supportBtn.setBackground(ContextCompat.getDrawable(
+                                                getApplicationContext(),
+                                                R.drawable.edit_text_form_red));
+                                    }
+                                });
+                    }
+                });
+    }
+
+    private void unsupportNGO() {
+
+        mDatabase.child("users").child(userDetails.getUid())
+                .child("Supporters").child(currentUserUid).removeValue()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        mDatabase.child("users")
+                                .child(currentUserUid).child("SupporterOf")
+                                .child(userDetails.getUid()).removeValue()
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        supportBtn.setText(R.string.support_NGO);
+                                        supportBtn.setBackground(ContextCompat.getDrawable(
+                                                getApplicationContext(),
+                                                R.drawable.edit_text_form_green));
+                                    }
+                                });
+                    }
+                });
+    }
+
+    /* ------------ End of Supporter Section ------------ */
+
     /* ------------ Profile Details Section ------------ */
 
     private void setProfileDetails() {
@@ -742,7 +898,6 @@ public class PublicProfileActivity extends AppCompatActivity {
     private void setProfilePicture(boolean fromCreate) {
         Bitmap icon = null;
 
-        Log.d(LOG, "Ajung aici!");
         if(!fromCreate) {
             try {
                 icon = BitmapFactory.decodeStream(PublicProfileActivity.this
@@ -918,4 +1073,14 @@ public class PublicProfileActivity extends AppCompatActivity {
     }
 
     /* ------------ End of Profile Details Section ------------ */
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
 }

@@ -22,12 +22,15 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.community.community.General.UsefulThings;
+import com.community.community.General.User;
+import com.community.community.PublicProfile.PublicProfileActivity;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public class NgoActivity extends AppCompatActivity {
@@ -35,28 +38,28 @@ public class NgoActivity extends AppCompatActivity {
     // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
-    private ScrollView allLayout = null;
+    private static ArrayList<PercentRelativeLayout> allPercents
+            = new ArrayList<>();
+
+    private ScrollView noCausesLayout = null;
+    private ScrollView causesLayout = null;
 
     private PercentRelativeLayout rootLayout = null;
-    private PercentRelativeLayout requests = null;
-    private PercentRelativeLayout all = null;
-
-    private TextView title = null;
 
     private DatabaseReference mDatabase = null;
 
-    private SparseArray<String> keysSparseArray = null;
+//    private SparseArray<String> keysSparseArray = null;
     private SparseArray<String> idsSparseArray = null;
 
     private String uid = null;
     private String type = null;
 
-    private int number = -1;
+    private int number;
     private int lastBtn = 1;
-
+    private int unit;
+    
     private Button memberBtn = null;
     private Button supporterBtn = null;
-    private Button requestsBtn = null;
     private Button allBtn = null;
 
     @Override
@@ -71,10 +74,14 @@ public class NgoActivity extends AppCompatActivity {
         memberBtn.setOnClickListener(callButtonClickListener);
         supporterBtn = (Button) findViewById(R.id.supporterBtn);
         supporterBtn.setOnClickListener(callButtonClickListener);
+        allBtn = (Button) findViewById(R.id.allBtn);
+        allBtn.setOnClickListener(callButtonClickListener);
 
-        requests = (PercentRelativeLayout) findViewById(R.id.requestsLayout);
-        all = (PercentRelativeLayout) findViewById(R.id.allLayout);
-        title = (TextView) findViewById(R.id.textView);
+        noCausesLayout = (ScrollView) findViewById(R.id.scroll_view_no_causes);
+        causesLayout = (ScrollView) findViewById(R.id.scroll_view_causes);
+        rootLayout = (PercentRelativeLayout) findViewById(R.id.rootLayout);
+
+        TextView title = (TextView) findViewById(R.id.textView);
 
         Intent intent = getIntent();
         if(intent != null){
@@ -82,60 +89,57 @@ public class NgoActivity extends AppCompatActivity {
             type = intent.getStringExtra("type");
         }
 
-
+        allBtn.setText(R.string.all);
         if(type.equals("ngo")) {
-            setUpButtons(true);
+            unit = UsefulThings.NGO_INTERMEDIATE_IDS;
+            title.setText(R.string.ngo_details_title);
+            memberBtn.setText(R.string.members);
+            supporterBtn.setText(R.string.supporters);
             displayNgo(1);
         } else {
-            setUpButtons(false);
-            displayUser(1);
-        }
-    }
-
-    private void setUpButtons(boolean isNgo){
-
-        if(isNgo){
-            title.setText(R.string.ngo_details_title);
-            memberBtn.setText(R.string.member);
-            supporterBtn.setText(R.string.supporters);
-
-            requests.setVisibility(View.GONE);
-            all.setVisibility(View.GONE);
-        } else {
+            unit = UsefulThings.USERS_INTERMEDIATE_IDS;
             title.setText(R.string.ngo_title);
             memberBtn.setText(R.string.member);
             supporterBtn.setText(R.string.supported);
-
-            requests.setVisibility(View.VISIBLE);
-            all.setVisibility(View.VISIBLE);
-
-            requestsBtn = (Button) findViewById(R.id.requestsBtn);
-            requestsBtn.setText(R.string.requests);
-            requestsBtn.setOnClickListener(callButtonClickListener);
-            allBtn = (Button) findViewById(R.id.allBtn);
-            allBtn.setText(R.string.all);
-            allBtn.setOnClickListener(callButtonClickListener);
+            displayUser(1);
         }
     }
 
     private void displayNgo(int i) {
 
-        memberBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
-        supporterBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
+        resetColors();
+
+        number = 1 - unit;
+
         String no_ong;
-        if(i == 1) {
-            memberBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
-            no_ong = getString(R.string.no_member);
-            displayDetails("Members", no_ong, false);
-        } else if (i == 2) {
-            supporterBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
-            no_ong = getString(R.string.no_supporter);
-            displayDetails("Supporters", no_ong, false);
+        switch (i) {
+            case 1:
+                memberBtn.setBackgroundColor(
+                        ContextCompat.getColor(getApplicationContext(), R.color.blue1));
+                no_ong = getString(R.string.no_member);
+                displayDetails("Members", no_ong, false, i);
+                break;
+            case 2:
+                supporterBtn.setBackgroundColor(
+                        ContextCompat.getColor(getApplicationContext(), R.color.blue1));
+                no_ong = getString(R.string.no_supporter);
+                displayDetails("Supporters", no_ong, false, i);
+                break;
+            case 3:
+                allBtn.setBackgroundColor(
+                        ContextCompat.getColor(getApplicationContext(), R.color.blue1));
+                no_ong = getString(R.string.no_ngo);
+                displayDetails("ngo", no_ong, true, i);
+                break;
+            default:
+                break;
         }
 
     }
 
     private void displayUser(int i) {
+
+        number = 1 - unit;
 
         resetColors();
         String no_ong;
@@ -143,29 +147,24 @@ public class NgoActivity extends AppCompatActivity {
             case 1:
                 memberBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 no_ong = getString(R.string.no_member_of);
-                displayDetails("MemberOf", no_ong, false);
+                displayDetails("MemberOf", no_ong, false, i);
                 break;
             case 2:
                 supporterBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 no_ong = getString(R.string.no_supporter_of);
-                displayDetails("SupporterOf", no_ong, false);
+                displayDetails("SupporterOf", no_ong, false, i);
                 break;
             case 3:
-                requestsBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
-                no_ong = getString(R.string.no_request_of);
-                displayDetails("SupporterOf", no_ong, false);
-                break;
-            case 4:
                 allBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 no_ong = getString(R.string.no_ngo);
-                displayDetails("ngo", no_ong, true);
+                displayDetails("ngo", no_ong, true, i);
                 break;
             default:
                 break;
         }
     }
 
-    private void displayDetails(final String child, final String no_ong, boolean isAll){
+    private void displayDetails(final String child, final String no_ong, boolean isAll, final int i){
 
         final DatabaseReference ref;
         if(!isAll) {
@@ -174,19 +173,17 @@ public class NgoActivity extends AppCompatActivity {
             ref = mDatabase;
         }
 
+
         ref.addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.hasChild(child)) {
+                            allPercents = new ArrayList<>();
 
-                            allLayout = (ScrollView) findViewById(R.id.scroll_view_causes);
-                            allLayout.setVisibility(View.VISIBLE);
+                            noCausesLayout.setVisibility(View.GONE);
+                            causesLayout.setVisibility(View.VISIBLE);
 
-                            rootLayout = (PercentRelativeLayout) findViewById(R.id.rootLayout);
-                            rootLayout.setVisibility(View.VISIBLE);
-
-                            keysSparseArray = new SparseArray<>();
                             idsSparseArray = new SparseArray<>();
 
                             DatabaseReference dRef = ref.child(child);
@@ -195,11 +192,13 @@ public class NgoActivity extends AppCompatActivity {
                                         @Override
                                         public void onDataChange(DataSnapshot dataSnapshot) {
 
-                                            Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                                            Map<String, Object> map =
+                                                    (Map<String, Object>) dataSnapshot.getValue();
 
                                             for (Map.Entry<String, Object> entry : map.entrySet()) {
 
-                                                downloadDetails(entry.getKey());
+                                                number += unit;
+                                                downloadDetails(entry.getKey(), i, number);
                                             }
                                         }
 
@@ -210,8 +209,8 @@ public class NgoActivity extends AppCompatActivity {
                                     });
 
                         } else {
-                            allLayout = (ScrollView) findViewById(R.id.scroll_view_no_causes);
-                            allLayout.setVisibility(View.VISIBLE);
+                            noCausesLayout.setVisibility(View.VISIBLE);
+                            causesLayout.setVisibility(View.GONE);
 
                             TextView noCause = (TextView) findViewById(R.id.no_causes);
                             noCause.setText(no_ong);
@@ -225,7 +224,7 @@ public class NgoActivity extends AppCompatActivity {
                 });
     }
 
-    private void downloadDetails(final String key) {
+    private void downloadDetails(final String key, final int child, final int currentNumber) {
 
         DatabaseReference reference = mDatabase.child("users").child(key).child("ProfileSettings");
         reference.addListenerForSingleValueEvent(
@@ -234,26 +233,68 @@ public class NgoActivity extends AppCompatActivity {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
 
-                        final String name = map.get("name").toString();
-                        final String allCauses = map.get("allCauses").toString();
-                        final String imageURL = map.get("imageURL").toString();
-                        final String[] supporters = {null};
-                        final String[] email = {null};
-                        final String[] date = {null};
+                        final String name = map.get("nickname").toString();
+                        final String ownCauses = map.get("ownCauses").toString();
 
-                        number += UsefulThings.CAUSE_INTERMEDIATE_IDS;
-                        keysSparseArray.put(number, key);
-                        idsSparseArray.put(number, uid);
+                        final String imageURL;
+                        if(map.containsKey("imageURL")){
+                            imageURL = map.get("imageURL").toString();
+                        } else {
+                            imageURL = null;
+                        }
 
-                        if(type.equals("ngo")){
-                            email[0] = map.get("name").toString();
-                            DatabaseReference ref = mDatabase.child("users").child(key).child("MemberOf").child(uid);
-                            ref.addListenerForSingleValueEvent(
+                        idsSparseArray.put(currentNumber, key);
+
+                        if(type.equals("user") || child == 3) {
+                            final String allCauses;
+
+                            if(map.containsKey("allCauses")) {
+                                allCauses = map.get("allCauses").toString();
+                            } else {
+                                allCauses = "0";
+                            }
+
+                            DatabaseReference ref = mDatabase.child("users").child(key)
+                                    .child("Supporters");
+                            ref.addValueEventListener(
                                     new ValueEventListener() {
                                         @Override
                                         public void onDataChange(DataSnapshot dataSnapshot) {
-                                            date[0] = String.valueOf(dataSnapshot.getValue());
-                                            buildLayout(name, allCauses, supporters[0], imageURL, email[0], date[0]);
+                                            if(dataSnapshot.getValue() != null) {
+                                                Map<String, Object> supportersMap =
+                                                        (Map<String, Object>) dataSnapshot.getValue();
+                                                determineMembers(String.valueOf(supportersMap.size()));
+                                            } else {
+                                                determineMembers("0");
+                                            }
+                                        }
+
+                                        private void determineMembers(final String supporters) {
+                                            DatabaseReference ref = mDatabase.child("users").child(key)
+                                                    .child("Members");
+                                            ref.addValueEventListener(
+                                                    new ValueEventListener() {
+                                                        @Override
+                                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                                            if(dataSnapshot.getValue() != null) {
+                                                                Map<String, Object> supportersMap =
+                                                                        (Map<String, Object>) dataSnapshot.getValue();
+                                                                buildLayout(name, ownCauses, allCauses,
+                                                                        supporters, imageURL, null, null,
+                                                                        String.valueOf(supportersMap.size()),
+                                                                        child, currentNumber);
+                                                            } else {
+                                                                buildLayout(name, ownCauses, allCauses,
+                                                                        supporters, imageURL, null, null,
+                                                                        "0", child, currentNumber);
+                                                            }
+                                                        }
+
+                                                        @Override
+                                                        public void onCancelled(DatabaseError databaseError) {
+
+                                                        }
+                                                    });
                                         }
 
                                         @Override
@@ -262,12 +303,27 @@ public class NgoActivity extends AppCompatActivity {
                                         }
                                     });
                         } else {
-                            supporters[0] = map.get("supporters").toString();
-                            buildLayout(name, allCauses, supporters[0], imageURL, email[0], date[0]);
+                            final String email = map.get("email").toString();
 
+                            DatabaseReference ref = mDatabase.child("users").child(key)
+                                    .child("MemberOf").child(uid);
+                            ref.addListenerForSingleValueEvent(
+                                    new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            String date = String.valueOf(dataSnapshot.getValue());
+
+                                            buildLayout(name, ownCauses, null, null,
+                                                    imageURL, email, date, null,
+                                                    child, currentNumber);
+                                        }
+
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
+
+                                        }
+                                    });
                         }
-
-
                     }
 
                     @Override
@@ -277,7 +333,8 @@ public class NgoActivity extends AppCompatActivity {
                 });
     }
 
-    private NgoActivity.CallButtonClickListener callButtonClickListener = new NgoActivity.CallButtonClickListener();
+    private NgoActivity.CallButtonClickListener callButtonClickListener
+            = new NgoActivity.CallButtonClickListener();
     private class CallButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
@@ -286,6 +343,7 @@ public class NgoActivity extends AppCompatActivity {
                 case R.id.membersBtn:
                     if(lastBtn != 1) {
                         lastBtn = 1;
+                        removeLayouts();
                         if (type.equals("ngo")) {
                             displayNgo(1);
                         } else {
@@ -296,6 +354,7 @@ public class NgoActivity extends AppCompatActivity {
                 case R.id.supporterBtn:
                     if(lastBtn != 2) {
                         lastBtn = 2;
+                        removeLayouts();
                         if (type.equals("ngo")) {
                             displayNgo(2);
                         } else {
@@ -303,16 +362,15 @@ public class NgoActivity extends AppCompatActivity {
                         }
                     }
                     break;
-                case R.id.requestsBtn:
+                case R.id.allBtn:
                     if(lastBtn != 3) {
                         lastBtn = 3;
-                        displayUser(3);
-                    }
-                    break;
-                case R.id.allBtn:
-                    if(lastBtn != 4) {
-                        lastBtn = 4;
-                        displayUser(4);
+                        removeLayouts();
+                        if (type.equals("ngo")) {
+                            displayNgo(3);
+                        } else {
+                            displayUser(3);
+                        }
                     }
                     break;
                 default:
@@ -321,47 +379,50 @@ public class NgoActivity extends AppCompatActivity {
         }
     }
 
-    private void buildLayout(String name, String allCauses, String supporters, String imageURL, String email, String date) {
+    private void buildLayout(String name, String ownCauses, String allCauses,
+                             String supporters, String imageURL, String email,
+                             String date, String members, int child, int currentNumber) {
 
-        PercentRelativeLayout parent = setParentLayout();
+        PercentRelativeLayout parent = setParentLayout(currentNumber);
 
-        setImage(imageURL, parent);
+        setImage(imageURL, parent, currentNumber);
+        setTitle(name, parent, currentNumber);
+        setVerticalLine(parent, 0, currentNumber);
 
-        setTitle(name, parent);
-
-        setAddedObjects(parent);
-        setAddedText(allCauses, parent);
-
-        setVerticalLine(parent);
-
-        if(type.equals("user")){
-            setSupportersObjects(parent);
-            setSupportersText(supporters, parent);
+        if(type.equals("user") || child == 3){
+            setColumn("Număr\nmembri", parent, 0, currentNumber);
+            setColumnText(members, parent, 0, currentNumber);
+            setColumn("Susținători", parent, 1, currentNumber);
+            setColumnText(supporters, parent, 1, currentNumber);
+            setColumn("Total\nCauze", parent, 2, currentNumber);
+            setColumnText(String.valueOf(Integer.valueOf(ownCauses)
+                    + Integer.valueOf(allCauses)), parent, 2, currentNumber);
+            setVerticalLine(parent, 1, currentNumber);
         } else {
-            setHorizontalLine(parent);
-            setEmailText(email, parent);
-            setDateText(date, parent);
+            setColumn("Obiective\nadăugate", parent, 0, currentNumber);
+            setColumnText(ownCauses, parent, 0, currentNumber);
+            setEmailText(email, parent, currentNumber);
+            setHorizontalLine(parent, currentNumber);
+            setDateText(date, parent, currentNumber);
         }
     }
 
-    private void setDateText(String email, PercentRelativeLayout parent) {
+    private void setDateText(String email, PercentRelativeLayout parent, int currentNumber) {
 
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
+        child.setId(currentNumber + 6);
         parent.addView(child);
 
         PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.NGO_INTERMEDIATE_IDS - 3);
+        childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 5);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
-        info.widthPercent = 0.32f;
-        info.topMarginPercent = 0.02f;
-        info.heightPercent = 0.35f;
-        info.bottomMarginPercent = 0.01f;
+        info.widthPercent = 0.38f;
+        info.heightPercent = 0.3f;
 
-        if(number%2 == 1) {
-            info.leftMarginPercent = 0.26f;
+        if(currentNumber % 2 == 0) {
+            info.leftMarginPercent = 0.21f;
         } else {
-            info.leftMarginPercent = 0.66f;
-            info.rightMarginPercent = 0.02f;
+            info.leftMarginPercent = 0.61f;
         }
 
         child.requestLayout();
@@ -379,24 +440,51 @@ public class NgoActivity extends AppCompatActivity {
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
     }
 
-    private void setEmailText(String date, PercentRelativeLayout parent) {
+    private void setHorizontalLine(PercentRelativeLayout parent, int currentNumber) {
 
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
-        child.setId(number + 5);
+        child.setId(currentNumber + 5);
         parent.addView(child);
 
         PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.NGO_INTERMEDIATE_IDS - 3);
+        childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 4);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
-        info.widthPercent = 0.32f;
-        info.heightPercent = 0.29f;
-        info.bottomMarginPercent = 0.02f;
+        info.widthPercent = 0.36f;
+        info.heightPercent = 0.006f;
 
-        if(number%2 == 1) {
-            info.leftMarginPercent = 0.26f;
+        if(currentNumber % 2 == 0) {
+            info.leftMarginPercent = 0.22f;
         } else {
-            info.leftMarginPercent = 0.66f;
-            info.rightMarginPercent = 0.02f;
+            info.leftMarginPercent = 0.62f;
+        }
+
+        child.requestLayout();
+
+        View view = new View(getApplicationContext());
+        child.addView(view);
+
+        view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.gray));
+        view.setLayoutParams(new PercentRelativeLayout.LayoutParams
+                (PercentRelativeLayout.LayoutParams.MATCH_PARENT,
+                        PercentRelativeLayout.LayoutParams.MATCH_PARENT));
+    }
+
+    private void setEmailText(String date, PercentRelativeLayout parent, int currentNumber) {
+
+        PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
+        child.setId(currentNumber + 4);
+        parent.addView(child);
+
+        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 2);
+        PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
+        info.widthPercent = 0.38f;
+        info.heightPercent = 0.3f;
+
+        if(currentNumber % 2 == 0) {
+            info.leftMarginPercent = 0.21f;
+        } else {
+            info.leftMarginPercent = 0.61f;
         }
 
         child.requestLayout();
@@ -414,61 +502,22 @@ public class NgoActivity extends AppCompatActivity {
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
     }
 
-    private void setHorizontalLine(PercentRelativeLayout parent) {
+    private void setVerticalLine(PercentRelativeLayout parent, int i, int currentNumber) {
 
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
 
         PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.NGO_INTERMEDIATE_IDS - 3);
+        childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 2);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
-        info.widthPercent = 0.32f;
-        info.heightPercent = 0.35f;
-        info.topMarginPercent = 0.02f;
-        info.bottomMarginPercent = 0.02f;
-
-        if(number%2 == 1) {
-            info.leftMarginPercent = 0.66f;
-            info.rightMarginPercent = 0.02f;
-        } else {
-            info.leftMarginPercent = 0.26f;
-        }
-
-        child.requestLayout();
-
-        View view = new View(getApplicationContext());
-        child.addView(view);
-
-        view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.gray));
-        view.setLayoutParams(new PercentRelativeLayout.LayoutParams
-                (PercentRelativeLayout.LayoutParams.MATCH_PARENT,
-                        PercentRelativeLayout.LayoutParams.MATCH_PARENT));
-    }
-
-    private void setVerticalLine(PercentRelativeLayout parent) {
-
-        PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
-        parent.addView(child);
-
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.NGO_INTERMEDIATE_IDS - 3);
-        PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
-        info.widthPercent = 0.01f;
+        info.widthPercent = 0.002f;
         info.heightPercent = 1;
         info.bottomMarginPercent = 0.02f;
 
-        if(number%2 == 1) {
-            if(type.equals("ngo")){
-                info.leftMarginPercent = 0.637f;
-            } else {
-                info.leftMarginPercent = 0.697f;
-            }
+        if(currentNumber % 2 == 0) {
+            info.leftMarginPercent = 0.198f + 0.2f * i;
         } else {
-            if(type.equals("ngo")){
-                info.leftMarginPercent = 0.337f;
-            } else {
-                info.leftMarginPercent = 0.397f;
-            }
+            info.leftMarginPercent = 0.598f + 0.2f * i;
         }
 
         child.requestLayout();
@@ -482,60 +531,61 @@ public class NgoActivity extends AppCompatActivity {
                         PercentRelativeLayout.LayoutParams.MATCH_PARENT));
     }
 
-    private void setSupportersText(String supporters, PercentRelativeLayout parent) {
+    private void setColumnText(String text, PercentRelativeLayout parent, int i, int currentNumber) {
 
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
 
         PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.NGO_INTERMEDIATE_IDS - 3);
+        childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 3);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
-        info.widthPercent = 0.26f;
+
+        info.widthPercent = 0.18f;
         info.heightPercent = 0.26f;
         info.bottomMarginPercent = 0.01f;
 
-        if(number%2 == 1) {
-            info.leftMarginPercent = 0.02f;
+        if(currentNumber % 2 == 0) {
+            info.leftMarginPercent = 0.01f + 0.2f * i;
         } else {
-            info.leftMarginPercent = 0.42f;
-            info.rightMarginPercent = 0.02f;
+            info.leftMarginPercent = 0.41f + 0.2f * i;
         }
+
 
         child.requestLayout();
 
         TextView title = new TextView(getApplicationContext());
         child.addView(title);
 
-        title.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.edit_text_form_green));
         title.setLayoutParams(new PercentRelativeLayout.LayoutParams
                 (PercentRelativeLayout.LayoutParams.MATCH_PARENT,
                         PercentRelativeLayout.LayoutParams.MATCH_PARENT));
         title.setGravity(Gravity.CENTER);
         title.setMaxLines(1);
-        title.setText(supporters);
+        title.setText(text);
+
         title.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         title.setTypeface(Typeface.DEFAULT_BOLD);
     }
 
-    private void setSupportersObjects(PercentRelativeLayout parent) {
+    private void setColumn(String text, PercentRelativeLayout parent, int i, int currentNumber) {
 
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
-        child.setId(number + 3);
+        child.setId(currentNumber + 3 + i);
         parent.addView(child);
 
         PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.NGO_INTERMEDIATE_IDS - 3);
+        childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 2);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
-        info.widthPercent = 0.26f;
-        info.heightPercent = 0.35f;
+
+        info.widthPercent = 0.18f;
+        info.heightPercent = 0.36f;
         info.bottomMarginPercent = 0.01f;
 
-        if(number%2 == 1) {
-            info.leftMarginPercent = 0.32f;
+        if(currentNumber % 2 == 0) {
+            info.leftMarginPercent = 0.01f + 0.2f * i;
         } else {
-            info.leftMarginPercent = 0.72f;
-            info.rightMarginPercent = 0.02f;
+            info.leftMarginPercent = 0.41f + 0.2f * i;
         }
 
         child.requestLayout();
@@ -549,108 +599,24 @@ public class NgoActivity extends AppCompatActivity {
 
         textAdd.setGravity(Gravity.CENTER);
         textAdd.setMaxLines(2);
-        textAdd.setText(R.string.supporters);
+        textAdd.setText(text);
         textAdd.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.gray));
         textAdd.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
     }
 
-    private void setAddedText(String addedObj, PercentRelativeLayout parent) {
+    private void setTitle(String titleText, PercentRelativeLayout parent, int currentNumber) {
 
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
+        child.setId(currentNumber + 2);
         parent.addView(child);
 
         PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.NGO_INTERMEDIATE_IDS - 3);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
-
-        if(type.equals("ngo")) {
-            info.widthPercent = 0.20f;
-        } else {
-            info.widthPercent = 0.26f;
-        }
-
-        info.heightPercent = 0.26f;
-        info.bottomMarginPercent = 0.01f;
-
-        if(number%2 == 1) {
-            info.leftMarginPercent = 0.02f;
-        } else {
-            info.leftMarginPercent = 0.42f;
-            info.rightMarginPercent = 0.02f;
-        }
-
-        child.requestLayout();
-
-        TextView title = new TextView(getApplicationContext());
-        child.addView(title);
-
-        title.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.edit_text_form_green));
-        title.setLayoutParams(new PercentRelativeLayout.LayoutParams
-                (PercentRelativeLayout.LayoutParams.MATCH_PARENT,
-                        PercentRelativeLayout.LayoutParams.MATCH_PARENT));
-        title.setGravity(Gravity.CENTER);
-        title.setMaxLines(1);
-        title.setText(addedObj);
-        title.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
-    }
-
-    private void setAddedObjects(PercentRelativeLayout parent) {
-
-        PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
-        child.setId(number + 3);
-        parent.addView(child);
-
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.NGO_INTERMEDIATE_IDS - 3);
-        PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
-
-        if(type.equals("ngo")) {
-            info.widthPercent = 0.20f;
-        } else {
-            info.widthPercent = 0.26f;
-        }
+        info.widthPercent = 0.58f;
         info.heightPercent = 0.35f;
         info.bottomMarginPercent = 0.01f;
 
-        if(number%2 == 1) {
-            info.leftMarginPercent = 0.02f;
-        } else {
-            info.leftMarginPercent = 0.42f;
-            info.rightMarginPercent = 0.02f;
-        }
-
-        child.requestLayout();
-
-        TextView textAdd = new TextView(getApplicationContext());
-        child.addView(textAdd);
-
-        textAdd.setLayoutParams(new PercentRelativeLayout.LayoutParams
-                (PercentRelativeLayout.LayoutParams.MATCH_PARENT,
-                        PercentRelativeLayout.LayoutParams.MATCH_PARENT));
-
-        textAdd.setGravity(Gravity.CENTER);
-        textAdd.setMaxLines(2);
-        textAdd.setText("Obiective\nadăugate");
-        textAdd.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.gray));
-        textAdd.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-    }
-
-    private void setTitle(String titleText, PercentRelativeLayout parent) {
-
-        PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
-        child.setId(number + 2);
-        parent.addView(child);
-
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
-        info.widthPercent = 0.56f;
-        info.heightPercent = 0.35f;
-        info.rightMarginPercent = 0.02f;
-        info.bottomMarginPercent = 0.01f;
-
-        if(number%2 == 1) {
+        if(currentNumber % 2 == 0) {
             info.leftMarginPercent = 0.02f;
         } else {
             info.leftMarginPercent = 0.42f;
@@ -671,7 +637,7 @@ public class NgoActivity extends AppCompatActivity {
         title.setTypeface(Typeface.DEFAULT_BOLD);
     }
 
-    private void setImage(String imageURL, PercentRelativeLayout parent) {
+    private void setImage(String imageURL, PercentRelativeLayout parent, int currentNumber) {
 
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
@@ -680,17 +646,18 @@ public class NgoActivity extends AppCompatActivity {
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.38f;
         info.heightPercent = 1;
+        info.topMarginPercent = 0.02f;
         info.bottomMarginPercent = 0.02f;
 
-        if(number%2 == 1) {
-//            childParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        if(currentNumber % 2 == 0) {
             info.leftMarginPercent = 0.6f;
+        } else {
+            info.leftMarginPercent = 0.01f;
         }
         child.requestLayout();
 
         final ImageView image = new ImageView(getApplicationContext());
-        image.setId(number + 1);
-//                                            Log.d(LOG, "ID: " + (i+1));
+        image.setId(currentNumber + 1);
         child.addView(image);
 
         image.setLayoutParams(new PercentRelativeLayout.LayoutParams
@@ -700,31 +667,38 @@ public class NgoActivity extends AppCompatActivity {
         image.setScaleType(ImageView.ScaleType.CENTER_CROP);
         image.setClickable(true);
 
-        Glide
-                .with(getApplication())
-                .load(imageURL)
-                .asBitmap()
-                .into(new SimpleTarget<Bitmap>() {
-                    @Override
-                    public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
+        if(imageURL != null) {
+            Glide
+                    .with(getApplication())
+                    .load(imageURL)
+                    .asBitmap()
+                    .into(new SimpleTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
 
-                        image.setImageBitmap(resource);
-                        image.setOnClickListener(callImageButtonClickListener);
-                    }
-                });
+                            image.setImageBitmap(resource);
+                            image.setOnClickListener(callImageButtonClickListener);
+                        }
+                    });
+        } else {
+            image.setImageResource(R.drawable.profile);
+            image.setOnClickListener(callImageButtonClickListener);
+        }
     }
 
-    private PercentRelativeLayout setParentLayout() {
+    private PercentRelativeLayout setParentLayout(int currentNumber) {
+
 
         PercentRelativeLayout parent = new PercentRelativeLayout(getApplicationContext());
-        parent.setId(number);
+        parent.setId(currentNumber);
         parent.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
         rootLayout.addView(parent);
+        allPercents.add(parent);
 
         PercentRelativeLayout.LayoutParams params = (PercentRelativeLayout.LayoutParams) parent.getLayoutParams();
 
-        if(number != -1) {
-            params.addRule(PercentRelativeLayout.BELOW, number - UsefulThings.NGO_INTERMEDIATE_IDS);
+        if(currentNumber != 1) {
+            params.addRule(PercentRelativeLayout.BELOW, currentNumber - unit);
         }
 
         PercentLayoutHelper.PercentLayoutInfo info = params.getPercentLayoutInfo();
@@ -744,24 +718,70 @@ public class NgoActivity extends AppCompatActivity {
         @Override
         public void onClick(View view) {
 
-            for(int i = UsefulThings.NGO_INTERMEDIATE_IDS; i <= number + 1; i += UsefulThings.NGO_INTERMEDIATE_IDS) {
+            for(int i = 2; i <= number + 2; i += UsefulThings.NGO_INTERMEDIATE_IDS) {
                 if(view.getId() == i){
-                    Log.d(LOG, "Accesez cauza cu numarul: " + i/UsefulThings.NGO_INTERMEDIATE_IDS);
-                    Log.d(LOG, "ID: " + idsSparseArray.get(i - 1));
-//                    Intent intent = new Intent(getApplicationContext(), PublicProfileActivity.class);
-//                    intent.putExtra("ownerUID", idsSparseArray.get(i - 1));
-//                    intent.putExtra("causeId", keysSparseArray.get(i - 1));
-//                    startActivity(intent);
+                    startProfileActivity(idsSparseArray.get(i - 1));
                     break;
                 }
             }
+        }
+
+        private void startProfileActivity(final String ownerUID) {
+            DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("ProfileSettings");
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+
+                    User mUser = new User();
+                    Map mapRef = (Map) snapshot.getValue();
+
+                    mUser.setNickname(String.valueOf(mapRef.get("nickname")));
+                    mUser.setEmail(String.valueOf(mapRef.get("email")));
+                    mUser.setType(String.valueOf(mapRef.get("type")));
+                    mUser.setUid(ownerUID);
+                    mUser.setOwnCausesNumber(Integer.valueOf(String.valueOf(mapRef.get("ownCauses"))));
+                    mUser.setSupportedCausesNumber(Integer.valueOf(String.valueOf(mapRef.get("supportedCauses"))));
+
+                    Object ref = mapRef.get("address");
+                    if(ref != null) {
+                        mUser.setAddress(String.valueOf(ref));
+                    }
+
+                    ref = mapRef.get("describe");
+                    if(ref != null) {
+                        mUser.setDescribe(String.valueOf(ref));
+                    }
+
+                    if(ref != null) {
+                        mUser.setAge(Integer.valueOf(String.valueOf(mapRef.get("age"))));
+                    }
+
+//                   dialog.dismiss();
+                    Intent i = new Intent(getApplicationContext(), PublicProfileActivity.class);
+                    i.putExtra("userDetails", mUser);
+                    i.putExtra("currentUserUid", uid);
+                    i.putExtra("type", type);
+                    startActivity(i);
+                    finish();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
         }
     }
 
     private void resetColors(){
         memberBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
         supporterBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
-        requestsBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
         allBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
+    }
+
+    private void removeLayouts(){
+        for (PercentRelativeLayout allPercent : allPercents) {
+            rootLayout.removeView(allPercent);
+        }
     }
 }

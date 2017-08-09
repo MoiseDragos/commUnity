@@ -36,8 +36,8 @@
                 android:layout_height="match_parent"
                 app:civ_border_width="2dp"
                 app:civ_border_color="@color/blue2"
+                android:src="@drawable/profile"
                 />
-                <!--android:src="@drawable/profile"-->
 
             <ImageButton
                 android:layout_gravity="right"
@@ -53,10 +53,26 @@
                 android:visibility="gone"
                 />
 
+            <TextView
+                android:id="@+id/supportBtn"
+                app:layout_heightPercent="50%"
+                app:layout_widthPercent="25%"
+                android:layout_gravity="right"
+                android:layout_marginRight="24dp"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:contentDescription="@null"
+                android:clickable="true"
+                android:visibility="gone"
+                />
+                <!--android:text="Susține\nacest ONG"-->
+                <!--android:background="@drawable/edit_text_form_green"-->
         </android.support.percent.PercentRelativeLayout>
 
         <android.support.percent.PercentRelativeLayout
-            android:id="@+id/linearLayout1"
+            android:id="@+id/percentLayout1"
             android:layout_width="match_parent"
             app:layout_heightPercent="16%"
             android:layout_below="@id/circleLayout"
@@ -93,7 +109,7 @@
         <android.support.percent.PercentRelativeLayout
             android:layout_width="match_parent"
             app:layout_heightPercent="30%"
-            android:layout_below="@id/linearLayout1"
+            android:layout_below="@id/percentLayout1"
             android:padding="5dp"
             android:background="@color/blue5">
 
@@ -125,7 +141,6 @@
                     android:textStyle="bold"
                     />
             </android.support.percent.PercentRelativeLayout>
-
 
             <View
                 app:layout_widthPercent="0.8%"

@@ -23,8 +23,8 @@
         android:id="@+id/membersLayout"
         android:layout_below="@id/textView"
         app:layout_heightPercent="7%"
-        app:layout_widthPercent="40%"
-        app:layout_marginLeftPercent="5%"
+        app:layout_widthPercent="30%"
+        app:layout_marginLeftPercent="3%"
         app:layout_marginBottomPercent="2%">
 
         <Button
@@ -40,8 +40,8 @@
         android:id="@+id/supporterLayout"
         android:layout_below="@id/textView"
         app:layout_heightPercent="7%"
-        app:layout_widthPercent="40%"
-        app:layout_marginLeftPercent="55%"
+        app:layout_widthPercent="30%"
+        app:layout_marginLeftPercent="35%"
         app:layout_marginBottomPercent="2%">
 
         <Button
@@ -54,34 +54,12 @@
     </android.support.percent.PercentRelativeLayout>
 
     <android.support.percent.PercentRelativeLayout
-        android:id="@+id/requestsLayout"
-        android:layout_below="@id/membersLayout"
-        app:layout_heightPercent="7%"
-        app:layout_widthPercent="40%"
-        app:layout_marginLeftPercent="5%"
-        app:layout_marginBottomPercent="2%"
-        android:visibility="gone"
-        >
-
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/requestsBtn"
-            android:background="@color/blue4"
-            android:textColor="@color/white"
-            />
-            <!--android:text="@string/requests"-->
-
-    </android.support.percent.PercentRelativeLayout>
-
-    <android.support.percent.PercentRelativeLayout
         android:id="@+id/allLayout"
-        android:layout_below="@id/membersLayout"
+        android:layout_below="@id/textView"
         app:layout_heightPercent="7%"
-        app:layout_widthPercent="40%"
-        app:layout_marginLeftPercent="55%"
+        app:layout_widthPercent="30%"
+        app:layout_marginLeftPercent="67%"
         app:layout_marginBottomPercent="2%"
-        android:visibility="gone"
         >
 
         <Button
@@ -91,18 +69,17 @@
             android:background="@color/blue4"
             android:textColor="@color/white"
             />
-            <!--android:text="@string/all"-->
+        <!--android:text="@string/all"-->
     </android.support.percent.PercentRelativeLayout>
-
 
     <ScrollView
         android:id="@+id/scroll_view_no_causes"
-        android:layout_below="@id/requestsLayout"
+        android:layout_below="@id/membersLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="10dp"
+        android:visibility="gone"
         >
-        <!--android:visibility="gone"-->
         <TextView
             android:id="@+id/no_causes"
             android:layout_width="match_parent"
@@ -118,18 +95,17 @@
 
     <ScrollView
         android:id="@+id/scroll_view_causes"
-        android:layout_below="@id/requestsLayout"
+        android:layout_below="@id/membersLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="10dp"
+        android:visibility="gone"
         >
-        <!--android:visibility="gone"-->
 
         <android.support.percent.PercentRelativeLayout
             android:id="@+id/rootLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="gone"
             >
 
             <!--<android.support.percent.PercentRelativeLayout-->

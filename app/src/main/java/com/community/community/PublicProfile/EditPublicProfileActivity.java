@@ -70,6 +70,8 @@ public class EditPublicProfileActivity extends AppCompatActivity {
         changeProfileImage.setOnClickListener(callImageButtonClickListener);
 
         Button submitBtn = (Button) findViewById(R.id.submit_changes);
+//        submitBtn.setBackground(ContextCompat.getDrawable(getApplicationContext(),
+//                R.drawable.edit_text_form_gray));
         submitBtn.setOnClickListener(callImageButtonClickListener);
 
         Button cancelBtn = (Button) findViewById(R.id.cancel_changes);
