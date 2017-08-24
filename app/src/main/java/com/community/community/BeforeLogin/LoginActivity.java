@@ -1,5 +1,6 @@
 package com.community.community.BeforeLogin;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,36 +15,38 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.community.community.General.BackPressedActivity;
 import com.community.community.MainActivity;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     private String LOG = this.getClass().getSimpleName();
 
-    private EditText mEmailField;
-    private EditText mPasswordField;
+    private EditText mEmailField = null;
+    private EditText mPasswordField = null;
 
-    private ProgressDialog progressDialog;
+    private ProgressDialog progressDialog = null;
+
+    private Button mLoginBtn = null;
+    private TextView mRegisterAct = null;
+    private TextView mForgotPassAct = null;
 
     /* Firebase */
-    private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
-
-    private boolean login;
+    private FirebaseAuth mAuth = null;
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(LOG, "onDestroy");
-    }
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_activity);
         Log.d(LOG, "onCreate");
@@ -51,45 +54,101 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         /* Firebase */
         mAuth = FirebaseAuth.getInstance();
 
-        login = true;
-
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-                Log.d(LOG, "Login: " + login);
-                if(mAuth.getCurrentUser() != null && login){
-
-                    login = false;
-                    Log.d(LOG, "LoginActivity");
-                    Intent i = new Intent(getApplicationContext(), MainActivity.class);
-                    i.putExtra("isRegistred", false);
-                    startActivity(i);
-                    finish();
-//                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
-
-                }
-
-            }
-        };
+        progressDialog = new ProgressDialog(this);
 
         mEmailField = (EditText) findViewById(R.id.email_id);
         mPasswordField = (EditText) findViewById(R.id.password_id);
-        Button mLoginBtn = (Button) findViewById(R.id.login_id);
-        TextView mRegisterAct = (TextView) findViewById(R.id.register_id);
-        TextView mForgotPassAct = (TextView) findViewById(R.id.forgot_password_id);
 
-        progressDialog = new ProgressDialog(this);
-
+        mLoginBtn = (Button) findViewById(R.id.login_id);
         mLoginBtn.setOnClickListener(this);
+
+        mRegisterAct = (TextView) findViewById(R.id.register_id);
         mRegisterAct.setOnClickListener(this);
+
+        mForgotPassAct = (TextView) findViewById(R.id.forgot_password_id);
         mForgotPassAct.setOnClickListener(this);
+
+        verify_validation(true);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    private void verify_validation(final boolean fromCreate) {
+
+        final FirebaseUser user = mAuth.getCurrentUser();
+        if(user != null) {
+
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference()
+                    .child("users").child(user.getUid());
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.getValue() != null) {
+                        if (user.isEmailVerified()) {
+                            startMainActivity(false);
+                        } else {
+                            sendEmail();
+                        }
+                    } else {
+                        if(fromCreate) {
+                            mAuth.signOut();
+                        } else {
+                            if (user.isEmailVerified()) {
+                                startMainActivity(true);
+                            } else {
+                                sendEmail();
+                            }
+                        }
+                    }
+                }
+
+                private void sendEmail() {
+
+                    mLoginBtn.setEnabled(false);
+
+                    Toast.makeText(getApplicationContext(),
+                            "Nu ați activat contul", Toast.LENGTH_LONG).show();
+
+                    user.sendEmailVerification()
+                            .addOnCompleteListener(LoginActivity.this,
+                                    new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            mLoginBtn.setEnabled(true);
+
+                                            if (task.isSuccessful()) {
+                                                Toast.makeText(getApplicationContext(),
+                                                        "V-am trimis un email pentru activare",
+                                                        Toast.LENGTH_LONG).show();
+                                            } else {
+                                                Toast.makeText(getApplicationContext(),
+                                                        "Nu v-am putut trimite email de activare",
+                                                        Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    });
+
+                    mAuth.signOut();
+                }
+
+                private void startMainActivity(boolean newUser) {
+                    Log.d(LOG, "startMainActivity");
+                    Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                    i.putExtra("isRegistred", newUser);
+                    startActivity(i);
+                    finish();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
+
     }
 
     private boolean verify_email(String email) {
@@ -122,7 +181,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         return false;
     }
 
-
     private void loginUser(){
 
         String email = mEmailField.getText().toString().trim();
@@ -139,13 +197,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if(!task.isSuccessful()){
-//                            Intent i = new Intent(getApplicationContext(), MainActivity.class);
-//                            i.putExtra("isRegistred", false);
-//                            startActivity(i);
-//                            finish();
-//                        } else {
                             Toast.makeText(LoginActivity.this,
                                     "Logare nereușită", Toast.LENGTH_SHORT).show();
+                        } else {
+                            verify_validation(false);
                         }
 
                         progressDialog.dismiss();
@@ -172,5 +227,37 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             default:
                 break;
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent i = new Intent(getApplicationContext(), BackPressedActivity.class);
+        startActivityForResult(i, 100);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 100) {
+            if(resultCode == Activity.RESULT_OK){
+                Bundle b = data.getExtras();
+                if(b.getBoolean("result")) {
+                    finish();
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(LOG, "onDestroy");
+
+        progressDialog = null;
+        mEmailField = null;
+        mPasswordField = null;
+        mLoginBtn = null;
+        mRegisterAct = null;
+        mForgotPassAct = null;
     }
 }

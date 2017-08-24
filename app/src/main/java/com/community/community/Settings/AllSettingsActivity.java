@@ -16,11 +16,12 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import com.community.community.BeforeLogin.LoginActivity;
 import com.community.community.General.UsefulThings;
+import com.community.community.General.User;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
@@ -31,7 +32,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,7 +42,6 @@ import java.util.Map;
 
 public class AllSettingsActivity extends AppCompatActivity implements View.OnClickListener {
 
-    // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
     private SharedPreferences sharedPreferences = null;
@@ -63,12 +65,6 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
     private EditText newPassword = null;
     private EditText confirmNewPassword = null;
     private EditText deletePassword = null;
-
-    private String email = null;
-    private String type = null;
-    private String uid = null;
-    private String nickname = null;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,18 +101,14 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
         Button cancel_delete = (Button) findViewById(R.id.cancel_delete);
         cancel_delete.setOnClickListener(this);
 
-        Intent intent = getIntent();
-        if(intent != null){
-            email = intent.getStringExtra("email");
-            type = intent.getStringExtra("type");
-            uid = intent.getStringExtra("uid");
-            nickname = intent.getStringExtra("nickname");
+        if(UsefulThings.currentUser == null) {
+            UsefulThings.currentUser = (User) savedInstanceState.getSerializable("userDetails");
+        }
 
-            if(type.equals("ngo")){
-                setNgoDetails();
-            } else {
-                setUserDetails();
-            }
+        if(UsefulThings.currentUser.getType().equals("ngo")){
+            setNgoDetails();
+        } else {
+            setUserDetails();
         }
 
         sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
@@ -151,7 +143,7 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
 
     private void updateSharedPreferencesFromFirebase() {
 
-        final DatabaseReference ref = mDatabase.child("users").child(uid);
+        final DatabaseReference ref = mDatabase.child("users").child(UsefulThings.currentUser.getUid());
         ref.addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
@@ -163,25 +155,31 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
                                         @Override
                                         public void onDataChange(DataSnapshot dataSnapshot) {
 
-                                            Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
+                                            Map<String, Object> map =
+                                                    (Map<String,Object>) dataSnapshot.getValue();
 
                                             for (Map.Entry<String, Object> entry : map.entrySet()) {
                                                 String str = entry.getKey();
                                                 switch (str) {
                                                     case UsefulThings.MY_CAUSES:
-                                                        switchMyCauses.setChecked((boolean) entry.getValue());
+                                                        switchMyCauses.setChecked(
+                                                                (boolean) entry.getValue());
                                                         break;
                                                     case UsefulThings.MY_SUPPORTED_CAUSES:
-                                                        switchMySupportedCauses.setChecked((boolean) entry.getValue());
+                                                        switchMySupportedCauses.setChecked(
+                                                                (boolean) entry.getValue());
                                                         break;
                                                     case UsefulThings.MY_AGE:
-                                                        switchAge.setChecked((boolean) entry.getValue());
+                                                        switchAge.setChecked(
+                                                                (boolean) entry.getValue());
                                                         break;
                                                     case UsefulThings.MY_ADDRESS:
-                                                        switchAddress.setChecked((boolean) entry.getValue());
+                                                        switchAddress.setChecked(
+                                                                (boolean) entry.getValue());
                                                         break;
                                                     case UsefulThings.MY_DESCRIPTION:
-                                                        switchDescription.setChecked((boolean) entry.getValue());
+                                                        switchDescription.setChecked(
+                                                                (boolean) entry.getValue());
                                                     default:
                                                         break;
                                                 }
@@ -205,29 +203,9 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        if(savedInstanceState != null) {
-            email = savedInstanceState.getString("email");
-            type = savedInstanceState.getString("type");
-            uid = savedInstanceState.getString("uid");
-            nickname = savedInstanceState.getString("nickname");
-
-            if(type.equals("ngo")){
-                setNgoDetails();
-            } else {
-                setUserDetails();
-            }
-        }
-    }
-
-    @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString("email", email);
-        outState.putString("type", type);
-        outState.putString("uid", uid);
-        outState.putString("nickname", nickname);
+        outState.putSerializable("userDetails", UsefulThings.currentUser);
     }
 
     private void setUserDetails() {
@@ -324,7 +302,9 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
 
             case R.id.cancel_delete:
                 if(deletePassword == null || deletePassword.getText().length() < 6){
-                    Toast.makeText(getApplicationContext(), "Parola veche este prea scurtă", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),
+                            "Parola veche este prea scurtă",
+                            Toast.LENGTH_SHORT).show();
                 } else {
                     verifyOldPassword(deletePassword.getText().toString(),
                             newPassword.getText().toString(),
@@ -356,16 +336,21 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        if(!dataSnapshot.hasChild(uid)){
-                            Toast.makeText(getApplicationContext(), "Nu ați aplicat încă", Toast.LENGTH_SHORT).show();
+                        if(!dataSnapshot.hasChild(UsefulThings.currentUser.getUid())){
+                            Toast.makeText(getApplicationContext(),
+                                    "Nu ați aplicat încă",
+                                    Toast.LENGTH_SHORT).show();
                         } else {
-                            ref[0].child(uid).removeValue().addOnFailureListener(new OnFailureListener() {
+                            ref[0].child(UsefulThings.currentUser.getUid())
+                                    .removeValue().addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
                                     Log.d(LOG, e.getLocalizedMessage());
                                 }
                             });
-                            Toast.makeText(getApplicationContext(), "Cererea a fost anulată", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(),
+                                    "Cererea a fost anulată",
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
 
@@ -383,18 +368,23 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        if(dataSnapshot.hasChild(uid)){
-                            Toast.makeText(getApplicationContext(), "Ați aplicat mai demult", Toast.LENGTH_SHORT).show();
+                        if(dataSnapshot.hasChild(UsefulThings.currentUser.getUid())){
+                            Toast.makeText(getApplicationContext(),
+                                    "Ați aplicat mai demult",
+                                    Toast.LENGTH_SHORT).show();
                         } else {
                             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-                            ref[0] = ref[0].child(uid);
-                            ref[0].setValue(dateFormat.format(new Date())).addOnFailureListener(new OnFailureListener() {
+                            ref[0] = ref[0].child(UsefulThings.currentUser.getUid());
+                            ref[0].setValue(dateFormat.format(new Date()))
+                                    .addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
                                     Log.d(LOG, e.getLocalizedMessage());
                                 }
                             });
-                            Toast.makeText(getApplicationContext(), "Ați aplicat cu succes", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(),
+                                    "Ați aplicat cu succes",
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
 
@@ -408,37 +398,50 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
     private boolean passwordEmptyFields() {
 
         if(oldPassword == null || oldPassword.getText().length() < 6){
-            Toast.makeText(getApplicationContext(), "Parola veche este prea scurtă", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),
+                    "Parola veche este prea scurtă",
+                    Toast.LENGTH_SHORT).show();
             return false;
         }
 
         if(newPassword == null || newPassword.getText().length() < 6){
-            Toast.makeText(getApplicationContext(), "Parola nouă este prea scurtă", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),
+                    "Parola nouă este prea scurtă",
+                    Toast.LENGTH_SHORT).show();
             return false;
         }
 
         if(confirmNewPassword == null || confirmNewPassword.getText().length() < 6){
-            Toast.makeText(getApplicationContext(), "Confirmarea parolei este prea scurtă", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),
+                    "Confirmarea parolei este prea scurtă",
+                    Toast.LENGTH_SHORT).show();
             return false;
         }
 
         if(newPassword.getText().length() < 6 || confirmNewPassword.getText().length() < 6){
-            Toast.makeText(getApplicationContext(), "Parolă prea scurtă", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),
+                    "Parolă prea scurtă",
+                    Toast.LENGTH_SHORT).show();
             return false;
         }
 
         if(!confirmNewPassword.getText().toString().equals(newPassword.getText().toString())) {
-            Toast.makeText(getApplicationContext(), "Parolele introduse sunt diferite", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),
+                    "Parolele introduse sunt diferite",
+                    Toast.LENGTH_SHORT).show();
             return false;
         }
 
         return true;
     }
 
-    private void verifyOldPassword(String oldPassword, final String newPassword, final boolean updatePassword) {
+    private void verifyOldPassword(String oldPassword,
+                                   final String newPassword,
+                                   final boolean updatePassword) {
         final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-        AuthCredential credential = EmailAuthProvider.getCredential(email, oldPassword);
+        AuthCredential credential = EmailAuthProvider
+                .getCredential(UsefulThings.currentUser.getEmail(), oldPassword);
 
         user.reauthenticate(credential)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -446,102 +449,204 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
                             if(updatePassword){
-                                user.updatePassword(newPassword).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                user.updatePassword(newPassword)
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
                                         if (task.isSuccessful()) {
-                                            Toast.makeText(getApplicationContext(), "Parola a fost schimbată", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getApplicationContext(),
+                                                    "Parola a fost schimbată",
+                                                    Toast.LENGTH_SHORT).show();
                                             cancelPassword();
                                         } else {
-                                            Toast.makeText(getApplicationContext(), "Parola nu a putut fi schimbată", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getApplicationContext(),
+                                                    "Parola nu a putut fi schimbată",
+                                                    Toast.LENGTH_SHORT).show();
                                             cancelPassword();
                                         }
                                     }
                                 });
                             } else {
-                                //TODO: delete user / disable ONG
-                                Toast.makeText(getApplicationContext(), "Te voi șterge", Toast.LENGTH_SHORT).show();
-                                if(type.equals("ngo")){
-                                    mDatabase.child("users").child(uid).child("ProfileSettings").child("status").setValue("inactive");
-                                    FirebaseAuth.getInstance().signOut();
+//                                Toast.makeText(getApplicationContext(),
+//                                        "Te voi șterge",
+//                                        Toast.LENGTH_SHORT).show();
+                                if(UsefulThings.currentUser.getType().equals("ngo")){
+                                    mDatabase.child("users")
+                                            .child(UsefulThings.currentUser.getUid())
+                                            .child("ProfileSettings").child("status")
+                                            .setValue("inactive");
+
+                                    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+                                    mDatabase.child("inactiveNGO")
+                                            .child(UsefulThings.currentUser.getUid())
+                                            .setValue(dateFormat.format(new Date()));
+
+                                    logOut();
+//                                    FirebaseAuth.getInstance().signOut();
                                 } else {
                                     removeUser();
                                 }
                                 cancelAccount();
                             }
                         } else {
-                            Toast.makeText(getApplicationContext(), "Parolă greșită", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(),
+                                    "Parolă greșită",
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
 
     private void removeUser() {
-        final DatabaseReference[] ref = {mDatabase.child("users").child(uid).child("MyCauses")};
-        ref[0].addListenerForSingleValueEvent(
+
+        String uid = UsefulThings.currentUser.getUid();
+        String email = UsefulThings.currentUser.getEmail();
+        int ownCauses = UsefulThings.currentUser.getOwnCausesNumber();
+
+        updateProposals("ProposalsMade", "ProposalsReceived", uid);
+        updateProposals("ProposalsReceived", "ProposalsMade", uid);
+        updateProposals("ProposalsMadeRejected", "ProposalsReceivedRejected", uid);
+        updateProposals("ProposalsReceivedRejected", "ProposalsMadeRejected", uid);
+        updateProposals("SupporterOf", "Supporters", uid);
+
+        updateMemberOf(uid, ownCauses);
+
+        updateCauses(uid);
+
+        removeProfileImage(uid);
+        removeLocalImage(email);
+        removeAccount(uid);
+        logOut();
+
+    }
+
+    private void logOut() {
+        FirebaseAuth.getInstance().signOut();
+        UsefulThings.causeCaches = null;
+        UsefulThings.currentUser = null;
+        startActivity(new Intent(getApplicationContext(),
+                LoginActivity.class));
+        finish();
+    }
+
+    private void removeLocalImage(String email) {
+        String dir = getFilesDir().getAbsolutePath();
+        File f0 = new File(dir, "myImage_" + email);
+        boolean d0 = f0.delete();
+        Log.d(LOG, "File deleted: " + dir + "myImage_" + email + d0);
+    }
+
+    private void removeProfileImage(String uid) {
+        FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_USERS_PATH +
+                uid + "/" + UsefulThings.currentUser.getImageName())
+                .delete();
+        FirebaseAuth.getInstance().getCurrentUser().delete();
+    }
+
+    private void removeAccount(String uid) {
+        mDatabase.child("users").child(uid).removeValue();
+    }
+
+    private void updateCauses(final String uid) {
+        final DatabaseReference ref = mDatabase.child("users")
+                .child(uid).child("MyCauses");
+        ref.addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-
-                        /* Update MyCauses */
-                        if(dataSnapshot.getValue() != null){
-                            Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
-
+                        if (dataSnapshot.getValue() != null) {
+                            Map<String, Object> map =
+                                    (Map<String, Object>) dataSnapshot.getValue();
                             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                                String causeUid = entry.getKey();
-
-                                mDatabase.child("causes").child(causeUid).child("Info").child("owner").setValue("-");
-                                mDatabase.child("causes").child(causeUid).child("Info").child("ownerUID").setValue("-");
-                                mDatabase.child("orphanCauses").child(causeUid).setValue("-");
+                                updateCauses(entry.getKey());
+                                addOrphan(entry.getKey(), entry.getValue());
+                                removeCause(entry.getKey());
                             }
+                            ref.removeValue();
                         }
+                    }
 
-                        /* Update SupportedCauses */
-                        ref[0] = mDatabase.child("users").child(uid).child("Supporting");
-                        ref[0].addListenerForSingleValueEvent(
+                    private void removeCause(String key) {
+                        mDatabase.child("causes").child(key).removeValue();
+                    }
+
+                    private void addOrphan(String key, Object value) {
+                        mDatabase.child("orphanCauses").child(key).setValue(value);
+                    }
+
+                    private void updateCauses(final String key) {
+                        final DatabaseReference ref = mDatabase.child("causes")
+                                .child(key).child("SupportedBy");
+                        ref.addListenerForSingleValueEvent(
                                 new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
-
-                                        if (dataSnapshot.getValue() != null) {
-                                            Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
-
-                                            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                                                final String causeUid = entry.getKey();
-
-                                                final DatabaseReference dRef = mDatabase.child("causes").child(causeUid).child("SupportedBy").child("number");
-                                                dRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                                                    @Override
-                                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                                        long number = (long) dataSnapshot.getValue();
-                                                        dRef.setValue(--number);
-                                                        mDatabase.child("causes").child(causeUid).child("SupportedBy").child(uid).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                            @Override
-                                                            public void onSuccess(Void aVoid) {
-                                                                /* Nicknames */
-                                                                mDatabase.child("nicknames").child(nickname.replace(".", "-")).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                                     @Override
-                                                                     public void onSuccess(Void aVoid) {
-                                                                         mDatabase.child("users").child(uid).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                                             @Override
-                                                                             public void onSuccess(Void aVoid) {
-                                                                                 Toast.makeText(getApplicationContext(), "User-ul a fost șters cu success", Toast.LENGTH_SHORT).show();
-                                                                                 FirebaseAuth.getInstance().getCurrentUser().delete();
-                                                                             }
-                                                                         });
-                                                                     }
-                                                                 });
-                                                                // TODO: reomve profile image
-                                                            }
-                                                        });
-                                                    }
-
-                                                    @Override
-                                                    public void onCancelled(DatabaseError databaseError) {
-
-                                                    }
-                                                });
+                                        Map<String, Object> map =
+                                                (Map<String, Object>) dataSnapshot.getValue();
+                                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+                                            if(!entry.getKey().equals("number")) {
+                                                updateUser(entry.getKey());
+                                                ref.child(entry.getKey()).setValue("-");
                                             }
+                                        }
+                                    }
+
+                                    private void updateUser(String key) {
+                                        mDatabase.child("users").child(key)
+                                                .child("Supporting").setValue("-");
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
+    private void updateMemberOf(final String uid, final int ownCauses) {
+
+        final DatabaseReference ref = mDatabase.child("users")
+                .child(uid).child("MemberOf");
+        ref.addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.getValue() != null) {
+                            Map<String, Object> map =
+                                    (Map<String, Object>) dataSnapshot.getValue();
+                            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                                Log.d(LOG, "Key: " + entry.getKey());
+                                updateCausesNumber(entry.getKey());
+                                removeMember(entry.getKey());
+                            }
+                            ref.removeValue();
+                        }
+                    }
+
+                    private void removeMember(String key) {
+                        mDatabase.child("users").child(key).child("Members")
+                                .child(uid).removeValue();
+                    }
+
+                    private void updateCausesNumber(String key) {
+                        final DatabaseReference ref = mDatabase.child("users")
+                                .child(key).child("ProfileSettings").child("membersCauses");
+                        ref.addListenerForSingleValueEvent(
+                                new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if(dataSnapshot != null){
+                                            long members = (long) dataSnapshot.getValue();
+                                            ref.setValue(members - ownCauses);
                                         }
                                     }
 
@@ -554,9 +659,38 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-                        //handle databaseError
+
                     }
                 });
+    }
+
+    private void updateProposals(final String child1, final String child2, final String uid) {
+
+        final DatabaseReference ref = mDatabase.child("users")
+                .child(uid).child(child1);
+        ref.addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.getValue() != null) {
+                            Map <String, Object> map =
+                                    (Map <String, Object>) dataSnapshot.getValue();
+                            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                                mDatabase.child("users").child(entry.getKey()).
+                                        child(child2).child(uid)
+                                        .removeValue();
+
+                            }
+                            ref.removeValue();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
     }
 
     private void cancelPassword() {
@@ -576,13 +710,18 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
     @Override
     public void onBackPressed() {
 
-        mDatabase.child("users").child(uid).child("GeneralSettings").setValue(sharedPreferences.getAll()).addOnCompleteListener(new OnCompleteListener<Void>() {
+        mDatabase.child("users")
+                .child(UsefulThings.currentUser.getUid())
+                .child("GeneralSettings").setValue(sharedPreferences.getAll())
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
                     finish();
                 } else {
-                    Toast.makeText(getApplicationContext(), "Preferintele nu au putut fi salvate", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),
+                            "Preferintele nu au putut fi salvate",
+                            Toast.LENGTH_SHORT).show();
                     finish();
                 }
             }

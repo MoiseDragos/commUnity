@@ -41,13 +41,13 @@ dependencies {
     // Circle imageview
     compile 'de.hdodenhof:circleimageview:2.1.0'
 
-    // Blur TODO: remove?
+    // Blur
     compile 'jp.wasabeef:blurry:2.1.1'
 
     // Download Image from Firebase
     compile 'com.github.bumptech.glide:glide:3.7.0'
 
-    // Justify TODO: remove?
+    // Justify
     compile 'com.github.bluejamesbond:textjustify-android:2.1.6'
 
     // Percent

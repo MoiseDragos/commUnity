@@ -1,5 +1,6 @@
 package com.community.community.BeforeLogin;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -12,7 +13,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.community.community.MainActivity;
+import com.community.community.General.BackPressedActivity;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -21,70 +22,47 @@ import com.google.firebase.auth.ProviderQueryResult;
 
 import java.util.List;
 
-
 public class ForgotPasswordActivity extends AppCompatActivity implements View.OnClickListener{
 
-    private EditText mEmailField;
-    private Button mLoginBtn;
-    private TextView mSingUpAct;
-    private TextView mLogInAct;
-
-    private ProgressDialog progressDialog;
+    private EditText mEmailField = null;
+    private ProgressDialog progressDialog = null;
+    private Button mLoginBtn = null;
+    private TextView mSingUpAct = null;
+    private TextView mLogInAct = null;
 
     /* Firebase */
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_forgot_password);
+        setContentView(R.layout.forgot_password_activity);
 
         /* Firebase */
         mAuth = FirebaseAuth.getInstance();
 
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-                if(mAuth.getCurrentUser() != null){
-
-                    //TODO: nu cred ca are cum sa intre aici! Verifica!
-                    finish();
-                    Intent i = new Intent(getApplicationContext(), MainActivity.class);
-                    i.putExtra("isRegistred", true);
-                    startActivity(i);
-//                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
-
-                }
-
-            }
-        };
-
         mEmailField = (EditText) findViewById(R.id.email_id);
-        mLoginBtn = (Button) findViewById(R.id.sendEmail_id);
-        mSingUpAct = (TextView) findViewById(R.id.singUp_activity_id);
-        mLogInAct = (TextView) findViewById(R.id.login_activity_id);
-
         progressDialog = new ProgressDialog(this);
 
+        mLoginBtn = (Button) findViewById(R.id.sendEmail_id);
         mLoginBtn.setOnClickListener(this);
+
+        mSingUpAct = (TextView) findViewById(R.id.singUp_activity_id);
         mSingUpAct.setOnClickListener(this);
+
+        mLogInAct = (TextView) findViewById(R.id.login_activity_id);
         mLogInAct.setOnClickListener(this);
-
-        //TODO: EditText pressed long
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mAuth.addAuthStateListener(mAuthListener);
     }
 
     private boolean verify_email(final String email) {
 
         if(TextUtils.isEmpty(email)) {
             Toast.makeText(this, "Adăugați un email", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+
+        if(email.length() < 3) {
+            Toast.makeText(this, "Email prea scurt", Toast.LENGTH_SHORT).show();
             return true;
         }
 
@@ -102,26 +80,16 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
                     List<String> taskList = task.getResult().getProviders();
 
                     if(taskList.isEmpty()){
-                        Toast.makeText(ForgotPasswordActivity.this, "Cont inexistent", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ForgotPasswordActivity.this,
+                                "Cont inexistent", Toast.LENGTH_SHORT).show();
 
                     }
                 } else {
-                  // TODO:
-                    Toast.makeText(ForgotPasswordActivity.this, "Firebase error!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ForgotPasswordActivity.this,
+                            "Email inconsistent!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
-//        progressDialog.setMessage("Sending email...");
-//        progressDialog.show();
-//
-//        try {
-//            Thread.sleep(2000);
-//        } catch(InterruptedException ex) {
-//            Thread.currentThread().interrupt();
-//        }
-//        progressDialog.dismiss();
-        //TODO: alte verificari
 
         return false;
     }
@@ -136,7 +104,8 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()){
-                    Toast.makeText(ForgotPasswordActivity.this, "Sending email...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ForgotPasswordActivity.this,
+                            "Sending email...", Toast.LENGTH_SHORT).show();
                     finish();
                     startActivity(new Intent(getApplicationContext(), LoginActivity.class));
                 }
@@ -148,18 +117,51 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
     @Override
     public void onClick(View v) {
 
-        if(v == mLoginBtn ){
-            sendEmail();
+        switch (v.getId()) {
+            case R.id.sendEmail_id:
+                sendEmail();
+                break;
+            case R.id.singUp_activity_id:
+                startActivity(new Intent(this, RegisterActivity.class));
+                finish();
+                break;
+            case R.id.login_activity_id:
+                startActivity(new Intent(this, LoginActivity.class));
+                finish();
+                break;
+            default:
+                break;
         }
+    }
 
-        if(v == mSingUpAct){
-            finish();
-            startActivity(new Intent(this, RegisterActivity.class));
-        }
+    @Override
+    public void onBackPressed() {
+        Intent i = new Intent(getApplicationContext(), BackPressedActivity.class);
+        startActivityForResult(i, 100);
+    }
 
-        if(v == mLogInAct){
-            finish();
-            startActivity(new Intent(this, LoginActivity.class));
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 100) {
+            if(resultCode == Activity.RESULT_OK){
+                Bundle b = data.getExtras();
+                if(b.getBoolean("result")) {
+                    finish();
+                }
+            }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mAuth = null;
+
+        mEmailField = null;
+        progressDialog = null;
+        mLoginBtn = null;
+        mSingUpAct = null;
+        mLogInAct = null;
     }
 }

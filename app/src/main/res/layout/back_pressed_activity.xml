@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <android.support.percent.PercentRelativeLayout
+        android:id="@+id/popUpLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blue5"
+        >
+        <TextView
+            android:id="@+id/textAreYouSure"
+            android:layout_width="match_parent"
+            app:layout_heightPercent="50%"
+            app:layout_marginTopPercent="10%"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:text="@string/out"
+            />
+
+        <Button
+            android:id="@+id/im_sure"
+            app:layout_widthPercent="30%"
+            app:layout_heightPercent="15%"
+            app:layout_marginLeftPercent="15%"
+            android:layout_below="@id/textAreYouSure"
+            android:background="@drawable/edit_text_form_green"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:maxLines="2"
+            android:text="@string/yes"
+            />
+
+        <Button
+            android:id="@+id/im_not_sure"
+            app:layout_widthPercent="30%"
+            app:layout_heightPercent="15%"
+            app:layout_marginLeftPercent="55%"
+            android:layout_below="@id/textAreYouSure"
+            android:background="@drawable/edit_text_form_red"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:maxLines="2"
+            android:text="@string/no"
+            />
+    </android.support.percent.PercentRelativeLayout>
+
+</LinearLayout>

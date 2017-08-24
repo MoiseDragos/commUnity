@@ -14,7 +14,6 @@ import java.util.Map;
 
 @SuppressWarnings("serial")
 public class User implements Serializable {
-    // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
     private String nickname = null;
@@ -27,12 +26,13 @@ public class User implements Serializable {
     private int age = 0;
     private int ownCausesNumber = 0;
     private int supportedCausesNumber = 0;
-    private boolean changedProfilePic = false;
 
     private String imageName = null;
     private String imageURL = null;
 
     public void updateFirebaseUserProfile(){
+        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         final DatabaseReference dRef = FirebaseDatabase.getInstance().getReference().child("users")
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .child("ProfileSettings");
@@ -79,7 +79,9 @@ public class User implements Serializable {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 Map<String, Object> data = (Map<String,Object>) snapshot.getValue();
-                type = data.get("type").toString();
+                if(data != null && data.containsKey("type")) {
+                    type = data.get("type").toString();
+                }
             }
 
             @Override
@@ -87,81 +89,6 @@ public class User implements Serializable {
 
             }
         });
-    }
-
-    public void updateLocalUserProfile(User user) {
-
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-
-        DatabaseReference dRef = mDatabase.child("users")
-                .child(user.getUid())
-                .child("ProfileSettings");
-
-        if(!user.nickname.equals(nickname)){
-            mDatabase.child("nicknames").child(nickname.replace(".", "-")).removeValue();
-            nickname = user.nickname;
-            dRef.child("nickname").setValue(nickname);
-            mDatabase.child("nicknames").child(nickname.replace(".", "-")).setValue(user.getEmail() + "~" + user.getUid());
-        }
-
-        if(describe == null) {
-            if(user.describe != null){
-                describe = user.describe;
-                dRef.child("describe").setValue(describe);
-            }
-        } else {
-            if(!user.describe.equals(describe)) {
-                describe = user.describe;
-                dRef.child("describe").setValue(describe);
-            }
-        }
-
-        if(address == null) {
-            if(user.address != null){
-                address = user.address;
-                dRef.child("address").setValue(address);
-            }
-        } else {
-            if(!user.address.equals(address)) {
-                address = user.address;
-                dRef.child("address").setValue(address);
-            }
-        }
-
-        if(user.age != age){
-            age = user.age;
-            dRef.child("age").setValue(age);
-        }
-
-        if(imageURL == null) {
-            if (user.imageURL != null) {
-                imageURL = user.imageURL;
-                dRef.child("imageURL").setValue(user.imageURL);
-            }
-        } else {
-            if(!user.imageURL.equals(imageURL)){
-                imageURL = user.imageURL;
-                dRef.child("imageURL").setValue(user.imageURL);
-            }
-        }
-
-        if(imageName == null) {
-            if (user.imageName != null) {
-                imageName = user.imageName;
-                dRef.child("imageName").setValue(user.imageName);
-            }
-        } else {
-            if(!user.imageName.equals(imageName)){
-                imageName = user.imageName;
-                dRef.child("imageName").setValue(user.imageName);
-            }
-        }
-
-        // For NGO
-        if(!user.status.equals(status)){
-            status = user.status;
-            dRef.child("status").setValue(user.status);
-        }
     }
 
     public String getDescribe() {
@@ -178,14 +105,6 @@ public class User implements Serializable {
 
     public void setAge(int age) {
         this.age = age;
-    }
-
-    public boolean isChangedProfilePic() {
-        return changedProfilePic;
-    }
-
-    public void setChangedProfilePic(boolean changedProfilePic) {
-        this.changedProfilePic = changedProfilePic;
     }
 
     public String getImageName() {
@@ -235,10 +154,6 @@ public class User implements Serializable {
 
     public void setSupportedCausesNumber(int supportedCausesNumber) {
         this.supportedCausesNumber = supportedCausesNumber;
-    }
-
-    public String getStatus() {
-        return status;
     }
 
     public void setStatus(String status) {

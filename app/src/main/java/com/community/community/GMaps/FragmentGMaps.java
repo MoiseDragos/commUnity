@@ -1,8 +1,6 @@
 package com.community.community.GMaps;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -13,10 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.SimpleTarget;
 import com.community.community.CauseProfile.CauseProfileActivity;
+import com.community.community.General.UsefulThings;
 import com.community.community.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -38,32 +34,37 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
+//TODO: Memory problem!
+//TODO: No internet
+//TODO: ProgressBar pana termina de adaugat toate obiectivele!
+
 public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowClickListener, OnMapReadyCallback {
 
-    // TODO: remove
     private String LOG = this.getClass().getSimpleName();
     
-    OnBtnPressedListener mCallback;
+    private GoogleMap mGoogleMap = null;
+    private MapView mMapView = null;
+    private View mView = null;
 
-    private GoogleMap mGoogleMap;
-    private MapView mMapView;
-    private View mView;
+    private DatabaseReference mDatabase = null;
+    private FirebaseMarker firebaseNewMarker = null;
 
-    private DatabaseReference mDatabase;
-    private FirebaseMarker firebaseNewMarker;
+    private String type = null;
 
-    private String type;
+//    private ArrayList<FirebaseMarker> firebaseMarkers = null;
 
-    // TODO: remove?
-    private ArrayList<FirebaseMarker> firebaseMarkers;
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mDatabase =  FirebaseDatabase.getInstance().getReference();
+        getTypeFromFirebase();
+    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-//        Log.d(LOG, "onMapReady");
         mGoogleMap = googleMap;
         setUpMap();
 
@@ -77,14 +78,7 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
         mGoogleMap.moveCamera( CameraUpdateFactory.newLatLngZoom
                 (new LatLng(45.92109159958021, 25.075808800756928) , 5.687861f) );
 
-        // TODO: remove
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         addCausesOnMap();
-        // TODO: mGoogleMap.setMyLocationEnabled(true);
     }
 
     @Override
@@ -92,11 +86,9 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
         String tag = String.valueOf(marker.getTag());
         String[] parts = tag.split("~");
 
-        Log.d(LOG, "ownerUID: " + parts[0]);
 
         String causeId = parts[1] + "_" + parts[2];
         causeId = causeId.replace(".", "-");
-        Log.d(LOG, "causeId: " + causeId);
 
         Intent intent = new Intent(getActivity(), CauseProfileActivity.class);
         intent.putExtra("ownerUID", parts[0]);
@@ -107,15 +99,15 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
 
     private void addCausesOnMap() {
 
-        final DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-        rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        mDatabase.addValueEventListener(new ValueEventListener() {
+//        rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 if (snapshot.hasChild("causes")) {
                     Map all = (Map) snapshot.getValue();
                     Map<String,Object> causes = (Map<String,Object>) all.get("causes");
 
-                    firebaseMarkers = new ArrayList<>();
+//                    firebaseMarkers = new ArrayList<>();
                     Map singleCauseMap;
 
                     for (Map.Entry<String, Object> entry : causes.entrySet()) {
@@ -128,76 +120,60 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
                         final double lng = (Double) singleCause.get("longitude");
                         final String ownerUID = (String) singleCause.get("ownerUID");
                         final String name = (String) singleCause.get("name");
-                        String profileURL = (String) singleCause.get("thumbnailImageURL");
+                        // TODO: thumbnailImageURL
+//                        String profileURL = (String) singleCause.get("thumbnailImageURL");
 
-                        // TODO: remove?
-                        Glide
-                                .with(getActivity())
-                                .load(profileURL)
-                                .asBitmap()
-                                .into(new SimpleTarget<Bitmap>() {
-                                    @Override
-                                    public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
-                                        FirebaseMarker firebaseAddMarker = new FirebaseMarker(resource,
-                                                ownerUID, lat, lng, name);
+//                        Glide
+//                                .with(getActivity())
+//                                .load(profileURL)
+//                                .asBitmap()
+//                                .into(new SimpleTarget<Bitmap>() {
+//                                    @Override
+//                                    public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
+//                                        FirebaseMarker firebaseAddMarker = new FirebaseMarker(resource,
+//                                                ownerUID, lat, lng, name);
 
-                                        firebaseMarkers.add(firebaseAddMarker);
+//                                        firebaseMarkers.add(firebaseAddMarker);
 //                                                (String) singleCause.get("ownerUID"),
 //                                                (String) singleCause.get("latitude"),
 //                                                (String) singleCause.get("longitude"),
 //                                                (String) singleCause.get("name"));
-                                    }
-                                });
+//                                    }
+//                                });
 
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-//                        Log.d(LOG, lat + " " + lg + " " + user.getEmail());
 
-                        //TODO: Daca am 2 obiective cu acelasi nume?!
-                        Marker markerName;
-                        String owner = (String) singleCause.get("owner");
-                        if(owner.equals(user.getEmail())){
-                            markerName = mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng))
-                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.my_causes))
-                                    .title(name));
-                        } else {
-                            markerName = mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng))
-                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.other_causes))
-                                    .title(name));
+                        if(user != null) {
+                            Marker markerName;
+                            String owner = (String) singleCause.get("owner");
+                            if(owner.equals(user.getEmail())){
+                                markerName = mGoogleMap.addMarker(
+                                        new MarkerOptions().position(new LatLng(lat, lng))
+                                        .icon(BitmapDescriptorFactory
+                                                .fromResource(R.drawable.my_causes))
+                                        .title(name));
+                            } else {
+                                markerName = mGoogleMap.addMarker(
+                                        new MarkerOptions().position(new LatLng(lat, lng))
+                                        .icon(BitmapDescriptorFactory
+                                                .fromResource(R.drawable.other_causes))
+                                        .title(name));
+                            }
+                            markerName.setTag(ownerUID + "~" + lat + "~" + lng);
                         }
-                        markerName.setTag(ownerUID + "~" + lat + "~" + lng);
                     }
-
-                    //TODO: ProgressBar pana termina de adaugat toate obiectivele!
-                    //TODO: Nu mai reincarc obiectivele cand schimb din portret -> landscape si invers
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                //handle databaseError
             }
         });
     }
 
-    // Container Activity must implement this interface
     public interface OnBtnPressedListener {
         void onButtonPressed(int i);
     }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-        try {
-            mCallback = (OnBtnPressedListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnHeadlineSelectedListener");
-        }
-    }
-
-
-    //TODO: DEFAULT RULES on firebase write / read (auth != null)
 
     public void onAdd(){
         // Remove unsubmited marker
@@ -206,9 +182,8 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
 
         LatLng ll = getCurrentPosition();
 
-        //TODO: remove
-        float zommLevel = mGoogleMap.getCameraPosition().zoom;
-        Log.d(LOG, "ZoomLevel: " + String.valueOf(zommLevel));
+//        float zommLevel = mGoogleMap.getCameraPosition().zoom;
+//        Log.d(LOG, "ZoomLevel: " + String.valueOf(zommLevel));
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -218,13 +193,16 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
         }
     }
 
-    public void onSubmit(String name, String description, LatLng latLng, FirebaseImages firebaseImages, int ownCauses){
-//        Log.d(LOG, "onSubmit");
-        String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-        String userUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    public void onSubmit(String name, String description, LatLng latLng,
+                         FirebaseImages firebaseImages, int ownCauses){
+
+        String email = UsefulThings.currentUser.getEmail();
+        String userUid = UsefulThings.currentUser.getUid();
 
         // Write on Firebase - "causes"
-        firebaseNewMarker = new FirebaseMarker(email, userUid, latLng, name, firebaseImages.getProfileImageURL());
+        firebaseNewMarker = new FirebaseMarker(email, userUid, latLng,
+                name, firebaseImages.getProfileImageURL(), 0);
+
         String firebaseName = latLng.latitude + "_" + latLng.longitude;
         firebaseName = firebaseName.replace(".", "-");
         Log.d(LOG, firebaseName);
@@ -250,7 +228,8 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
         firebaseNewMarker = new FirebaseMarker(latLng, email, description, name,
                 String.valueOf(dateFormat.format(new Date())));
 
-        ref = mDatabase.child("users").child(userUid).child("MyCauses").child(firebaseName).child("Info");
+        ref = mDatabase.child("users").child(userUid).child("MyCauses")
+                .child(firebaseName).child("Info");
         ref.setValue(firebaseNewMarker).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
@@ -258,7 +237,8 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
             }
         });
 
-        ref = mDatabase.child("users").child(userUid).child("MyCauses").child(firebaseName).child("Images");
+        ref = mDatabase.child("users").child(userUid).child("MyCauses")
+                .child(firebaseName).child("Images");
         ref.setValue(firebaseImages).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
@@ -271,6 +251,56 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
         /* Update ownCausesNumber */
         ref = mDatabase.child("users").child(userUid).child("ProfileSettings").child("ownCauses");
         ref.setValue(ownCauses);
+
+        /* Update membersNumber */
+        if(type == null) {
+            getTypeFromFirebase();
+        }
+
+        if(type != null && type.equals("user")){
+            DatabaseReference rootRef = mDatabase.child("users")
+                    .child(UsefulThings.currentUser.getUid()).child("MemberOf");
+            rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+
+                    if(snapshot.getValue() != null) {
+                        Map<String, Object> map = (Map<String, Object>) snapshot.getValue();
+
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+                            updateMembers(entry.getKey());
+                        }
+                    }
+                }
+
+                private void updateMembers(String key) {
+                    final DatabaseReference rootRef = mDatabase.child("users")
+                            .child(key).child("ProfileSettings").child("membersCauses");
+                    rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
+
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if(dataSnapshot.getValue() != null){
+                                long membersCauses = (long) dataSnapshot.getValue();
+                                rootRef.setValue(membersCauses + 1);
+                            } else {
+                                rootRef.setValue(String.valueOf(1));
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
     }
 
     public void cancelMarker(){
@@ -289,19 +319,12 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
         return mGoogleMap.getCameraPosition().target;
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mDatabase =  FirebaseDatabase.getInstance().getReference();
-        getTypeFromFirebase();
-//        Log.d(LOG, "onCreate");
-    }
-
     private void getTypeFromFirebase(){
 
         String userUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        DatabaseReference reference = mDatabase.child("users").child(userUid).child("ProfileSettings").child("type");
+        DatabaseReference reference = mDatabase.child("users").child(userUid)
+                .child("ProfileSettings").child("type");
         reference.addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
@@ -317,43 +340,7 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        mMapView.onResume();
-//        Log.d(LOG, "onResume");
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mMapView.onPause();
-//        Log.d(LOG, "onPause");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mMapView.onDestroy();
-//        Log.d(LOG, "onDestroy");
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        mMapView.onSaveInstanceState(outState);
-//        Log.d(LOG, "onSaveInstanceState");
-    }
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        mMapView.onLowMemory();
-//        Log.d(LOG, "onLowMemory");
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-//        Log.d(LOG, "onCreateView");
         try {
             mView = inflater.inflate(R.layout.fragment_gmaps, container, false);
             MapsInitializer.initialize(this.getActivity());
@@ -369,6 +356,32 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        mMapView.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mMapView.onPause();
+    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mMapView.onDestroy();
+    }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mMapView.onSaveInstanceState(outState);
+    }
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mMapView.onLowMemory();
     }
 
 }

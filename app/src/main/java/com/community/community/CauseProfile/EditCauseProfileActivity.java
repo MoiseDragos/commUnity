@@ -4,9 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,7 +13,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -40,12 +37,10 @@ import com.google.firebase.storage.UploadTask;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 
 public class EditCauseProfileActivity extends AppCompatActivity {
 
-    // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
     /* Profile details */
@@ -82,8 +77,6 @@ public class EditCauseProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_cause_profile_activity);
 
-        // TODO: delete object!
-
         Log.d(LOG, "====== onCreate");
 
         name = (EditText) findViewById(R.id.edit_name);
@@ -115,7 +108,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
 
         if(causeId != null) {
 //            causeDetails = CauseProfileActivity.cacheCauses.get(causeId);
-            causeDetails = CauseProfileActivity.causeCaches.get(causeId);
+            causeDetails = UsefulThings.causeCaches.get(causeId);
         } else if (savedInstanceState != null) {
             Log.d(LOG, "Ajung aici!");
             causeDetails = new Cause();
@@ -124,9 +117,6 @@ public class EditCauseProfileActivity extends AppCompatActivity {
             causeDetails.setProfileImage((Bitmap) savedInstanceState.getParcelable("profileImage"));
             causeDetails.setOptionalImage1((Bitmap) savedInstanceState.getParcelable("optionalImage1"));
             causeDetails.setOptionalImage2((Bitmap) savedInstanceState.getParcelable("optionalImage2"));
-        } else {
-            //TODO:
-            Log.d(LOG, "N-ar trebui sa fiu aici!");
         }
         setInitialDetails();
     }
@@ -175,7 +165,6 @@ public class EditCauseProfileActivity extends AppCompatActivity {
             switch (view.getId()) {
 
                 case R.id.submit_changes:
-                    //TODO: nu mai revin asa, ci fac in CauseProfile addValueListener, nu Singleton
                     if(verifyCauseDetails()) {
 
                         if(changedImage) {
@@ -231,15 +220,6 @@ public class EditCauseProfileActivity extends AppCompatActivity {
     private void updateFirebaseImages() {
 
         final ProgressDialog dialog = new ProgressDialog(this);
-
-        // TODO:
-//        if(changedOptionalImage1 == null && changedOptionalImage2 != null) {
-//            changedOptionalImage1 = changedOptionalImage2;
-//            optionalURI1 = optionalURI2;
-//            changedOptionalImage2 = null;
-//            optionalURI2 = null;
-//        }
-
 
         /* Delete old image */
         final DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference()
@@ -562,26 +542,11 @@ public class EditCauseProfileActivity extends AppCompatActivity {
     }
 
     public String getImageName(Uri uri){
-        String realPath = getRealPath(uri);
+        String realPath = UsefulThings.getRealPath(uri, EditCauseProfileActivity.this);
         Uri file = Uri.fromFile(new File(realPath));
 
         realPath = file.getLastPathSegment();
 //        realNames.add(realPath);
-        return realPath;
-    }
-
-    public  String getRealPath(Uri uri){
-        String realPath;
-
-        String[] filePathColumn = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
-        if(cursor != null && cursor.moveToFirst()){
-            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-            realPath = cursor.getString(columnIndex);
-            cursor.close();
-        } else {
-            realPath = uri.getPath();
-        }
         return realPath;
     }
 
@@ -595,8 +560,8 @@ public class EditCauseProfileActivity extends AppCompatActivity {
     }
 
     private void failureIntent(Exception e) {
-        //TODO: stergem tot folder-ul de imagini (poate au reusit sa se adauge cateva)
-        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+        Log.d(LOG, e.getMessage());
+//        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
 //        removeImagesFromFirebase();
         setResult(RESULT_CANCELED, new Intent());
         finish();
@@ -614,7 +579,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
 
                     Uri imageUri = data.getData();
                     try {
-                        Bitmap bitmap = getThumbnail(imageUri);
+                        Bitmap bitmap = UsefulThings.getThumbnail(imageUri, EditCauseProfileActivity.this);
 
                         if(bitmap != null) {
                             changeProfileImage.setImageBitmap(bitmap);
@@ -631,7 +596,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK) {
                     Uri imageUri = data.getData();
                     try {
-                        Bitmap bitmap = getThumbnail(imageUri);
+                        Bitmap bitmap = UsefulThings.getThumbnail(imageUri, EditCauseProfileActivity.this);
 
                         if(bitmap != null) {
                             changeOptionalImage1.setImageBitmap(bitmap);
@@ -648,7 +613,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK) {
                     Uri imageUri = data.getData();
                     try {
-                        Bitmap bitmap = getThumbnail(imageUri);
+                        Bitmap bitmap = UsefulThings.getThumbnail(imageUri, EditCauseProfileActivity.this);
 
                         if(bitmap != null) {
                             changeOptionalImage2.setImageBitmap(bitmap);
@@ -704,7 +669,6 @@ public class EditCauseProfileActivity extends AppCompatActivity {
             causeDetails.setDescription(des);
         }
 
-        //TODO: Aceeasi imagine
         if(changedProfileImage != null) {// && !equals(icon, changedImage)){//!icon.sameAs(changedImage)){
             Log.d(LOG, "ProfileImage!");
             changed = true;
@@ -759,98 +723,6 @@ public class EditCauseProfileActivity extends AppCompatActivity {
         }
 
         return str;
-    }
-
-    // TODO: remove duplicate functions like getThumbnail, getPower...., createImageFro....
-
-    public Bitmap getThumbnail(Uri uri) throws IOException{
-        Bitmap bitmap;
-        try {
-            InputStream input = this.getContentResolver().openInputStream(uri);
-            BitmapFactory.Options onlyBoundsOptions = new BitmapFactory.Options();
-            onlyBoundsOptions.inJustDecodeBounds = true;
-            onlyBoundsOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;//optional
-            BitmapFactory.decodeStream(input, null, onlyBoundsOptions);
-            input.close();
-            if ((onlyBoundsOptions.outWidth == -1) || (onlyBoundsOptions.outHeight == -1)) {
-                return null;
-            }
-
-            int originalSize = (onlyBoundsOptions.outHeight > onlyBoundsOptions.outWidth)
-                    ? onlyBoundsOptions.outHeight : onlyBoundsOptions.outWidth;
-
-            DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
-            int displayWidth = displayMetrics.widthPixels;
-            int displayHeight = displayMetrics.heightPixels;
-
-            if(onlyBoundsOptions.outWidth < 150 || onlyBoundsOptions.outHeight < 150) {
-                Toast.makeText(this, "Imaginea încărcată este prea mică", Toast.LENGTH_SHORT).show();
-                return null;
-            }
-
-            double widthRatio = onlyBoundsOptions.outWidth / (1.0 * displayMetrics.widthPixels);
-            double heightRatio = onlyBoundsOptions.outHeight / (1.0 * displayMetrics.heightPixels);
-
-            double THUMBNAIL_SIZE = widthRatio > heightRatio ? displayHeight : displayWidth;
-
-            double ratio = (originalSize > THUMBNAIL_SIZE) ? (originalSize / THUMBNAIL_SIZE) : 1.0;
-
-            BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
-            bitmapOptions.inSampleSize = getPowerOfTwoForSampleRatio(ratio);
-            bitmapOptions.inPreferredConfig=Bitmap.Config.ARGB_8888;//optional
-            input = this.getContentResolver().openInputStream(uri);
-            bitmap = BitmapFactory.decodeStream(input, null, bitmapOptions);
-            input.close();
-        } catch (Exception e){
-            e.printStackTrace();
-            Toast.makeText(this, "Schimbarea imaginii de profil nereușită", Toast.LENGTH_SHORT).show();
-            return null;
-        }
-        return bitmap;
-    }
-
-    private static int getPowerOfTwoForSampleRatio(double ratio){
-        int k = Integer.highestOneBit((int)Math.floor(ratio));
-        if(k==0) return 1;
-        else return k;
-    }
-
-    //TODO: remove
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d(LOG, "======== onPause");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(LOG, "======== onStop");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.d(LOG, "======== onRestart");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(LOG, "======== onResume");
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.d(LOG, "======== onStart");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(LOG, "======== onDestroy");
     }
 }
 

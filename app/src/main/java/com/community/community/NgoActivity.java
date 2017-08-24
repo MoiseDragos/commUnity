@@ -35,7 +35,6 @@ import java.util.Map;
 
 public class NgoActivity extends AppCompatActivity {
 
-    // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
     private static ArrayList<PercentRelativeLayout> allPercents
@@ -48,11 +47,7 @@ public class NgoActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabase = null;
 
-//    private SparseArray<String> keysSparseArray = null;
     private SparseArray<String> idsSparseArray = null;
-
-    private String uid = null;
-    private String type = null;
 
     private int number;
     private int lastBtn = 1;
@@ -83,14 +78,17 @@ public class NgoActivity extends AppCompatActivity {
 
         TextView title = (TextView) findViewById(R.id.textView);
 
-        Intent intent = getIntent();
-        if(intent != null){
-            uid = intent.getStringExtra("uid");
-            type = intent.getStringExtra("type");
+        if (UsefulThings.currentUser == null) {
+            UsefulThings.currentUser = (User) savedInstanceState.getSerializable("userDetails");
+
+            if(UsefulThings.currentUser == null) {
+                Log.d(LOG, "Nu am detaliile user-ului curent!");
+                finish();
+            }
         }
 
         allBtn.setText(R.string.all);
-        if(type.equals("ngo")) {
+        if(UsefulThings.currentUser.getType().equals("ngo")) {
             unit = UsefulThings.NGO_INTERMEDIATE_IDS;
             title.setText(R.string.ngo_details_title);
             memberBtn.setText(R.string.members);
@@ -103,6 +101,12 @@ public class NgoActivity extends AppCompatActivity {
             supporterBtn.setText(R.string.supported);
             displayUser(1);
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable("userDetails", UsefulThings.currentUser);
     }
 
     private void displayNgo(int i) {
@@ -164,11 +168,12 @@ public class NgoActivity extends AppCompatActivity {
         }
     }
 
-    private void displayDetails(final String child, final String no_ong, boolean isAll, final int i){
+    private void displayDetails(final String child, final String no_ong,
+                                boolean isAll, final int i){
 
         final DatabaseReference ref;
         if(!isAll) {
-            ref = mDatabase.child("users").child(uid);
+            ref = mDatabase.child("users").child(UsefulThings.currentUser.getUid());
         } else {
             ref = mDatabase;
         }
@@ -245,7 +250,7 @@ public class NgoActivity extends AppCompatActivity {
 
                         idsSparseArray.put(currentNumber, key);
 
-                        if(type.equals("user") || child == 3) {
+                        if(UsefulThings.currentUser.getType().equals("user") || child == 3) {
                             final String allCauses;
 
                             if(map.containsKey("allCauses")) {
@@ -276,17 +281,19 @@ public class NgoActivity extends AppCompatActivity {
                                                     new ValueEventListener() {
                                                         @Override
                                                         public void onDataChange(DataSnapshot dataSnapshot) {
-                                                            if(dataSnapshot.getValue() != null) {
-                                                                Map<String, Object> supportersMap =
-                                                                        (Map<String, Object>) dataSnapshot.getValue();
-                                                                buildLayout(name, ownCauses, allCauses,
-                                                                        supporters, imageURL, null, null,
-                                                                        String.valueOf(supportersMap.size()),
-                                                                        child, currentNumber);
-                                                            } else {
-                                                                buildLayout(name, ownCauses, allCauses,
-                                                                        supporters, imageURL, null, null,
-                                                                        "0", child, currentNumber);
+                                                            if(UsefulThings.currentUser != null) {
+                                                                if (dataSnapshot.getValue() != null) {
+                                                                    Map<String, Object> supportersMap =
+                                                                            (Map<String, Object>) dataSnapshot.getValue();
+                                                                    buildLayout(name, ownCauses, allCauses,
+                                                                            supporters, imageURL, null, null,
+                                                                            String.valueOf(supportersMap.size()),
+                                                                            child, currentNumber);
+                                                                } else {
+                                                                    buildLayout(name, ownCauses, allCauses,
+                                                                            supporters, imageURL, null, null,
+                                                                            "0", child, currentNumber);
+                                                                }
                                                             }
                                                         }
 
@@ -304,9 +311,19 @@ public class NgoActivity extends AppCompatActivity {
                                     });
                         } else {
                             final String email = map.get("email").toString();
+                            String childString;
 
-                            DatabaseReference ref = mDatabase.child("users").child(key)
-                                    .child("MemberOf").child(uid);
+                            if(child == 2) {
+                                childString = "Supporters";
+                            } else {
+                                childString = "Members";
+                            }
+
+                            DatabaseReference ref = mDatabase.child("users")
+                                    .child(UsefulThings.currentUser.getUid())
+                                    .child(childString).child(key);
+
+                            Log.d(LOG, ref.toString());
                             ref.addListenerForSingleValueEvent(
                                     new ValueEventListener() {
                                         @Override
@@ -344,7 +361,7 @@ public class NgoActivity extends AppCompatActivity {
                     if(lastBtn != 1) {
                         lastBtn = 1;
                         removeLayouts();
-                        if (type.equals("ngo")) {
+                        if (UsefulThings.currentUser.getType().equals("ngo")) {
                             displayNgo(1);
                         } else {
                             displayUser(1);
@@ -355,7 +372,7 @@ public class NgoActivity extends AppCompatActivity {
                     if(lastBtn != 2) {
                         lastBtn = 2;
                         removeLayouts();
-                        if (type.equals("ngo")) {
+                        if (UsefulThings.currentUser.getType().equals("ngo")) {
                             displayNgo(2);
                         } else {
                             displayUser(2);
@@ -366,7 +383,7 @@ public class NgoActivity extends AppCompatActivity {
                     if(lastBtn != 3) {
                         lastBtn = 3;
                         removeLayouts();
-                        if (type.equals("ngo")) {
+                        if (UsefulThings.currentUser.getType().equals("ngo")) {
                             displayNgo(3);
                         } else {
                             displayUser(3);
@@ -389,7 +406,7 @@ public class NgoActivity extends AppCompatActivity {
         setTitle(name, parent, currentNumber);
         setVerticalLine(parent, 0, currentNumber);
 
-        if(type.equals("user") || child == 3){
+        if(UsefulThings.currentUser.getType().equals("user") || child == 3){
             setColumn("Număr\nmembri", parent, 0, currentNumber);
             setColumnText(members, parent, 0, currentNumber);
             setColumn("Susținători", parent, 1, currentNumber);
@@ -413,7 +430,8 @@ public class NgoActivity extends AppCompatActivity {
         child.setId(currentNumber + 6);
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 5);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.38f;
@@ -446,7 +464,8 @@ public class NgoActivity extends AppCompatActivity {
         child.setId(currentNumber + 5);
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 4);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.36f;
@@ -475,7 +494,8 @@ public class NgoActivity extends AppCompatActivity {
         child.setId(currentNumber + 4);
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 2);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.38f;
@@ -507,7 +527,8 @@ public class NgoActivity extends AppCompatActivity {
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 2);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.002f;
@@ -536,7 +557,8 @@ public class NgoActivity extends AppCompatActivity {
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 3);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
 
@@ -574,7 +596,8 @@ public class NgoActivity extends AppCompatActivity {
         child.setId(currentNumber + 3 + i);
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         childParams.addRule(PercentRelativeLayout.BELOW, currentNumber + 2);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
 
@@ -610,7 +633,8 @@ public class NgoActivity extends AppCompatActivity {
         child.setId(currentNumber + 2);
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.58f;
         info.heightPercent = 0.35f;
@@ -642,7 +666,8 @@ public class NgoActivity extends AppCompatActivity {
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.38f;
         info.heightPercent = 1;
@@ -695,7 +720,8 @@ public class NgoActivity extends AppCompatActivity {
         rootLayout.addView(parent);
         allPercents.add(parent);
 
-        PercentRelativeLayout.LayoutParams params = (PercentRelativeLayout.LayoutParams) parent.getLayoutParams();
+        PercentRelativeLayout.LayoutParams params =
+                (PercentRelativeLayout.LayoutParams) parent.getLayoutParams();
 
         if(currentNumber != 1) {
             params.addRule(PercentRelativeLayout.BELOW, currentNumber - unit);
@@ -713,7 +739,8 @@ public class NgoActivity extends AppCompatActivity {
         return parent;
     }
 
-    private CallImageButtonClickListener callImageButtonClickListener = new CallImageButtonClickListener();
+    private CallImageButtonClickListener callImageButtonClickListener =
+            new CallImageButtonClickListener();
     private class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
@@ -727,7 +754,8 @@ public class NgoActivity extends AppCompatActivity {
         }
 
         private void startProfileActivity(final String ownerUID) {
-            DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("ProfileSettings");
+            DatabaseReference ref = mDatabase.child("users")
+                    .child(ownerUID).child("ProfileSettings");
             ref.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot snapshot) {
@@ -739,8 +767,10 @@ public class NgoActivity extends AppCompatActivity {
                     mUser.setEmail(String.valueOf(mapRef.get("email")));
                     mUser.setType(String.valueOf(mapRef.get("type")));
                     mUser.setUid(ownerUID);
-                    mUser.setOwnCausesNumber(Integer.valueOf(String.valueOf(mapRef.get("ownCauses"))));
-                    mUser.setSupportedCausesNumber(Integer.valueOf(String.valueOf(mapRef.get("supportedCauses"))));
+                    mUser.setOwnCausesNumber(
+                            Integer.valueOf(String.valueOf(mapRef.get("ownCauses"))));
+                    mUser.setSupportedCausesNumber(
+                            Integer.valueOf(String.valueOf(mapRef.get("supportedCauses"))));
 
                     Object ref = mapRef.get("address");
                     if(ref != null) {
@@ -756,11 +786,8 @@ public class NgoActivity extends AppCompatActivity {
                         mUser.setAge(Integer.valueOf(String.valueOf(mapRef.get("age"))));
                     }
 
-//                   dialog.dismiss();
                     Intent i = new Intent(getApplicationContext(), PublicProfileActivity.class);
-                    i.putExtra("userDetails", mUser);
-                    i.putExtra("currentUserUid", uid);
-                    i.putExtra("type", type);
+                    i.putExtra("userCauseDetails", mUser);
                     startActivity(i);
                     finish();
                 }
@@ -774,9 +801,12 @@ public class NgoActivity extends AppCompatActivity {
     }
 
     private void resetColors(){
-        memberBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
-        supporterBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
-        allBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
+        memberBtn.setBackgroundColor(
+                ContextCompat.getColor(getApplicationContext(), R.color.blue4));
+        supporterBtn.setBackgroundColor(
+                ContextCompat.getColor(getApplicationContext(), R.color.blue4));
+        allBtn.setBackgroundColor(
+                ContextCompat.getColor(getApplicationContext(), R.color.blue4));
     }
 
     private void removeLayouts(){

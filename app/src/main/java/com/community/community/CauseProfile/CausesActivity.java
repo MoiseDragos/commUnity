@@ -29,15 +29,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Map;
 
-//TODO: Memory problem!
-//TODO: dupa un timp de inactivitate, sare in Main!
-//TODO: culori cartonase (pentru "Toate cauzele")
 public class CausesActivity extends AppCompatActivity {
 
-    // TODO: remove
     private String LOG = this.getClass().getSimpleName();
+
+    private static ArrayList<PercentRelativeLayout> allPercents
+            = new ArrayList<>();
 
     private ScrollView allLayout = null;
     private TextView title = null;
@@ -45,8 +45,6 @@ public class CausesActivity extends AppCompatActivity {
     private PercentRelativeLayout rootLayout = null;
 
     private DatabaseReference mDatabase = null;
-    private String uid = null;
-    private String type = null;
     private String activity = null;
     private int number = -1;
 
@@ -64,8 +62,6 @@ public class CausesActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if(intent != null){
             activity = intent.getStringExtra("activity");
-            uid = intent.getStringExtra("uid");
-            type = intent.getStringExtra("type");
             title = (TextView) findViewById(R.id.textView);
         }
 
@@ -87,11 +83,21 @@ public class CausesActivity extends AppCompatActivity {
     private void displayAllCauses() {
 
         DatabaseReference ref = mDatabase.child("causes");
-        ref.addListenerForSingleValueEvent(
+        ref.addValueEventListener(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.getValue() != null) {
+                            removeLayouts();
+                            number = -1;
+
+                            allPercents = new ArrayList<>();
+
+                            title = (TextView) findViewById(R.id.textView);
+                            mDatabase = FirebaseDatabase.getInstance().getReference();
+
+                            TextView noCause = (TextView) findViewById(R.id.no_causes);
+                            noCause.setText("");
 
                             title.setText(R.string.all_causes);
 
@@ -106,19 +112,23 @@ public class CausesActivity extends AppCompatActivity {
                             Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
 
                             for (final Map.Entry<String, Object> entry : map.entrySet()) {
-                                DatabaseReference dRef = mDatabase.child("causes").child(entry.getKey()).child("Info").child("ownerUID");
+                                DatabaseReference dRef = mDatabase.child("causes")
+                                        .child(entry.getKey()).child("Info").child("ownerUID");
                                 dRef.addListenerForSingleValueEvent(
                                         new ValueEventListener() {
                                             @Override
                                             public void onDataChange(DataSnapshot dataSnapshot) {
-                                                final String supUid = String.valueOf(dataSnapshot.getValue());
-                                                DatabaseReference dRef = mDatabase.child("users").child(supUid)
+                                                final String supUid =
+                                                        String.valueOf(dataSnapshot.getValue());
+                                                DatabaseReference dRef = mDatabase
+                                                        .child("users").child(supUid)
                                                         .child("MyCauses").child(entry.getKey());
                                                 dRef.addListenerForSingleValueEvent(
                                                         new ValueEventListener() {
                                                             @Override
                                                             public void onDataChange(DataSnapshot dataSnapshot) {
-                                                                Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                                                                Map<String, Object> map =
+                                                                        (Map<String, Object>) dataSnapshot.getValue();
                                                                 downloadDetails(map, entry.getKey(), supUid);
                                                             }
 
@@ -137,7 +147,18 @@ public class CausesActivity extends AppCompatActivity {
                             }
 
                         } else {
-                            PercentRelativeLayout.LayoutParams params = (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
+                            rootLayout = (PercentRelativeLayout) findViewById(R.id.rootLayout);
+                            rootLayout.setVisibility(View.GONE);
+
+                            removeLayouts();
+                            number = -1;
+                            keysSparseArray = null;
+                            idsSparseArray = null;
+                            allPercents = null;
+
+                            title = (TextView) findViewById(R.id.textView);
+                            PercentRelativeLayout.LayoutParams params =
+                                    (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
                             PercentLayoutHelper.PercentLayoutInfo info = params.getPercentLayoutInfo();
                             info.heightPercent = 0.20f;
                             title.requestLayout();
@@ -159,17 +180,27 @@ public class CausesActivity extends AppCompatActivity {
                 });
     }
 
-    //TODO: addValueEventListener() pentru SupportedBy
     private void displayMySupportedCauses() {
 
-        final DatabaseReference ref = mDatabase.child("users").child(uid).child("Supporting");
-        ref.addListenerForSingleValueEvent(
+        final DatabaseReference ref = mDatabase.child("users")
+                .child(UsefulThings.currentUser.getUid()).child("Supporting");
+        ref.addValueEventListener(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.getValue() != null) {
 
+//                            Log.d(LOG, "onDataChange-SupportedCauses");
+                            removeLayouts();
+                            number = -1;
+
+                            allPercents = new ArrayList<>();
+
+                            title = (TextView) findViewById(R.id.textView);
                             title.setText(R.string.supported_causes);
+
+                            TextView noCause = (TextView) findViewById(R.id.no_causes);
+                            noCause.setText("");
 
                             allLayout = (ScrollView) findViewById(R.id.scroll_view_causes);
                             allLayout.setVisibility(View.VISIBLE);
@@ -184,13 +215,16 @@ public class CausesActivity extends AppCompatActivity {
                             for (Map.Entry<String, Object> entry : map.entrySet()) {
                                 final String key = entry.getKey();
                                 final String supUid = String.valueOf(entry.getValue());
+                                mDatabase = FirebaseDatabase.getInstance().getReference();
+
                                 DatabaseReference dRef = mDatabase.child("users").child(supUid)
                                         .child("MyCauses").child(key);
                                 dRef.addListenerForSingleValueEvent(
                                         new ValueEventListener() {
                                             @Override
                                             public void onDataChange(DataSnapshot dataSnapshot) {
-                                                Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                                                Map<String, Object> map =
+                                                        (Map<String, Object>) dataSnapshot.getValue();
                                                 downloadDetails(map, key, supUid);
                                             }
 
@@ -202,7 +236,18 @@ public class CausesActivity extends AppCompatActivity {
                             }
 
                         } else {
-                            PercentRelativeLayout.LayoutParams params = (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
+                            rootLayout = (PercentRelativeLayout) findViewById(R.id.rootLayout);
+                            rootLayout.setVisibility(View.GONE);
+
+                            removeLayouts();
+                            number = -1;
+                            keysSparseArray = null;
+                            idsSparseArray = null;
+                            allPercents = null;
+
+                            title = (TextView) findViewById(R.id.textView);
+                            PercentRelativeLayout.LayoutParams params =
+                                    (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
                             PercentLayoutHelper.PercentLayoutInfo info = params.getPercentLayoutInfo();
                             info.heightPercent = 0.20f;
                             title.requestLayout();
@@ -226,14 +271,18 @@ public class CausesActivity extends AppCompatActivity {
 
     private void displayMyCauses() {
 
-        final DatabaseReference ref = mDatabase.child("users").child(uid);
+        final DatabaseReference ref = mDatabase.child("users")
+                .child(UsefulThings.currentUser.getUid());
         ref.addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.hasChild("MyCauses")) {
+                            allPercents = new ArrayList<>();
 
-                            if(type.equals("ngo")) {
+                            mDatabase = FirebaseDatabase.getInstance().getReference();
+
+                            if(UsefulThings.currentUser.getType().equals("ngo")) {
                                 title.setText(R.string.ngoCauses);
                             } else {
                                 title.setText(R.string.myCauses);
@@ -253,12 +302,15 @@ public class CausesActivity extends AppCompatActivity {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
 
-                                        Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                                        Map<String, Object> map =
+                                                (Map<String, Object>) dataSnapshot.getValue();
 
                                         for (Map.Entry<String, Object> entry : map.entrySet()) {
 
-                                            Map<String, Object> data = (Map<String, Object>) entry.getValue();
-                                            downloadDetails(data, entry.getKey(), uid);
+                                            Map<String, Object> data =
+                                                    (Map<String, Object>) entry.getValue();
+                                            downloadDetails(data, entry.getKey(),
+                                                    UsefulThings.currentUser.getUid());
                                         }
                                     }
 
@@ -269,12 +321,25 @@ public class CausesActivity extends AppCompatActivity {
                             });
 
                         } else {
-                            PercentRelativeLayout.LayoutParams params = (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
-                            PercentLayoutHelper.PercentLayoutInfo info = params.getPercentLayoutInfo();
+                            rootLayout = (PercentRelativeLayout) findViewById(R.id.rootLayout);
+                            rootLayout.setVisibility(View.GONE);
+
+                            removeLayouts();
+                            number = -1;
+                            keysSparseArray = null;
+                            idsSparseArray = null;
+                            allPercents = null;
+
+                            title = (TextView) findViewById(R.id.textView);
+
+                            PercentRelativeLayout.LayoutParams params =
+                                    (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
+                            PercentLayoutHelper.PercentLayoutInfo info =
+                                    params.getPercentLayoutInfo();
                             info.heightPercent = 0.20f;
                             title.requestLayout();
 
-                            if(type.equals("ngo")) {
+                            if(UsefulThings.currentUser.getType().equals("ngo")) {
                                 title.setText(R.string.ngoCauses);
                             } else {
                                 title.setText(R.string.myCauses);
@@ -306,7 +371,9 @@ public class CausesActivity extends AppCompatActivity {
 
         /* Image */
         a = (Map<String, Object>) data.get("Images");
+        Log.d(LOG, a.toString());
         String imageURL = a.get("profileThumbnailURL").toString();
+//        String imageURL = a.get("profileImageURL").toString();
 
         number += UsefulThings.CAUSE_INTERMEDIATE_IDS;
         keysSparseArray.put(number, key);
@@ -315,19 +382,19 @@ public class CausesActivity extends AppCompatActivity {
         buildLayout(name, date, description, supportedBy, imageURL);
     }
 
-    private CausesActivity.CallImageButtonClickListener callImageButtonClickListener = new CausesActivity.CallImageButtonClickListener();
+    private CausesActivity.CallImageButtonClickListener callImageButtonClickListener =
+            new CausesActivity.CallImageButtonClickListener();
     private class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
 
-            for(int i = UsefulThings.CAUSE_INTERMEDIATE_IDS; i <= number + 1; i += UsefulThings.CAUSE_INTERMEDIATE_IDS) {
+            for(int i = UsefulThings.CAUSE_INTERMEDIATE_IDS;
+                i <= number + 1; i += UsefulThings.CAUSE_INTERMEDIATE_IDS) {
                 if(view.getId() == i){
-//                    Log.d(LOG, "Accesez cauza cu numarul: " + i/UsefulThings.INTERMEDIATE_IDS);
-//                    Log.d(LOG, "ID: " + hmap.get(i - 1));
                     Intent intent = new Intent(getApplicationContext(), CauseProfileActivity.class);
                     intent.putExtra("ownerUID", idsSparseArray.get(i - 1));
                     intent.putExtra("causeId", keysSparseArray.get(i - 1));
-                    intent.putExtra("type", type);
+                    intent.putExtra("type", UsefulThings.currentUser.getType());
                     startActivity(intent);
                     break;
                 }
@@ -343,7 +410,6 @@ public class CausesActivity extends AppCompatActivity {
         setImage(imageURL, parent);
         setTitle(name, parent);
         setSupportedImage(parent);
-//        Log.d(LOG, supportedBy);
         setSupportedText(supportedBy, parent);
         setDate(date, parent);
         setDescription(description, parent);
@@ -352,11 +418,12 @@ public class CausesActivity extends AppCompatActivity {
     private void setDescription(String description, PercentRelativeLayout parent) {
 
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
-//                                            child.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue2));
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 2);
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        childParams.addRule(PercentRelativeLayout.BELOW,
+                number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 2);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.56f;
         info.heightPercent = 0.34f;
@@ -387,11 +454,12 @@ public class CausesActivity extends AppCompatActivity {
     private void setDate(String date, PercentRelativeLayout parent) {
 
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
-//                                            child.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue2));
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 3);
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        childParams.addRule(PercentRelativeLayout.BELOW,
+                number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 3);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.56f;
         info.heightPercent = 0.25f;
@@ -424,8 +492,10 @@ public class CausesActivity extends AppCompatActivity {
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 3);
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        childParams.addRule(PercentRelativeLayout.BELOW,
+                number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 3);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.08f;
         info.heightPercent = 0.25f;
@@ -442,7 +512,8 @@ public class CausesActivity extends AppCompatActivity {
         TextView title = new TextView(getApplicationContext());
         child.addView(title);
 
-        title.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.edit_text_form_green));
+        title.setBackground(ContextCompat.getDrawable(getApplicationContext(),
+                R.drawable.edit_text_form_green));
         title.setLayoutParams(new PercentRelativeLayout.LayoutParams
                 (PercentRelativeLayout.LayoutParams.MATCH_PARENT,
                         PercentRelativeLayout.LayoutParams.MATCH_PARENT));
@@ -458,8 +529,10 @@ public class CausesActivity extends AppCompatActivity {
         child.setId(number + 3);
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
-        childParams.addRule(PercentRelativeLayout.BELOW, number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 3);
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        childParams.addRule(PercentRelativeLayout.BELOW,
+                number + UsefulThings.CAUSE_INTERMEDIATE_IDS - 3);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.1f;
         info.heightPercent = 0.25f;
@@ -490,7 +563,8 @@ public class CausesActivity extends AppCompatActivity {
         child.setId(number + 2);
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.56f;
         info.heightPercent = 0.35f;
@@ -523,7 +597,8 @@ public class CausesActivity extends AppCompatActivity {
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.38f;
         info.heightPercent = 1;
@@ -536,7 +611,6 @@ public class CausesActivity extends AppCompatActivity {
 
         final ImageView image = new ImageView(getApplicationContext());
         image.setId(number + 1);
-//                                            Log.d(LOG, "ID: " + (i+1));
         child.addView(image);
 
         image.setLayoutParams(new PercentRelativeLayout.LayoutParams
@@ -567,10 +641,17 @@ public class CausesActivity extends AppCompatActivity {
         parent.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
         rootLayout.addView(parent);
 
-        PercentRelativeLayout.LayoutParams params = (PercentRelativeLayout.LayoutParams) parent.getLayoutParams();
+        if(allPercents == null)
+            allPercents = new ArrayList<>();
+
+        allPercents.add(parent);
+
+        PercentRelativeLayout.LayoutParams params =
+                (PercentRelativeLayout.LayoutParams) parent.getLayoutParams();
 
         if(number != 1) {
-            params.addRule(PercentRelativeLayout.BELOW, number - UsefulThings.CAUSE_INTERMEDIATE_IDS);
+            params.addRule(PercentRelativeLayout.BELOW,
+                    number - UsefulThings.CAUSE_INTERMEDIATE_IDS);
         }
 
         PercentLayoutHelper.PercentLayoutInfo info = params.getPercentLayoutInfo();
@@ -585,5 +666,28 @@ public class CausesActivity extends AppCompatActivity {
         return parent;
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(LOG, "onDestroy");
+        allLayout = null;
+        title = null;
+        mDatabase = null;
+        activity = null;
 
+        removeLayouts();
+        rootLayout = null;
+        number = -1;
+        keysSparseArray = null;
+        idsSparseArray = null;
+        allPercents = null;
+    }
+
+    private void removeLayouts(){
+        if(allPercents != null && rootLayout != null) {
+            for (PercentRelativeLayout allPercent : allPercents) {
+                rootLayout.removeView(allPercent);
+            }
+        }
+    }
 }

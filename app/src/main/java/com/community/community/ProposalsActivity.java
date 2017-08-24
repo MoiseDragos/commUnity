@@ -34,7 +34,6 @@ import java.util.Map;
 
 public class ProposalsActivity extends AppCompatActivity {
 
-    // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
     private static LruCache<Integer, PercentRelativeLayout> allPercents
@@ -50,14 +49,10 @@ public class ProposalsActivity extends AppCompatActivity {
 
     private SparseArray<String> idsSparseArray = null;
 
-    private String uid = null;
-    private String type = null;
-
     private int number;
     private boolean isReceived = true;
     private boolean firstProcessing;
     private boolean firstRejected;
-
 
     private Button receivedBtn = null;
     private Button madeBtn = null;
@@ -70,7 +65,6 @@ public class ProposalsActivity extends AppCompatActivity {
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-//        percentLayout1 = (PercentRelativeLayout) findViewById(R.id.percentLayout1);
         percentLayout2 = (PercentRelativeLayout) findViewById(R.id.percentLayout2);
 
         rootLayout = (PercentRelativeLayout) findViewById(R.id.rootLayout);
@@ -82,13 +76,15 @@ public class ProposalsActivity extends AppCompatActivity {
         madeBtn = (Button) findViewById(R.id.supporterBtn);
         madeBtn.setOnClickListener(callButtonClickListener);
 
-        Intent intent = getIntent();
-        if(intent != null){
-            uid = intent.getStringExtra("uid");
-            type = intent.getStringExtra("type");
+        if (UsefulThings.currentUser == null) {
+            UsefulThings.currentUser = (User) savedInstanceState.getSerializable("userDetails");
+
+            if(UsefulThings.currentUser == null) {
+                Log.d(LOG, "Nu am detaliile user-ului curent!");
+                finish();
+            }
         }
 
-        Log.d(LOG, "Type: " + type);
         chooseWhatToShow(1);
     }
 
@@ -99,18 +95,22 @@ public class ProposalsActivity extends AppCompatActivity {
 
         number = 1 - UsefulThings.CAUSE_INTERMEDIATE_IDS;
 
-        receivedBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
-        madeBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue4));
+        receivedBtn.setBackgroundColor(
+                ContextCompat.getColor(getApplicationContext(), R.color.blue4));
+        madeBtn.setBackgroundColor(
+                ContextCompat.getColor(getApplicationContext(), R.color.blue4));
         no_processing_layout.setVisibility(View.GONE);
         no_rejected_layout.setVisibility(View.GONE);
 
         if(i == 1) {
             isReceived = true;
-            receivedBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
+            receivedBtn.setBackgroundColor(
+                    ContextCompat.getColor(getApplicationContext(), R.color.blue1));
             displayAll("Received");
         } else if (i == 2) {
             isReceived = false;
-            madeBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
+            madeBtn.setBackgroundColor(
+                    ContextCompat.getColor(getApplicationContext(), R.color.blue1));
             displayAll("Made");
         }
 
@@ -123,13 +123,13 @@ public class ProposalsActivity extends AppCompatActivity {
 
     private void displayDetails(final String text, final boolean isProcessing){
 
-        final DatabaseReference ref = mDatabase.child("users").child(uid);
+        final DatabaseReference ref = mDatabase.child("users")
+                .child(UsefulThings.currentUser.getUid());
         ref.addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
 
-                        Log.d(LOG, "TEXT: " + text);
                         if(text.equals("Received")) {
                             removeLayouts();
                             allPercents = new LruCache<>(UsefulThings.proposalsCacheSize);
@@ -145,7 +145,8 @@ public class ProposalsActivity extends AppCompatActivity {
                                         @Override
                                         public void onDataChange(DataSnapshot dataSnapshot) {
 
-                                            Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                                            Map<String, Object> map =
+                                                    (Map<String, Object>) dataSnapshot.getValue();
 
                                             for (Map.Entry<String, Object> entry : map.entrySet()) {
 
@@ -162,14 +163,13 @@ public class ProposalsActivity extends AppCompatActivity {
                         } else {
 
                             if(isProcessing) {
-                                Log.d(LOG, "Nimic in processing!");
                                 no_processing_layout.setVisibility(View.VISIBLE);
                                 PercentRelativeLayout.LayoutParams linearParams =
                                         (PercentRelativeLayout.LayoutParams) percentLayout2.getLayoutParams();
-                                linearParams.addRule(PercentRelativeLayout.BELOW, R.id.no_processing_layout);
+                                linearParams.addRule(PercentRelativeLayout.BELOW,
+                                        R.id.no_processing_layout);
                             } else {
                                 no_rejected_layout.setVisibility(View.VISIBLE);
-                                Log.d(LOG, "Nimic in rejected!");
                             }
                         }
                     }
@@ -183,45 +183,136 @@ public class ProposalsActivity extends AppCompatActivity {
 
     private void downloadDetails(final String key, final boolean isProcessing) {
 
-        DatabaseReference reference = mDatabase.child("users").child(key).child("ProfileSettings");
+        DatabaseReference reference = mDatabase.child("users")
+                .child(key).child("ProfileSettings");
         reference.addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                        if(UsefulThings.currentUser != null) {
+                            Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
 
-                        String name = map.get("nickname").toString();
-                        String firstTextField, imageURL, secondTextField;
+                            final String name = map.get("nickname").toString();
+                            final String imageURL;
 
-                        if(map.containsKey("imageURL")) {
-                            imageURL = map.get("imageURL").toString();
-                        } else {
-                            imageURL = null;
-                        }
-
-                        if(type.equals("ngo")){
-                            firstTextField = map.get("ownCauses").toString();
-                            secondTextField = map.get("supportedCauses").toString();
-                        } else {
-                            if (map.containsKey("Members")) {
-                                firstTextField = map.get("Members").toString();
-                                firstTextField = String.valueOf(Integer.valueOf(firstTextField) + 1);
+                            if (map.containsKey("imageURL")) {
+                                imageURL = map.get("imageURL").toString();
                             } else {
-                                firstTextField = "1";
+                                imageURL = null;
                             }
 
-                            if (map.containsKey("supporters")) {
-                                secondTextField = map.get("supporters").toString();
+                            if (UsefulThings.currentUser.getType().equals("ngo")) {
+                                DatabaseReference ref = mDatabase.child("users").child(key)
+                                        .child("ProfileSettings").child("ownCauses");
+                                Log.d(LOG, "ref: " + ref);
+                                ref.addValueEventListener(
+                                        new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                if(UsefulThings.currentUser != null) {
+                                                    String ownCausesMap =
+                                                            (String) dataSnapshot.getValue();
+                                                    determineSupporters(ownCausesMap);
+                                                }
+                                            }
+
+                                            private void determineSupporters(final String supporters) {
+                                                DatabaseReference ref = mDatabase.child("users").child(key)
+                                                        .child("Supporters");
+                                                ref.addValueEventListener(
+                                                        new ValueEventListener() {
+                                                            @Override
+                                                            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                                                number += UsefulThings.CAUSE_INTERMEDIATE_IDS;
+                                                                idsSparseArray.put(number, key);
+
+                                                                if (dataSnapshot.getValue() != null) {
+                                                                    Map<String, Object> supportersMap =
+                                                                            (Map<String, Object>) dataSnapshot.getValue();
+
+                                                                    buildLayout(name,
+                                                                            String.valueOf(supportersMap.size()),
+                                                                            supporters, imageURL, isProcessing);
+                                                                } else {
+                                                                    buildLayout(name, "0",
+                                                                            supporters, imageURL, isProcessing);
+                                                                }
+                                                            }
+
+                                                            @Override
+                                                            public void onCancelled(DatabaseError databaseError) {
+
+                                                            }
+                                                        });
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {
+
+                                            }
+                                        });
                             } else {
-                                secondTextField = "0";
+                                DatabaseReference ref = mDatabase.child("users").child(key)
+                                        .child("Supporters");
+                                ref.addValueEventListener(
+                                        new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                if (dataSnapshot.getValue() != null) {
+                                                    Map<String, Object> supportersMap =
+                                                            (Map<String, Object>) dataSnapshot.getValue();
+                                                    determineMembers(String.valueOf(supportersMap.size()));
+                                                } else {
+                                                    determineMembers("0");
+                                                }
+                                            }
+
+                                            private void determineMembers(final String supporters) {
+                                                DatabaseReference ref = mDatabase.child("users").child(key)
+                                                        .child("Members");
+                                                ref.addValueEventListener(
+                                                        new ValueEventListener() {
+                                                            @Override
+                                                            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                                                number += UsefulThings.CAUSE_INTERMEDIATE_IDS;
+                                                                idsSparseArray.put(number, key);
+
+                                                                if (dataSnapshot.getValue() != null) {
+                                                                    Map<String, Object> supportersMap =
+                                                                            (Map<String, Object>) dataSnapshot.getValue();
+
+                                                                    buildLayout(name,
+                                                                            String.valueOf(supportersMap.size()),
+                                                                            supporters, imageURL, isProcessing);
+//                                                                buildLayout(name, ownCauses, allCauses,
+//                                                                        supporters, imageURL, null, null,
+//                                                                        String.valueOf(supportersMap.size()),
+//                                                                        child, currentNumber);
+                                                                } else {
+                                                                    buildLayout(name, "0",
+                                                                            supporters, imageURL, isProcessing);
+//                                                                buildLayout(name, ownCauses, allCauses,
+//                                                                        supporters, imageURL, null, null,
+//                                                                        "0", child, currentNumber);
+                                                                }
+                                                            }
+
+                                                            @Override
+                                                            public void onCancelled(DatabaseError databaseError) {
+
+                                                            }
+                                                        });
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {
+
+                                            }
+                                        });
                             }
                         }
-
-                        number += UsefulThings.CAUSE_INTERMEDIATE_IDS;
-//                        keysSparseArray.put(number, key);
-                        idsSparseArray.put(number, key);
-
-                        buildLayout(name, firstTextField, secondTextField, imageURL, isProcessing);
                     }
 
                     @Override
@@ -288,7 +379,8 @@ public class ProposalsActivity extends AppCompatActivity {
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         childParams.addRule(PercentRelativeLayout.BELOW, number + 2);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.005f;
@@ -317,7 +409,8 @@ public class ProposalsActivity extends AppCompatActivity {
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         childParams.addRule(PercentRelativeLayout.BELOW, number + 4);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.26f;
@@ -336,7 +429,6 @@ public class ProposalsActivity extends AppCompatActivity {
         TextView title = new TextView(getApplicationContext());
         child.addView(title);
 
-//        title.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.edit_text_form_green));
         title.setLayoutParams(new PercentRelativeLayout.LayoutParams
                 (PercentRelativeLayout.LayoutParams.MATCH_PARENT,
                         PercentRelativeLayout.LayoutParams.MATCH_PARENT));
@@ -354,7 +446,8 @@ public class ProposalsActivity extends AppCompatActivity {
         child.setId(number + 4);
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         childParams.addRule(PercentRelativeLayout.BELOW, number + 2);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.26f;
@@ -379,7 +472,7 @@ public class ProposalsActivity extends AppCompatActivity {
 
         textAdd.setGravity(Gravity.CENTER);
         textAdd.setMaxLines(2);
-        if(type.equals("ngo")) {
+        if(UsefulThings.currentUser.getType().equals("ngo")) {
             textAdd.setText("Obiective\nsusținute");
         } else {
             textAdd.setText("Număr\nsusținători");
@@ -393,7 +486,8 @@ public class ProposalsActivity extends AppCompatActivity {
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         childParams.addRule(PercentRelativeLayout.BELOW, number + 3);
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
 
@@ -413,7 +507,6 @@ public class ProposalsActivity extends AppCompatActivity {
         TextView title = new TextView(getApplicationContext());
         child.addView(title);
 
-//        title.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.edit_text_form_green));
         title.setLayoutParams(new PercentRelativeLayout.LayoutParams
                 (PercentRelativeLayout.LayoutParams.MATCH_PARENT,
                         PercentRelativeLayout.LayoutParams.MATCH_PARENT));
@@ -458,7 +551,7 @@ public class ProposalsActivity extends AppCompatActivity {
 
         textAdd.setGravity(Gravity.CENTER);
         textAdd.setMaxLines(2);
-        if(type.equals("ngo")) {
+        if(UsefulThings.currentUser.getType().equals("ngo")) {
             textAdd.setText("Obiective\nadăugate");
         } else {
             textAdd.setText("Număr\nmembri");
@@ -473,7 +566,8 @@ public class ProposalsActivity extends AppCompatActivity {
         child.setId(number + 2);
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.56f;
         info.heightPercent = 0.35f;
@@ -506,7 +600,8 @@ public class ProposalsActivity extends AppCompatActivity {
         PercentRelativeLayout child = new PercentRelativeLayout(getApplicationContext());
         parent.addView(child);
 
-        PercentRelativeLayout.LayoutParams childParams = (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) child.getLayoutParams();
         PercentLayoutHelper.PercentLayoutInfo info = childParams.getPercentLayoutInfo();
         info.widthPercent = 0.38f;
         info.heightPercent = 1;
@@ -549,8 +644,6 @@ public class ProposalsActivity extends AppCompatActivity {
 
     private PercentRelativeLayout setParentLayout(boolean isProcessing) {
 
-        Log.d(LOG, "Number: " + number);
-
         PercentRelativeLayout parent = new PercentRelativeLayout(getApplicationContext());
         parent.setId(number);
         rootLayout.addView(parent);
@@ -571,14 +664,16 @@ public class ProposalsActivity extends AppCompatActivity {
                 firstProcessing = false;
                 params.addRule(PercentRelativeLayout.BELOW, R.id.percentLayout1);
             } else {
-                params.addRule(PercentRelativeLayout.BELOW, number - UsefulThings.PROPOSALS_INTERMEDIATE_IDS);
+                params.addRule(PercentRelativeLayout.BELOW, number -
+                        UsefulThings.PROPOSALS_INTERMEDIATE_IDS);
             }
         } else {
             if(firstRejected) {
                 firstRejected = false;
                 params.addRule(PercentRelativeLayout.BELOW, R.id.percentLayout2);
             } else {
-                params.addRule(PercentRelativeLayout.BELOW, number - UsefulThings.PROPOSALS_INTERMEDIATE_IDS);
+                params.addRule(PercentRelativeLayout.BELOW, number -
+                        UsefulThings.PROPOSALS_INTERMEDIATE_IDS);
             }
         }
 
@@ -594,16 +689,14 @@ public class ProposalsActivity extends AppCompatActivity {
         return parent;
     }
 
-    private CallImageButtonClickListener callImageButtonClickListener = new CallImageButtonClickListener();
+    private CallImageButtonClickListener callImageButtonClickListener =
+            new CallImageButtonClickListener();
     private class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
 
-            Log.d(LOG, "Id: " + view.getId());
             for(int i = 2; i <= number + 2; i += UsefulThings.PROPOSALS_INTERMEDIATE_IDS) {
                 if(view.getId() == i){
-                    Log.d(LOG, "Accesez cauza cu numarul: " + i/UsefulThings.PROPOSALS_INTERMEDIATE_IDS);
-                    Log.d(LOG, "ID: " + idsSparseArray.get(i - 1));
                     startProfileActivity(idsSparseArray.get(i - 1));
                     break;
                 }
@@ -611,7 +704,8 @@ public class ProposalsActivity extends AppCompatActivity {
         }
 
         private void startProfileActivity(final String ownerUID) {
-            DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("ProfileSettings");
+            DatabaseReference ref = mDatabase.child("users")
+                    .child(ownerUID).child("ProfileSettings");
             ref.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot snapshot) {
@@ -623,8 +717,10 @@ public class ProposalsActivity extends AppCompatActivity {
                     mUser.setEmail(String.valueOf(mapRef.get("email")));
                     mUser.setType(String.valueOf(mapRef.get("type")));
                     mUser.setUid(ownerUID);
-                    mUser.setOwnCausesNumber(Integer.valueOf(String.valueOf(mapRef.get("ownCauses"))));
-                    mUser.setSupportedCausesNumber(Integer.valueOf(String.valueOf(mapRef.get("supportedCauses"))));
+                    mUser.setOwnCausesNumber(
+                            Integer.valueOf(String.valueOf(mapRef.get("ownCauses"))));
+                    mUser.setSupportedCausesNumber(
+                            Integer.valueOf(String.valueOf(mapRef.get("supportedCauses"))));
 
                     Object ref = mapRef.get("address");
                     if(ref != null) {
@@ -642,9 +738,7 @@ public class ProposalsActivity extends AppCompatActivity {
 
 //                   dialog.dismiss();
                     Intent i = new Intent(getApplicationContext(), PublicProfileActivity.class);
-                    i.putExtra("userDetails", mUser);
-                    i.putExtra("currentUserUid", uid);
-                    i.putExtra("type", type);
+                    i.putExtra("userCauseDetails", mUser);
                     startActivity(i);
                     allPercents.clearMemory();
                     finish();

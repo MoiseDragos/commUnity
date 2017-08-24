@@ -1,5 +1,6 @@
 package com.community.community.BeforeLogin;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,20 +14,18 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.community.community.MainActivity;
+import com.community.community.General.BackPressedActivity;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.ProviderQueryResult;
 
 import java.util.List;
 
 public class RegisterActivity extends AppCompatActivity implements View.OnClickListener  {
-
-    // TODO: remove
-//    private String LOG = this.getClass().getSimpleName();
 
     private EditText mEmailField;
     private EditText mPasswordField;
@@ -35,11 +34,10 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
     private ProgressDialog progressDialog;
 
-    boolean exist = false;
+    private boolean exist = false;
 
     /* Firebase */
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,25 +46,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
         /* Firebase */
         mAuth = FirebaseAuth.getInstance();
-
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-                if(firebaseAuth.getCurrentUser() != null){
-
-                    // Intent User Account
-                    finish();
-
-                    Intent i = new Intent(getApplicationContext(), MainActivity.class);
-                    i.putExtra("isRegistred", true);
-                    startActivity(i);
-//                    Log.d(LOG, "True");
-//                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                }
-
-            }
-        };
 
         mEmailField = (EditText) findViewById(R.id.email_id);
         mPasswordField = (EditText) findViewById(R.id.password_id);
@@ -78,21 +57,17 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         mRegisterBtn.setOnClickListener(this);
         mLogin.setOnClickListener(this);
 
-
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        mAuth.addAuthStateListener(mAuthListener);
     }
 
     private boolean verify_email(String email) {
 
         if(TextUtils.isEmpty(email)) {
             Toast.makeText(this, "Adăugați un email", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+
+        if(email.length() < 3) {
+            Toast.makeText(this, "Email prea scurt", Toast.LENGTH_SHORT).show();
             return true;
         }
 
@@ -107,13 +82,12 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
                             if(!taskList.isEmpty()){
                                 exist = true;
-                                Toast.makeText(RegisterActivity.this, "Contul existentă", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(RegisterActivity.this,
+                                        "Contul existentă", Toast.LENGTH_SHORT).show();
                             }
                         }
                     }
                 });
-
-        //TODO: other verifications
 
         return false;
     }
@@ -121,7 +95,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     private boolean verify_password(String password) {
 
         if(TextUtils.isEmpty(password)) {
-            Toast.makeText(this, "Adăugați o parola", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Adăugați o parolă", Toast.LENGTH_SHORT).show();
             return true;
         }
 
@@ -129,8 +103,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             Toast.makeText(this, "Parolă prea scurtă", Toast.LENGTH_SHORT).show();
             return true;
         }
-
-        //TODO: alte verificari
 
         return false;
     }
@@ -147,22 +119,50 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         progressDialog.show();
 
 
-//        if(!exist){
-//            writeNewUser(email);
-//        }
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(task.isSuccessful()){
-                            Toast.makeText(RegisterActivity.this, "Înregistrare reușită", Toast.LENGTH_SHORT).show();
-//                            writeNewUser(email);
-                            /*TODO: Send activation email*/
-//                            finish();
-//                            startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+                        mRegisterBtn.setEnabled(false);
+
+                        if(task.isSuccessful()) {
+                            Toast.makeText(RegisterActivity.this,
+                                    "Înregistrare reușită", Toast.LENGTH_SHORT).show();
+
+                            final FirebaseUser user = mAuth.getCurrentUser();
+                            if(user != null) {
+                                user.sendEmailVerification()
+                                    .addOnCompleteListener(RegisterActivity.this,
+                                        new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                mRegisterBtn.setEnabled(true);
+
+                                                if (task.isSuccessful()) {
+                                                    Toast.makeText(getApplicationContext(),
+                                                            "V-am trimis un email pentru activare",
+                                                            Toast.LENGTH_LONG).show();
+                                                    startLoginActivity();
+                                                } else {
+                                                    Toast.makeText(getApplicationContext(),
+                                                            "Nu v-am putut trimite email de activare",
+                                                            Toast.LENGTH_SHORT).show();
+                                                    startLoginActivity();
+                                                }
+                                            }
+
+                                            private void startLoginActivity() {
+                                                startActivity(new Intent(getApplicationContext(),
+                                                        LoginActivity.class));
+                                                finish();
+                                            }
+                                        });
+                            }
                         } else {
                             if(!exist){
-                                Toast.makeText(RegisterActivity.this, "Înregistrare nereușită, vă rugăm reîncercați", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(RegisterActivity.this,
+                                        "Înregistrare nereușită, vă rugăm reîncercați",
+                                        Toast.LENGTH_SHORT).show();
                             }
                             exist = false;
                         }
@@ -186,5 +186,34 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             startActivity(new Intent(this, LoginActivity.class));
         }
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent i = new Intent(getApplicationContext(), BackPressedActivity.class);
+        startActivityForResult(i, 100);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 100) {
+            if(resultCode == Activity.RESULT_OK){
+                Bundle b = data.getExtras();
+                if(b.getBoolean("result")) {
+                    finish();
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mEmailField = null;
+        mPasswordField = null;
+        mRegisterBtn = null;
+        mLogin = null;
+        progressDialog = null;
     }
 }

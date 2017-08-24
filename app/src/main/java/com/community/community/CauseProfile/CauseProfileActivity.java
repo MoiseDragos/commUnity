@@ -17,14 +17,12 @@ import com.bluejamesbond.text.DocumentView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.util.LruCache;
 import com.community.community.General.Cause;
 import com.community.community.General.UsefulThings;
 import com.community.community.General.User;
 import com.community.community.PublicProfile.PublicProfileActivity;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -38,18 +36,11 @@ import jp.wasabeef.blurry.Blurry;
 
 public class CauseProfileActivity extends AppCompatActivity {
 
-    // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
-    // TODO: timestamp pentru modificari!
-    // TODO: cacheCauses = null la schimbarea de user / intrarea in aplicatie!
-//    public static HashMap<String, Cause> cacheCauses = new HashMap<>();
-    public static LruCache<String, Cause> causeCaches
-            = new LruCache<>(UsefulThings.causeCacheSize);
     private static final String CAUSE_ID = "cause_id";
 
     private PercentRelativeLayout buttonsLayout = null;
-//    public static final String FB_STORAGE_PATH = "images/";
 
     private DatabaseReference mDatabase = null;
 
@@ -75,8 +66,7 @@ public class CauseProfileActivity extends AppCompatActivity {
     private long currentSupportedNumber;
     private String ownerUID = null;
     private String causeId = null;
-    private String currentUserUID = null;
-    private String currentUserType = null;
+//    private String currentUserType = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +74,6 @@ public class CauseProfileActivity extends AppCompatActivity {
         setContentView(R.layout.cause_profile_activity);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        currentUserUID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         /* Profile details */
         blurImage = (ImageView) findViewById(R.id.blur_profile_image);
@@ -113,11 +102,6 @@ public class CauseProfileActivity extends AppCompatActivity {
         cancelBtn = (Button)findViewById(R.id.cancel_marker);
         cancelBtn.setOnClickListener(callImageButtonClickListener);
 
-//        if(savedInstanceState != null && savedInstanceState.containsKey(CAUSE_ID)) {
-//            Log.d(LOG, "Am cache: " + savedInstanceState.getString(CAUSE_ID));
-//            causeId = savedInstanceState.getString(CAUSE_ID);
-//        }
-
         /* Get Data*/
         getCauseData();
 
@@ -126,7 +110,7 @@ public class CauseProfileActivity extends AppCompatActivity {
 
     private void setSupportedNumberListener(){
         DatabaseReference ref = mDatabase.child("users")
-                .child(currentUserUID).child("ProfileSettings")
+                .child(UsefulThings.currentUser.getUid()).child("ProfileSettings")
                 .child("supportedCauses");
         ref.addValueEventListener(new ValueEventListener() {
             @Override
@@ -149,13 +133,10 @@ public class CauseProfileActivity extends AppCompatActivity {
         Boolean changed = intent.getBooleanExtra("changed", removeIt);
         ownerUID = intent.getStringExtra("ownerUID");
         causeId = intent.getStringExtra("causeId");
-        currentUserType = intent.getStringExtra("type");
+//        currentUserType = intent.getStringExtra("type");
 
 //        Cause cacheData = cacheCauses.get(causeId);
-        Cause cacheData = causeCaches.get(causeId);
-
-        if(cacheData != null)
-            Log.d(LOG, "cacheData: " + cacheData.toString());
+        Cause cacheData = UsefulThings.causeCaches.get(causeId);
 
         if(changed || cacheData == null) {
             Log.d(LOG, "FirebaseData");
@@ -185,7 +166,6 @@ public class CauseProfileActivity extends AppCompatActivity {
 
     private void setCauseData(Cause cacheData){
         Log.d(LOG, "2");
-        //TODO: Pentru un cuvant foarte lung nu merge DocumentText.setText()....
         describe.setText(cacheData.getDescription());
         causes_name.setText(cacheData.getName());
         nickname.setText(cacheData.getOwner());
@@ -211,7 +191,8 @@ public class CauseProfileActivity extends AppCompatActivity {
             case 1:
                 /* One picture uploaded */
                 android.support.percent.PercentRelativeLayout relative_layout_pic1 =
-                        (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_pic1);
+                        (android.support.percent.PercentRelativeLayout)
+                                findViewById(R.id.relative_layout_pic1);
                 relative_layout_pic1.setVisibility(View.VISIBLE);
                 imagesNumber = 1;
 
@@ -221,7 +202,8 @@ public class CauseProfileActivity extends AppCompatActivity {
             case 2:
                 /* Two pictures uploaded */
                 android.support.percent.PercentRelativeLayout relative_layout_pic2 =
-                        (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_pic2);
+                        (android.support.percent.PercentRelativeLayout)
+                                findViewById(R.id.relative_layout_pic2);
                 relative_layout_pic2.setVisibility(View.VISIBLE);
                 imagesNumber = 2;
 
@@ -237,7 +219,8 @@ public class CauseProfileActivity extends AppCompatActivity {
             case 3:
                 /* Three pictures uploaded */
                 android.support.percent.PercentRelativeLayout relative_layout_pic3 =
-                        (android.support.percent.PercentRelativeLayout) findViewById(R.id.relative_layout_pic3);
+                        (android.support.percent.PercentRelativeLayout)
+                                findViewById(R.id.relative_layout_pic3);
                 relative_layout_pic3.setVisibility(View.VISIBLE);
                 imagesNumber = 3;
 
@@ -317,12 +300,12 @@ public class CauseProfileActivity extends AppCompatActivity {
                                                                 .asBitmap()
                                                                 .into(new SimpleTarget<Bitmap>() {
                                                                     @Override
-                                                                    public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
+                                                                    public void onResourceReady(Bitmap resource,
+                                                                                                GlideAnimation glideAnimation) {
                                                                         causeInfo.setOptionalImage2(resource);
 
-                                                                        //TODO: daca obiectivul este eliminat de un alt utilizator?
 //                                                                        cacheCauses.put(causeId, causeInfo);
-                                                                        causeCaches.put(causeId, causeInfo);
+                                                                        UsefulThings.causeCaches.put(causeId, causeInfo);
 
                                                                         setCauseData(causeInfo);
                                                                         Log.d(LOG, "Glide");
@@ -330,7 +313,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                                                                 });
                                                     } else {
 //                                                        cacheCauses.put(causeId, causeInfo);
-                                                        causeCaches.put(causeId, causeInfo);
+                                                        UsefulThings.causeCaches.put(causeId, causeInfo);
 
                                                         setCauseData(causeInfo);
                                                         Log.d(LOG, "Glide");
@@ -340,7 +323,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                                             });
                                 } else {
 //                                    cacheCauses.put(causeId, causeInfo);
-                                    causeCaches.put(causeId, causeInfo);
+                                    UsefulThings.causeCaches.put(causeId, causeInfo);
 
                                     setCauseData(causeInfo);
                                     Log.d(LOG, "Glide");
@@ -358,7 +341,8 @@ public class CauseProfileActivity extends AppCompatActivity {
     }
 
     private void setSupportedBtn(){
-        final DatabaseReference dRef = mDatabase.child("causes").child(causeId).child("SupportedBy");
+        final DatabaseReference dRef = mDatabase.child("causes")
+                .child(causeId).child("SupportedBy");
         dRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
@@ -366,9 +350,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                 Map ref = (Map) snapshot.getValue();
                 number = (long) ref.get("number");
 
-                Log.d(LOG, "number: " + number);
-
-                if(!currentUserUID.equals(ownerUID)){
+                if(!UsefulThings.currentUser.getUid().equals(ownerUID)){
                     Log.d(LOG, "AltUser!");
 
                     buttonsLayout.setVisibility(View.VISIBLE);
@@ -377,7 +359,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                     boolean ok = false;
 
                     for (Map.Entry<String, Object> entry : map.entrySet()) {
-                        if(entry.getKey().equals(currentUserUID)){
+                        if(entry.getKey().equals(UsefulThings.currentUser.getUid())){
                             ok = true;
                             break;
                         }
@@ -432,6 +414,8 @@ public class CauseProfileActivity extends AppCompatActivity {
 //        dialog.setTitle("Downloading details...");
 //        dialog.show();
 
+        Log.d(LOG, "ownerUid: " + ownerUID);
+
         DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("ProfileSettings");
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
                @Override
@@ -444,12 +428,19 @@ public class CauseProfileActivity extends AppCompatActivity {
                    mUser.setEmail(String.valueOf(mapRef.get("email")));
                    mUser.setType(String.valueOf(mapRef.get("type")));
                    mUser.setUid(ownerUID);
-                   mUser.setOwnCausesNumber(Integer.valueOf(String.valueOf(mapRef.get("ownCauses"))));
-                   mUser.setSupportedCausesNumber(Integer.valueOf(String.valueOf(mapRef.get("supportedCauses"))));
+                   mUser.setOwnCausesNumber(Integer.valueOf(
+                           String.valueOf(mapRef.get("ownCauses"))));
+                   mUser.setSupportedCausesNumber(Integer.valueOf(
+                           String.valueOf(mapRef.get("supportedCauses"))));
 
                    Object ref = mapRef.get("address");
                    if(ref != null) {
                        mUser.setAddress(String.valueOf(ref));
+                   }
+
+                   ref = mapRef.get("imageURL");
+                   if(ref != null) {
+                       mUser.setImageURL(String.valueOf(ref));
                    }
 
                    ref = mapRef.get("describe");
@@ -457,15 +448,14 @@ public class CauseProfileActivity extends AppCompatActivity {
                        mUser.setDescribe(String.valueOf(ref));
                    }
 
+                   ref = mapRef.get("age");
                    if(ref != null) {
-                       mUser.setAge(Integer.valueOf(String.valueOf(mapRef.get("age"))));
+                       mUser.setAge(Integer.valueOf(String.valueOf(ref)));
                    }
 
 //                   dialog.dismiss();
                    Intent i = new Intent(getApplicationContext(), PublicProfileActivity.class);
-                   i.putExtra("userDetails", mUser);
-                   i.putExtra("currentUserUid", currentUserUID);
-                   i.putExtra("type", currentUserType);
+                   i.putExtra("userCauseDetails", mUser);
                    startActivity(i);
                }
 
@@ -476,7 +466,8 @@ public class CauseProfileActivity extends AppCompatActivity {
         });
     }
 
-    private CauseProfileActivity.CallImageButtonClickListener callImageButtonClickListener = new CauseProfileActivity.CallImageButtonClickListener();
+    private CauseProfileActivity.CallImageButtonClickListener callImageButtonClickListener =
+            new CauseProfileActivity.CallImageButtonClickListener();
     private class CallImageButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
@@ -543,19 +534,20 @@ public class CauseProfileActivity extends AppCompatActivity {
         supportBtn.setClickable(false);
         noMoreSupportBtn.setClickable(false);
 
-        final DatabaseReference dRef = mDatabase.child("causes").child(causeId).child("SupportedBy");
+        final DatabaseReference dRef = mDatabase.child("causes")
+                .child(causeId).child("SupportedBy");
 
         dRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
 
-                if(snapshot.hasChild(currentUserUID)){
-                    dRef.child(currentUserUID).removeValue().addOnSuccessListener(
+                if(snapshot.hasChild(UsefulThings.currentUser.getUid())){
+                    dRef.child(UsefulThings.currentUser.getUid()).removeValue().addOnSuccessListener(
                             new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
                             DatabaseReference ref = mDatabase.child("users")
-                                    .child(currentUserUID).child("Supporting");
+                                    .child(UsefulThings.currentUser.getUid()).child("Supporting");
                             ref.child(causeId).removeValue().addOnSuccessListener(
                                     new OnSuccessListener<Void>() {
                                 @Override
@@ -575,9 +567,11 @@ public class CauseProfileActivity extends AppCompatActivity {
                                                  @Override
                                                  public void onSuccess(Void aVoid) {
                                                      DatabaseReference ref = mDatabase.child("users")
-                                                             .child(currentUserUID).child("ProfileSettings")
+                                                             .child(UsefulThings.currentUser.getUid())
+                                                             .child("ProfileSettings")
                                                              .child("supportedCauses");
-                                                     ref.setValue(currentSupportedNumber - 1).addOnSuccessListener(
+                                                     ref.setValue(currentSupportedNumber - 1)
+                                                             .addOnSuccessListener(
                                                              new OnSuccessListener<Void>() {
                                                                  @Override
                                                                  public void onSuccess(Void aVoid) {
@@ -611,30 +605,37 @@ public class CauseProfileActivity extends AppCompatActivity {
         supportBtn.setClickable(false);
 
         number = number + 1;
-        final DatabaseReference[] ref = {mDatabase.child("causes").child(causeId).child("SupportedBy")};
+        final DatabaseReference[] ref = {mDatabase.child("causes")
+                .child(causeId).child("SupportedBy")};
         ref[0].child("number").setValue(number).addOnSuccessListener(
                 new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
 
-                DatabaseReference dRef = mDatabase.child("users").child(currentUserUID).child("Supporting");
-                dRef.child(causeId).setValue(ownerUID).addOnSuccessListener(new OnSuccessListener<Void>() {
+                DatabaseReference dRef = mDatabase.child("users")
+                        .child(UsefulThings.currentUser.getUid()).child("Supporting");
+                dRef.child(causeId).setValue(ownerUID)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
                      @Override
                      public void onSuccess(Void aVoid) {
-                         ref[0] = ref[0].child(currentUserUID);
-                         ref[0].setValue(ownerUID).addOnSuccessListener(new OnSuccessListener<Void>() {
+                         ref[0] = ref[0].child(UsefulThings.currentUser.getUid());
+                         ref[0].setValue(ownerUID).addOnSuccessListener(
+                                 new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {
 
-                                DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("MyCauses")
+                                DatabaseReference ref = mDatabase.child("users")
+                                        .child(ownerUID).child("MyCauses")
                                         .child(causeId).child("Info").child("supportedBy");
-                                ref.setValue(number).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                ref.setValue(number).addOnSuccessListener(
+                                        new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
                                         DatabaseReference ref = mDatabase.child("users")
-                                                .child(currentUserUID).child("ProfileSettings")
-                                                .child("supportedCauses");
-                                        ref.setValue(currentSupportedNumber + 1).addOnSuccessListener(
+                                                .child(UsefulThings.currentUser.getUid())
+                                                .child("ProfileSettings").child("supportedCauses");
+                                        ref.setValue(currentSupportedNumber + 1)
+                                                .addOnSuccessListener(
                                                 new OnSuccessListener<Void>() {
                                               @Override
                                               public void onSuccess(Void aVoid) {
@@ -652,44 +653,6 @@ public class CauseProfileActivity extends AppCompatActivity {
                 });
             }
         });
-
-
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d(LOG, "======== onPause");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(LOG, "======== onStop");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.d(LOG, "======== onRestart");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(LOG, "======== onResume");
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.d(LOG, "======== onStart");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(LOG, "======== onDestroy");
     }
 
     public void setBtnVisibility(int visibility){
@@ -697,71 +660,3 @@ public class CauseProfileActivity extends AppCompatActivity {
         cancelBtn.setVisibility(visibility);
     }
 }
-
-
-
-//                    boolean ok = false;
-//                    for(long i = 1; i <= number; i++){
-//                        if(ref.get(String.valueOf(i)) != null && ref.get(String.valueOf(i)).equals(currentUserUID)){
-//                            ok = true;
-//                            break;
-//                        }
-//                    }
-//
-//                    if(!ok) {
-//                        noMoreSupportBtn.setVisibility(View.GONE);
-//                        supportBtn.setVisibility(View.VISIBLE);
-//                    } else {
-//                        noMoreSupportBtn.setVisibility(View.VISIBLE);
-//                        supportBtn.setVisibility(View.GONE);
-//                    }
-
-
-//                Map all = (Map) snapshot.getValue();
-//                Log.d(LOG, "number: " + number);
-//                long pos = 0;
-//                for(long i = 1; i <= number; i++){
-//                    if(all.get(String.valueOf(i)).equals(currentUserUID)){
-//                        pos = i;
-//                        break;
-//                    }
-//                }
-//
-//                Log.d(LOG, "pos: " + pos);
-//
-//                if(pos != number) {
-//                    String replace = String.valueOf(all.get(String.valueOf(number)));
-//                    Log.d(LOG, "all.get(number): " + replace);
-//
-//                    dRef.child(String.valueOf(pos)).setValue(replace).addOnSuccessListener(new OnSuccessListener<Void>() {
-//                        @Override
-//                        public void onSuccess(Void aVoid) {
-//                            removeLastElement(dRef);
-//                        }
-//                    });
-//                } else {
-//                    removeLastElement(dRef);
-//                }
-//
-//            private void removeLastElement(final DatabaseReference dRef) {
-//                dRef.child(String.valueOf(number)).getRef().removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-//                    @Override
-//                    public void onSuccess(Void aVoid) {
-//                        dRef.child("number").setValue(--number).addOnSuccessListener(new OnSuccessListener<Void>() {
-//                            @Override
-//                            public void onSuccess(Void aVoid) {
-//                                DatabaseReference ref = mDatabase.child("users").child(ownerUID).child("Supporting");
-//                                ref.child(causeId).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-//                                  @Override
-//                                  public void onSuccess(Void aVoid) {
-//                                      noMoreSupportBtn.setVisibility(View.GONE);
-//                                      supportBtn.setVisibility(View.VISIBLE);
-//                                      noMoreSupportBtn.setClickable(true);
-//                                      supportBtn.setClickable(true);
-//                                  }
-//                              });
-//                            }
-//                        });
-//                    }
-//                });
-//            }

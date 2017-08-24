@@ -211,7 +211,6 @@
                     android:background="@color/blue2"
                     android:layout_marginTop="12sp"/>
 
-                <!--TODO: Instabil la ultima linie + height ar trebui wrap-->
                 <com.bluejamesbond.text.DocumentView
                     android:id="@+id/describe_view"
                     android:layout_width="match_parent"

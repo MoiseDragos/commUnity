@@ -8,7 +8,6 @@ import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class Cause implements Serializable {
-    // TODO: remove
     private String LOG = this.getClass().getSimpleName();
 
     private String owner = null;

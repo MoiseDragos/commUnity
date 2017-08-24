@@ -161,7 +161,7 @@
     <string name="no_rejected_proposals">Nu aveți propuneri refuzate</string>
     <string name="no_processing_proposals">Nu aveți propuneri în curs de procesare</string>
     <string name="add_to_ngo">Vreau să fac\nparte din acest ONG</string>
-    <string name="accept_ngo">Acceptă solicitarea\nși deveni-o membru</string>
+    <string name="accept_ngo">Acceptă solicitarea\nși devino membru</string>
     <string name="reject_user">Ați refuzat acest\nuser în trecut.\nAnulează acestă decizie</string>
     <string name="remove_proposal_to_ngo">Anulează solicitarea\nfăcută acestui ONG</string>
     <string name="rejected_proposal_from_ngo">ONG-ul a refuzat\nsolicitarea formulată anterior</string>
@@ -174,8 +174,10 @@
     <string name="rejected_proposal_from_user">User-ul a refuzat\nsolicitarea formulată anterior</string>
     <string name="remove_user_from_ngo">Șterge user-ul din ONG</string>
     <string name="yes">Da</string>
+    <string name="no">Nu</string>
     <string name="support_NGO">Susține\nacest ONG</string>
     <string name="no_support_NGO">Nu susțin\nacest ONG</string>
+    <string name="out">Ești sigur că vrei\nsă ieși din aplicație?</string>
     <!--<string name="thanks">Mulțumim!</string>-->
 
 </resources>

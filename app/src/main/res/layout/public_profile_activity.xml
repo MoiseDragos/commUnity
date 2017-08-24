@@ -36,8 +36,8 @@
                 android:layout_height="match_parent"
                 app:civ_border_width="2dp"
                 app:civ_border_color="@color/blue2"
-                android:src="@drawable/profile"
                 />
+                <!--android:src="@drawable/profile"-->
 
             <ImageButton
                 android:layout_gravity="right"
@@ -86,7 +86,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_marginBottomPercent="4%"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textColor="@color/white"
                 android:gravity="center"
                 android:textCursorDrawable="@null"
@@ -222,7 +222,6 @@
                     android:background="@color/blue2"
                     android:layout_marginTop="12sp"/>
 
-                <!--TODO: Instabil la ultima linie + height ar trebui wrap-->
                 <com.bluejamesbond.text.DocumentView
                     android:id="@+id/describe_view"
                     android:layout_width="match_parent"
@@ -269,7 +268,6 @@
                     android:background="@color/blue2"
                     android:layout_marginTop="12sp"/>
 
-                <!--TODO: Instabil la ultima linie + height ar trebui wrap-->
                 <com.bluejamesbond.text.DocumentView
                     android:id="@+id/address_view"
                     android:layout_width="match_parent"
@@ -390,40 +388,6 @@
             android:text="@string/cancel"
             />
     </android.support.percent.PercentRelativeLayout>
-
-    <LinearLayout
-        android:id="@+id/submit_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:background="@color/blue5"
-        app:layout_heightPercent="20%"
-        app:layout_marginTopPercent="80%"
-        android:visibility="gone"
-        >
-        <Button
-            android:id="@+id/submit_marker"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="30dp"
-            android:text="@string/save"
-            android:background="@drawable/edit_text_form_green"
-            android:scaleType="fitXY"
-            android:textColor="@color/white"
-            tools:ignore="ButtonStyle" />
-        <Button
-            android:id="@+id/cancel_marker"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="30dp"
-            android:text="@string/cancel"
-            android:background="@drawable/edit_text_form_red"
-            android:scaleType="fitXY"
-            android:textColor="@color/white"
-            tools:ignore="ButtonStyle" />
-
-    </LinearLayout>
 
 
 </android.support.percent.PercentRelativeLayout>
