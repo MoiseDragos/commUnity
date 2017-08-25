@@ -19,11 +19,62 @@
         android:textStyle="bold"
         android:text="@string/mod_objectiv_details"/>
 
-    <ScrollView
+    <android.support.percent.PercentRelativeLayout
+        android:id="@+id/popUpLayout"
         android:layout_below="@id/textView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="10dp">
+        android:background="@color/blue5"
+        android:visibility="gone"
+        >
+        <TextView
+            android:id="@+id/textAreYouSure"
+            android:layout_width="match_parent"
+            app:layout_heightPercent="50%"
+            app:layout_marginPercent="10%"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:text="@string/are_you_sure_delete_cause"
+            />
+        <!--android:text="@string/are_you_sure"-->
+
+        <Button
+            android:id="@+id/im_sure"
+            app:layout_widthPercent="30%"
+            app:layout_heightPercent="10%"
+            app:layout_marginLeftPercent="15%"
+            android:layout_below="@id/textAreYouSure"
+            android:background="@drawable/edit_text_form_green"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:maxLines="2"
+            android:text="@string/yes"
+            />
+
+        <Button
+            android:id="@+id/im_not_sure"
+            app:layout_widthPercent="30%"
+            app:layout_heightPercent="10%"
+            app:layout_marginLeftPercent="55%"
+            android:layout_below="@id/textAreYouSure"
+            android:background="@drawable/edit_text_form_red"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:maxLines="2"
+            android:text="@string/cancel"
+            />
+    </android.support.percent.PercentRelativeLayout>
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_below="@id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="10dp"
+        >
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -250,6 +301,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginBottom="12dp"
                 android:gravity="center">
 
                 <Button
@@ -272,6 +324,17 @@
                     tools:ignore="ButtonStyle" />
 
             </LinearLayout>
+
+            <Button
+                android:id="@+id/delete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/deleteCause"
+                android:background="@drawable/edit_text_form_gray"
+                android:scaleType="fitXY"
+                android:textColor="@color/blue4"
+                android:layout_gravity="center"
+                tools:ignore="ButtonStyle" />
 
         </LinearLayout>
     </ScrollView>

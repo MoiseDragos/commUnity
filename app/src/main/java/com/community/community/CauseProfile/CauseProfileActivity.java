@@ -102,6 +102,15 @@ public class CauseProfileActivity extends AppCompatActivity {
         cancelBtn = (Button)findViewById(R.id.cancel_marker);
         cancelBtn.setOnClickListener(callImageButtonClickListener);
 
+        if (UsefulThings.currentUser == null) {
+            UsefulThings.currentUser = (User) savedInstanceState.getSerializable("userDetails");
+
+            if(UsefulThings.currentUser == null) {
+                Log.d(LOG, "Nu am detaliile user-ului curent!");
+                finish();
+            }
+        }
+
         /* Get Data*/
         getCauseData();
 
@@ -161,6 +170,7 @@ public class CauseProfileActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
 
         savedInstanceState.putString(CAUSE_ID, causeId);
+        savedInstanceState.putSerializable("userDetails", UsefulThings.currentUser);
 //        savedInstanceState.putSerializable(CACHE, cacheCauses);
     }
 
@@ -347,41 +357,43 @@ public class CauseProfileActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
 
-                Map ref = (Map) snapshot.getValue();
-                number = (long) ref.get("number");
+                if(snapshot.getValue() != null) {
+                    Map ref = (Map) snapshot.getValue();
+                    number = (long) ref.get("number");
 
-                if(!UsefulThings.currentUser.getUid().equals(ownerUID)){
-                    Log.d(LOG, "AltUser!");
+                    if (!UsefulThings.currentUser.getUid().equals(ownerUID)) {
+                        Log.d(LOG, "AltUser!");
 
-                    buttonsLayout.setVisibility(View.VISIBLE);
+                        buttonsLayout.setVisibility(View.VISIBLE);
 
-                    Map<String, Object> map = (Map<String, Object>) snapshot.getValue();
-                    boolean ok = false;
+                        Map<String, Object> map = (Map<String, Object>) snapshot.getValue();
+                        boolean ok = false;
 
-                    for (Map.Entry<String, Object> entry : map.entrySet()) {
-                        if(entry.getKey().equals(UsefulThings.currentUser.getUid())){
-                            ok = true;
-                            break;
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+                            if (entry.getKey().equals(UsefulThings.currentUser.getUid())) {
+                                ok = true;
+                                break;
+                            }
                         }
-                    }
 
-                    if(!ok) {
-                        noMoreSupportBtn.setVisibility(View.GONE);
-                        supportBtn.setVisibility(View.VISIBLE);
+                        if (!ok) {
+                            noMoreSupportBtn.setVisibility(View.GONE);
+                            supportBtn.setVisibility(View.VISIBLE);
+                        } else {
+                            noMoreSupportBtn.setVisibility(View.VISIBLE);
+                            supportBtn.setVisibility(View.GONE);
+                        }
                     } else {
-                        noMoreSupportBtn.setVisibility(View.VISIBLE);
-                        supportBtn.setVisibility(View.GONE);
+                        buttonsLayout.setVisibility(View.GONE);
+                        editBtn.setVisibility(View.VISIBLE);
+                        Log.d(LOG, "Acelasi user!");
                     }
-                } else {
-                    buttonsLayout.setVisibility(View.GONE);
-                    editBtn.setVisibility(View.VISIBLE);
-                    Log.d(LOG, "Acelasi user!");
-                }
 
-                if(causeInfo != null) {
-                    causeInfo.setSupportedBy(String.valueOf(number));
+                    if (causeInfo != null) {
+                        causeInfo.setSupportedBy(String.valueOf(number));
+                    }
+                    supportedNumber.setText(String.valueOf(number + 1));
                 }
-                supportedNumber.setText(String.valueOf(number + 1));
             }
 
             @Override

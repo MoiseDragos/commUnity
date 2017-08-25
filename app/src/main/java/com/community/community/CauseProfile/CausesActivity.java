@@ -371,7 +371,6 @@ public class CausesActivity extends AppCompatActivity {
 
         /* Image */
         a = (Map<String, Object>) data.get("Images");
-        Log.d(LOG, a.toString());
         String imageURL = a.get("profileThumbnailURL").toString();
 //        String imageURL = a.get("profileImageURL").toString();
 

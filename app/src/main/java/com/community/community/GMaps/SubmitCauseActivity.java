@@ -20,6 +20,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.community.community.General.UsefulThings;
+import com.community.community.General.User;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -85,6 +86,17 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
             lat = b.getDouble("lat");
             lng = b.getDouble("lng");
         }
+
+        if (UsefulThings.currentUser == null) {
+            UsefulThings.currentUser = (User) savedInstanceState.getSerializable("userDetails");
+
+            if(UsefulThings.currentUser == null) {
+                Log.d(LOG, "Nu am detaliile user-ului curent!");
+                finish();
+            }
+        }
+
+        Log.d(LOG, "CurrentUser: " + UsefulThings.currentUser.toString());
     }
 
     @Override
@@ -227,7 +239,6 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
 
         StorageReference refOpt1 = FirebaseStorage.getInstance().getReference().child(
                 UsefulThings.FB_STORAGE_PATH + causeId + "/" + realName);
-        Log.d(LOG, "Ref: " + refOpt1);
 
         refOpt1.putFile(optionalURI1)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -256,6 +267,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
                                                           final ProgressDialog dialog,
                                                           final String causeId) {
 
+        Log.d(LOG, "Opt1 realName: " + realName);
         StorageReference ref = FirebaseStorage.getInstance().getReference()
                 .child(UsefulThings.FB_STORAGE_PATH + causeId + "/thumbnail_" + realName);
 
@@ -322,6 +334,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
                                                           final ProgressDialog dialog,
                                                           final String causeId) {
 
+        Log.d(LOG, "Opt2 realName: " + realName);
         StorageReference ref = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
                 causeId + "/thumbnail_" + realName);
 
@@ -426,6 +439,8 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
 
+        super.onSaveInstanceState(savedInstanceState);
+
         /* Coordinates */
         savedInstanceState.putDouble(UsefulThings.LAT, lat);
         savedInstanceState.putDouble(UsefulThings.LNG, lng);
@@ -442,9 +457,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
         if(optionalURI2 != null) {
             savedInstanceState.putString(UsefulThings.OPTIONAL_URI_2_KEY, optionalURI2.toString());
         }
-
-        super.onSaveInstanceState(savedInstanceState);
-
+        savedInstanceState.putSerializable("userDetails", UsefulThings.currentUser);
     }
 
     @Override

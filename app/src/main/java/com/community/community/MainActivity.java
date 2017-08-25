@@ -1,5 +1,6 @@
 package com.community.community;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -29,6 +30,7 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.util.LruCache;
 import com.community.community.BeforeLogin.LoginActivity;
+import com.community.community.General.BackPressedActivity;
 import com.community.community.General.UsefulThings;
 import com.community.community.CauseProfile.CausesActivity;
 import com.community.community.GMaps.FirebaseImages;
@@ -40,14 +42,18 @@ import com.community.community.Settings.AllSettingsActivity;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -79,6 +85,8 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     /* Booleans */
     private boolean isRegistered = false;
     private boolean localIcon = false;
+
+    private boolean mapTypeNormal = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,13 +132,23 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         TextView mEmail = (TextView) mNavigationView.getHeaderView(0).findViewById(R.id.userEmail);
         mEmail.setText(mAuth.getCurrentUser().getEmail());
 
+        /* Normal / Hybrid Buttons */
+        ImageButton normalBtn = (ImageButton) findViewById(R.id.normal);
+        normalBtn.setOnClickListener(callImageButtonClickListener);
+
+        ImageButton hybridBtn = (ImageButton) findViewById(R.id.hybrid);
+        hybridBtn.setOnClickListener(callImageButtonClickListener);
+
         verifyUserState();
 
-        Log.d(LOG, "Current user: " + UsefulThings.currentUser.getEmail());
+//        Log.d(LOG, "Current user: " + UsefulThings.currentUser.getEmail());
 
-        Bitmap icon = getLocalIcon();
-        if(localIcon) {
-            mNavViewImage.setImageBitmap(icon);
+        while(UsefulThings.currentUser != null) {
+            Bitmap icon = getLocalIcon();
+            if (localIcon) {
+                mNavViewImage.setImageBitmap(icon);
+            }
+            break;
         }
     }
 
@@ -142,8 +160,6 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                         switch (menuItem.getItemId()) {
 
                             case R.id.nav_account:
-//                                Intent i = new Intent(getApplicationContext(), PublicProfileActivity.class);
-//                                startActivityForResult(i, 2);
                                 startActivity(new Intent(getApplicationContext(),
                                         PublicProfileActivity.class));
                                 break;
@@ -202,23 +218,92 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
     private void verifyUserState() {
         Bundle extras = getIntent().getExtras();
-        Log.d(LOG, "extras: " + extras);
-        Log.d(LOG, "isRegistered: " + isRegistered);
+//        Log.d(LOG, "extras: " + extras);
+//        Log.d(LOG, "isRegistered: " + isRegistered);
         if(extras != null) {
             if(!isRegistered) {
                 isRegistered = true;
 
-                UsefulThings.currentUser = new User();
 
                 Boolean res = extras.getBoolean("isRegistred");
                 Log.d(LOG, "res: " + res);
                 if(res) {
                     writeNewUser();
                 } else {
-                    UsefulThings.currentUser.updateFirebaseUserProfile();
+                    downloadUserDetails();
                 }
             }
         }
+    }
+
+    private void downloadUserDetails() {
+        final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        final DatabaseReference dRef = FirebaseDatabase.getInstance().getReference().child("users")
+                .child(uid).child("ProfileSettings");
+
+        dRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                Map<String, Object> data = (Map<String,Object>) snapshot.getValue();
+
+                String nickname = data.get("nickname").toString();
+                String email = data.get("email").toString();
+                String status = data.get("status").toString();
+                int ownCausesNumber = Integer.valueOf(data.get("ownCauses").toString());
+                int supportedCausesNumber = Integer.valueOf(data.get("supportedCauses").toString());
+
+                String imageName = null;
+                if(snapshot.hasChild("imageName")) {
+                    imageName = data.get("imageName").toString();
+                }
+
+                String imageURL = null;
+                if(snapshot.hasChild("imageURL")) {
+                    imageURL = data.get("imageURL").toString();
+                }
+
+                String describe = null;
+                if(snapshot.hasChild("describe")) {
+                    describe = data.get("describe").toString();
+                }
+
+                String address = null;
+                if(snapshot.hasChild("address")) {
+                    address = data.get("address").toString();
+                }
+
+                int age = 0;
+                if(snapshot.hasChild("age")) {
+                    age = Integer.valueOf(data.get("age").toString());
+                }
+
+                UsefulThings.currentUser = new User(nickname, email, describe, address, uid,
+                        status, imageName, imageURL,
+                        age, ownCausesNumber, supportedCausesNumber);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                //handle databaseError
+            }
+        });
+
+        dRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                Map<String, Object> data = (Map<String,Object>) snapshot.getValue();
+                if(data != null && data.containsKey("type")) {
+                    String type = data.get("type").toString();
+                    UsefulThings.currentUser.setType(type);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void writeNewUser() {
@@ -294,6 +379,20 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     onButtonPressed(3);
                     break;
 
+                case R.id.normal:
+                    if(mapTypeNormal) {
+                        mapTypeNormal = false;
+                        onButtonPressed(5);
+                    }
+                    break;
+
+                case R.id.hybrid:
+                    if(!mapTypeNormal) {
+                        mapTypeNormal = true;
+                        onButtonPressed(6);
+                    }
+                    break;
+
                 default:
                     break;
             }
@@ -306,7 +405,6 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
         if (requestCode == 1) {
             if (resultCode == RESULT_OK) {
-                Log.d(LOG, "Am un obiectiv de salvat!");
                 Bundle b = data.getExtras();
                 if (b != null) {
                     causeName = b.getString("NameFiled");
@@ -320,8 +418,12 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                             "Nu am putut salva informațiile", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                Log.d(LOG, "Nu am niciun obiectiv de salvat!");
                 onButtonPressed(3);
+            }
+        } else if (resultCode == Activity.RESULT_OK) {
+            Bundle b = data.getExtras();
+            if(b.getBoolean("result")) {
+                finish();
             }
         }
 //        } else if (requestCode == 2) {
@@ -360,6 +462,11 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     mapFragment.onSubmit(causeName, causeDescription, new LatLng(lat, lng),
                             firebaseImages, ownCausesNumber + 1);
                     break;
+                case 5:
+                    mapFragment.changeType(true);
+                    break;
+                case 6:
+                    mapFragment.changeType(false);
                 default:
                     break;
             }
@@ -497,5 +604,11 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         lat = null;
         lng = null;
         firebaseImages = null;
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent i = new Intent(getApplicationContext(), BackPressedActivity.class);
+        startActivityForResult(i, 100);
     }
 }

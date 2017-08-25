@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.percent.PercentRelativeLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,10 +19,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.community.community.General.Cause;
 import com.community.community.General.UsefulThings;
+import com.community.community.MainActivity;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -99,6 +102,9 @@ public class EditCauseProfileActivity extends AppCompatActivity {
 
         Button cancelBtn = (Button) findViewById(R.id.cancel_changes);
         cancelBtn.setOnClickListener(callImageButtonClickListener);
+
+        Button deleteBtn = (Button) findViewById(R.id.delete);
+        deleteBtn.setOnClickListener(callImageButtonClickListener);
 
         /* Get causeId from CauseProfileActivity */
         causeId = getIntent().getStringExtra("causeId");
@@ -209,6 +215,181 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                     }
                     startActivityForResult(new Intent(Intent.ACTION_PICK,
                             MediaStore.Images.Media.EXTERNAL_CONTENT_URI), 3);
+                    break;
+
+                case R.id.delete:
+                    final ScrollView scrollView = (ScrollView) findViewById(R.id.scrollView);
+                    scrollView.setVisibility(View.GONE);
+
+                    final PercentRelativeLayout relativeLayout = (PercentRelativeLayout)
+                            findViewById(R.id.popUpLayout);
+                    relativeLayout.setVisibility(View.VISIBLE);
+
+                    final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+
+                    Button im_sure = (Button) findViewById(R.id.im_sure);
+                    im_sure.setOnClickListener(new View.OnClickListener() {
+
+                        public void onClick(View v) {
+                            updateUsers();
+                            updateCurrentUser();
+                        }
+
+                        private void updateCurrentUser() {
+                            updateOwnNumber();
+                            removeFirebaseImages();
+                            removeCause();
+                            Log.d(LOG, "Ajung aici!");
+                            startActivity(new Intent(getApplicationContext(),
+                                    MainActivity.class));
+                            finish();
+                        }
+
+                        private void removeFirebaseImages() {
+
+                            DatabaseReference dRef = mDatabase.child("users").child(ownerUID)
+                                    .child("MyCauses").child(causeId).child("Images");
+                            dRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    if(dataSnapshot.getValue() != null) {
+                                        Map<String, Object> map = (Map<String, Object>)
+                                                dataSnapshot.getValue();
+
+                                        FirebaseStorage ref = FirebaseStorage.getInstance();
+
+                                        if(map.containsKey("profileImageURL")) {
+                                            ref.getReferenceFromUrl(
+                                                    (String) map.get("profileImageURL")).delete();
+                                        }
+
+                                        if(map.containsKey("profileThumbnailURL")) {
+                                            ref.getReferenceFromUrl(
+                                                    (String) map.get("profileThumbnailURL")).delete();
+                                        }
+
+                                        if(map.containsKey("optionalImageURL1")) {
+                                            ref.getReferenceFromUrl(
+                                                    (String) map.get("optionalImageURL1")).delete();
+                                        }
+
+                                        if(map.containsKey("optionalThumbnailURL1")) {
+                                            ref.getReferenceFromUrl(
+                                                    (String) map.get("optionalThumbnailURL1")).delete();
+                                        }
+
+                                        if(map.containsKey("optionalImageURL2")) {
+                                            ref.getReferenceFromUrl(
+                                                    (String) map.get("optionalImageURL2")).delete();
+                                        }
+
+                                        if(map.containsKey("optionalThumbnailURL2")) {
+                                            ref.getReferenceFromUrl(
+                                                    (String) map.get("optionalThumbnailURL2")).delete();
+                                        }
+                                    }
+
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+                            // Create a storage reference from our app
+                            StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+
+                            // Create a reference to the file to delete
+                            StorageReference desertRef = storageRef.child(UsefulThings.FB_STORAGE_USERS_PATH +
+                                    UsefulThings.currentUser.getUid() + "/" + UsefulThings.currentUser.getImageName());
+                            Log.d(LOG, "getImageName(): " + UsefulThings.currentUser.getImageName());
+
+                            // Delete the file
+                            desertRef.delete();
+                        }
+
+                        private void removeCause() {
+                            mDatabase.child("users").child(ownerUID).child("MyCauses")
+                                    .child(causeId).removeValue();
+                            mDatabase.child("causes").child(causeId).removeValue();
+                        }
+
+                        private void updateOwnNumber() {
+                            final DatabaseReference dRef = mDatabase.child("users").child(ownerUID)
+                                    .child("ProfileSettings").child("ownCauses");
+                            dRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot snapshot) {
+                                    if(snapshot != null){
+                                        dRef.setValue((long) snapshot.getValue() - 1);
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+                        }
+
+                        private void updateUsers() {
+                            DatabaseReference dRef = mDatabase.child("causes").child(causeId)
+                                    .child("SupportedBy");
+                            dRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot snapshot) {
+                                    if(snapshot != null){
+                                        Map<String, Object> map =
+                                                (Map<String, Object>) snapshot.getValue();
+
+                                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+
+                                            if(!entry.getKey().equals("number")) {
+                                                updateSupportedNumber(entry.getKey());
+                                                removeSupportingCause(entry.getKey());
+                                            }
+                                        }
+                                    }
+                                }
+
+                                private void removeSupportingCause(String key) {
+                                    mDatabase.child("users").child(key).child("Supporting").
+                                            child(causeId).removeValue();
+                                }
+
+                                private void updateSupportedNumber(String key) {
+                                    final DatabaseReference dRef = mDatabase.child("users").child(key).
+                                            child("ProfileSettings").child("supportedCauses");
+                                    dRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot snapshot) {
+                                            dRef.setValue((long) snapshot.getValue() - 1);
+                                        }
+
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
+
+                                        }
+                                    });
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+                        }
+                    });
+
+                    Button im_not_sure = (Button) findViewById(R.id.im_not_sure);
+                    im_not_sure.setOnClickListener(new View.OnClickListener() {
+
+                        public void onClick(View v) {
+                            relativeLayout.setVisibility(View.GONE);
+                            scrollView.setVisibility(View.VISIBLE);
+                        }
+                    });
+
                     break;
 
                 default:

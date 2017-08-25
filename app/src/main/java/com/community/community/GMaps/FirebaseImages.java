@@ -83,4 +83,16 @@ public class FirebaseImages implements Serializable {
     void setOptionalThumbnailURL2(String optionalThumbnailURL2) {
         this.optionalThumbnailURL2 = optionalThumbnailURL2;
     }
+
+    public String getProfileThumbnailURL() {
+        return profileThumbnailURL;
+    }
+
+    public String getOptionalThumbnailURL1() {
+        return optionalThumbnailURL1;
+    }
+
+    public String getOptionalThumbnailURL2() {
+        return optionalThumbnailURL2;
+    }
 }

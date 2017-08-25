@@ -73,7 +73,7 @@ class FirebaseMarker {
 
         markerName = gMap.addMarker(new MarkerOptions()
                 .position(new LatLng(latitude, longitude))
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.unsubmited_causes))
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.red_pin_icon))
                 .draggable(true)
                 .title(owner));
     }

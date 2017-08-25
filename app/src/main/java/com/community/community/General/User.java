@@ -1,20 +1,9 @@
 package com.community.community.General;
 
-import android.util.Log;
-
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
 import java.io.Serializable;
-import java.util.Map;
 
 @SuppressWarnings("serial")
 public class User implements Serializable {
-    private String LOG = this.getClass().getSimpleName();
 
     private String nickname = null;
     private String email = null;
@@ -27,69 +16,29 @@ public class User implements Serializable {
     private int ownCausesNumber = 0;
     private int supportedCausesNumber = 0;
 
+    public User() {}
+
+    public User(String nickname, String email, String describe, String address, String uid,
+         String status, String imageName, String imageURL,
+         int age, int ownCausesNumber, int supportedCausesNumber){
+
+        this.nickname = nickname;
+        this.email = email;
+        this.describe = describe;
+        this.address = address;
+        this.uid = uid;
+        this.status = status;
+        this.imageName = imageName;
+        this.imageURL = imageURL;
+        this.age = age;
+        this.ownCausesNumber = ownCausesNumber;
+        this.supportedCausesNumber = supportedCausesNumber;
+
+    }
+
+
     private String imageName = null;
     private String imageURL = null;
-
-    public void updateFirebaseUserProfile(){
-        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        final DatabaseReference dRef = FirebaseDatabase.getInstance().getReference().child("users")
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                .child("ProfileSettings");
-
-        dRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                Map<String, Object> data = (Map<String,Object>) snapshot.getValue();
-
-                nickname = data.get("nickname").toString();
-                email = data.get("email").toString();
-                status = data.get("status").toString();
-                ownCausesNumber = Integer.valueOf(data.get("ownCauses").toString());
-                supportedCausesNumber = Integer.valueOf(data.get("supportedCauses").toString());
-
-//                Log.d(LOG, snapshot.toString());
-                if(snapshot.hasChild("imageName")) {
-                    imageName = data.get("imageName").toString();
-                    Log.d(LOG, "Am imageName!" + imageName);
-                }
-
-                if(snapshot.hasChild("imageURL")) {
-                    imageURL = data.get("imageURL").toString();
-                    Log.d(LOG, "Am imageURL!" + imageURL);
-                }
-
-                if(snapshot.hasChild("describe"))
-                    describe = data.get("describe").toString();
-
-                if(snapshot.hasChild("address"))
-                    address = data.get("address").toString();
-
-                if(snapshot.hasChild("age"))
-                    age = Integer.valueOf(data.get("age").toString());
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                //handle databaseError
-            }
-        });
-
-        dRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                Map<String, Object> data = (Map<String,Object>) snapshot.getValue();
-                if(data != null && data.containsKey("type")) {
-                    type = data.get("type").toString();
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
 
     public String getDescribe() {
         return describe;
@@ -116,7 +65,6 @@ public class User implements Serializable {
     }
 
     public String getImageURL() {
-        Log.d(LOG, "REMOVE! => " + imageURL);
         return imageURL;
     }
 

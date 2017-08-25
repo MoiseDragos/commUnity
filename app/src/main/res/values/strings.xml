@@ -178,6 +178,8 @@
     <string name="support_NGO">Susține\nacest ONG</string>
     <string name="no_support_NGO">Nu susțin\nacest ONG</string>
     <string name="out">Ești sigur că vrei\nsă ieși din aplicație?</string>
+    <string name="deleteCause">Șterge obiectivul</string>
+    <string name="are_you_sure_delete_cause">Ești sigur\n că vrei să ștergi\nacest obiectiv?</string>
     <!--<string name="thanks">Mulțumim!</string>-->
 
 </resources>

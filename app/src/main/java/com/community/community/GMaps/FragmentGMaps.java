@@ -1,6 +1,7 @@
 package com.community.community.GMaps;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -9,8 +10,13 @@ import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.community.community.CauseProfile.CauseProfileActivity;
 import com.community.community.General.UsefulThings;
 import com.community.community.R;
@@ -37,11 +43,67 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
-//TODO: Memory problem!
 //TODO: No internet
-//TODO: ProgressBar pana termina de adaugat toate obiectivele!
+//TODO: EditCause problems
+//BackButton
 
-public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowClickListener, OnMapReadyCallback {
+public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowClickListener,
+        OnMapReadyCallback {
+
+    private class MyInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
+
+        private final View myContentsView;
+        private ImageView image;
+
+        MyInfoWindowAdapter(){
+            myContentsView = getActivity().getLayoutInflater()
+                    .inflate(R.layout.custom_infowindow, null);
+            image = (ImageView) myContentsView.findViewById(R.id.image);
+        }
+
+        @Override
+        public View getInfoContents(Marker marker) {
+
+            final String url = marker.getSnippet();
+            Log.d(LOG, "Before MarkerSnippet: " + url);
+            Glide
+                    .with(getActivity())
+                    .load(url)
+                    .asBitmap()
+                    .into(new SimpleTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(Bitmap resource,
+                                                    GlideAnimation glideAnimation) {
+
+                            Log.d(LOG, "MarkerSnippet: " + url);
+                            image.setImageBitmap(resource);
+                        }
+                    });
+
+            String tag = String.valueOf(marker.getTag());
+            String[] parts = tag.split("~");
+
+
+            TextView supported_number = (TextView)
+                    myContentsView.findViewById(R.id.supported_number);
+            supported_number.setText(parts[3]);
+
+            TextView title = (TextView)myContentsView.findViewById(R.id.title);
+            title.setText(marker.getTitle());
+
+            TextView owner = (TextView)myContentsView.findViewById(R.id.owner);
+//            tvSnippet.setText(marker.getSnippet());
+            owner.setText(parts[4]);
+
+            return myContentsView;
+        }
+
+        @Override
+        public View getInfoWindow(Marker marker) {
+            return null;
+        }
+
+    }
 
     private String LOG = this.getClass().getSimpleName();
     
@@ -68,8 +130,17 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
         mGoogleMap = googleMap;
         setUpMap();
 
+        mGoogleMap.setInfoWindowAdapter(new MyInfoWindowAdapter());
         mGoogleMap.setOnInfoWindowClickListener(this);
         Log.d(LOG, "Maps initialization completed!");
+    }
+
+    public void changeType(boolean hybrid){
+        if(hybrid) {
+            mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        } else {
+            mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        }
     }
 
     private void setUpMap() {
@@ -83,9 +154,10 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
 
     @Override
     public void onInfoWindowClick(Marker marker) {
+
+        Log.d(LOG, "AICI!");
         String tag = String.valueOf(marker.getTag());
         String[] parts = tag.split("~");
-
 
         String causeId = parts[1] + "_" + parts[2];
         causeId = causeId.replace(".", "-");
@@ -115,31 +187,21 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
                         // Get cause from map
                         singleCauseMap = (Map) entry.getValue();
                         Map singleCause = (Map) singleCauseMap.get("Info");
+                        Map ownCauses = (Map) singleCauseMap.get("SupportedBy");
+                        final String ownCausesNumber;
+                        if(ownCauses != null) {
+                            ownCausesNumber = String.valueOf((long) ownCauses.get("number") + 1);
+                        } else {
+                            ownCausesNumber = "1";
+                        }
 
                         final double lat = (Double) singleCause.get("latitude");
                         final double lng = (Double) singleCause.get("longitude");
                         final String ownerUID = (String) singleCause.get("ownerUID");
                         final String name = (String) singleCause.get("name");
-                        // TODO: thumbnailImageURL
-//                        String profileURL = (String) singleCause.get("thumbnailImageURL");
-
-//                        Glide
-//                                .with(getActivity())
-//                                .load(profileURL)
-//                                .asBitmap()
-//                                .into(new SimpleTarget<Bitmap>() {
-//                                    @Override
-//                                    public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
-//                                        FirebaseMarker firebaseAddMarker = new FirebaseMarker(resource,
-//                                                ownerUID, lat, lng, name);
-
-//                                        firebaseMarkers.add(firebaseAddMarker);
-//                                                (String) singleCause.get("ownerUID"),
-//                                                (String) singleCause.get("latitude"),
-//                                                (String) singleCause.get("longitude"),
-//                                                (String) singleCause.get("name"));
-//                                    }
-//                                });
+                        String profileURL = (String) singleCause.get("thumbnailImageURL");
+                        Log.d(LOG, "Name: " + name);
+                        Log.d(LOG, "ProfileURL: " + profileURL);
 
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -150,16 +212,18 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
                                 markerName = mGoogleMap.addMarker(
                                         new MarkerOptions().position(new LatLng(lat, lng))
                                         .icon(BitmapDescriptorFactory
-                                                .fromResource(R.drawable.my_causes))
+                                                .fromResource(R.drawable.blue_pin_icon))
                                         .title(name));
                             } else {
                                 markerName = mGoogleMap.addMarker(
                                         new MarkerOptions().position(new LatLng(lat, lng))
                                         .icon(BitmapDescriptorFactory
-                                                .fromResource(R.drawable.other_causes))
+                                                .fromResource(R.drawable.green_pin_icon))
                                         .title(name));
                             }
-                            markerName.setTag(ownerUID + "~" + lat + "~" + lng);
+                            markerName.setTag(ownerUID + "~" + lat + "~" + lng
+                                    + "~" + ownCausesNumber + "~" + owner);
+                            markerName.setSnippet(profileURL);
                         }
                     }
                 }
@@ -199,9 +263,12 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
         String email = UsefulThings.currentUser.getEmail();
         String userUid = UsefulThings.currentUser.getUid();
 
+        Log.d(LOG, "Email: " + email);
+        Log.d(LOG, "userUid: " + userUid);
+
         // Write on Firebase - "causes"
         firebaseNewMarker = new FirebaseMarker(email, userUid, latLng,
-                name, firebaseImages.getProfileImageURL(), 0);
+                name, firebaseImages.getProfileThumbnailURL(), 0);
 
         String firebaseName = latLng.latitude + "_" + latLng.longitude;
         firebaseName = firebaseName.replace(".", "-");
