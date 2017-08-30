@@ -1,5 +1,6 @@
 package com.community.community.PublicProfile;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -20,10 +21,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.community.community.General.BackPressedActivity;
 import com.community.community.General.UsefulThings;
 import com.community.community.General.User;
 import com.community.community.R;
@@ -55,11 +58,16 @@ public class EditPublicProfileActivity extends AppCompatActivity {
     private EditText nickname = null;
     private EditText describe = null;
     private EditText address = null;
+    private EditText official_address = null;
+    private EditText website = null;
+    private EditText donate = null;
     private TextView ageTextView = null;
     private SeekBar ageSeekBar = null;
 
     private Button submitBtn = null;
     private Button cancelBtn = null;
+
+    boolean greenButton = false;
 
     /* User */
     private int progress;
@@ -79,9 +87,6 @@ public class EditPublicProfileActivity extends AppCompatActivity {
         profileImage = (CircleImageView) findViewById(R.id.profile_image);
         nickname = (EditText) findViewById(R.id.edit_nickname);
         describe = (EditText) findViewById(R.id.edit_describe);
-        address = (EditText) findViewById(R.id.edit_address);
-        ageTextView = (TextView) findViewById(R.id.edit_age);
-        ageSeekBar = (SeekBar) findViewById(R.id.seek_bar);
 
         changeProfileImage = (CircleImageView) findViewById(R.id.change_profile_image);
         changeProfileImage.setOnClickListener(callImageButtonClickListener);
@@ -89,14 +94,12 @@ public class EditPublicProfileActivity extends AppCompatActivity {
         submitBtn = (Button) findViewById(R.id.submit_changes);
         submitBtn.setBackground(ContextCompat.getDrawable(getApplicationContext(),
                 R.drawable.edit_text_form_gray));
+        submitBtn.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.blue5));
         submitBtn.setEnabled(false);
         submitBtn.setOnClickListener(callImageButtonClickListener);
 
-
         cancelBtn = (Button) findViewById(R.id.cancel_changes);
         cancelBtn.setOnClickListener(callImageButtonClickListener);
-
-        /* Get data from PublicProfileActivity */
 
         if(UsefulThings.currentUser == null) {
             UsefulThings.currentUser = (User) savedInstanceState.getSerializable("currentUser");
@@ -107,11 +110,30 @@ public class EditPublicProfileActivity extends AppCompatActivity {
             }
         }
 
-        setListeners();
-        setInitialProfileDetails();
+        if(UsefulThings.currentUser.getType().equals("ngo")) {
+            LinearLayout ngoLayout = (LinearLayout) findViewById(R.id.ngoLayout);
+            ngoLayout.setVisibility(View.VISIBLE);
+
+            official_address = (EditText) findViewById(R.id.edit_official_address);
+            website = (EditText) findViewById(R.id.edit_site);
+            donate = (EditText) findViewById(R.id.edit_donate);
+
+            setListeners(true);
+            setInitialProfileDetails(true);
+        } else {
+            LinearLayout userLayout = (LinearLayout) findViewById(R.id.userLayout);
+            userLayout.setVisibility(View.VISIBLE);
+
+            address = (EditText) findViewById(R.id.edit_address);
+            ageTextView = (TextView) findViewById(R.id.edit_age);
+            ageSeekBar = (SeekBar) findViewById(R.id.seek_bar);
+            setListeners(false);
+            setInitialProfileDetails(false);
+        }
+
     }
 
-    private void setListeners() {
+    private void setListeners(boolean ngo) {
 
         final String initNickname = UsefulThings.currentUser.getNickname();
         final String initDescribe;
@@ -120,13 +142,6 @@ public class EditPublicProfileActivity extends AppCompatActivity {
             initDescribe = UsefulThings.currentUser.getDescribe();
         } else {
             initDescribe = "";
-        }
-
-        final String initAddress;
-        if(UsefulThings.currentUser.getAddress() != null) {
-            initAddress = UsefulThings.currentUser.getAddress();
-        } else {
-            initAddress = "";
         }
 
         nickname.addTextChangedListener(new TextWatcher() {
@@ -141,9 +156,7 @@ public class EditPublicProfileActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 if(!initNickname.equals(s.toString())) {
-                    submitBtn.setBackground(ContextCompat.getDrawable(getApplicationContext(),
-                            R.drawable.edit_text_form_green));
-                    submitBtn.setEnabled(true);
+                    changeSubmitBtnDetails();
                 }
             }
         });
@@ -162,33 +175,131 @@ public class EditPublicProfileActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 if(!initDescribe.equals(s.toString())) {
-                    submitBtn.setBackground(ContextCompat.getDrawable(getApplicationContext(),
-                            R.drawable.edit_text_form_green));
-                    submitBtn.setEnabled(true);
+                    changeSubmitBtnDetails();
                 }
             }
         });
 
-        address.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+        if(ngo) {
+            final String initOfficialAddress;
+            if(UsefulThings.currentUser.getOfficial_address() != null) {
+                initOfficialAddress = UsefulThings.currentUser.getOfficial_address();
+            } else {
+                initOfficialAddress = "";
             }
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
 
-            }
+            official_address.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-            @Override
-            public void afterTextChanged(Editable s) {
-                if(!initAddress.equals(s.toString())) {
-                    submitBtn.setBackground(ContextCompat.getDrawable(getApplicationContext(),
-                            R.drawable.edit_text_form_green));
-                    submitBtn.setEnabled(true);
                 }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if(!initOfficialAddress.equals(s.toString())) {
+                        changeSubmitBtnDetails();
+                    }
+                }
+            });
+
+            final String initWebsite;
+            if(UsefulThings.currentUser.getSite() != null) {
+                initWebsite = UsefulThings.currentUser.getSite();
+            } else {
+                initWebsite = "";
             }
-        });
+
+
+            website.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if(!initWebsite.equals(s.toString())) {
+                        changeSubmitBtnDetails();
+                    }
+                }
+            });
+
+            final String initDonate;
+            if(UsefulThings.currentUser.getDonate() != null) {
+                initDonate = UsefulThings.currentUser.getDonate();
+            } else {
+                initDonate = "";
+            }
+
+
+            donate.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if(!initDonate.equals(s.toString())) {
+                        changeSubmitBtnDetails();
+                    }
+                }
+            });
+
+        } else {
+            final String initAddress;
+            if(UsefulThings.currentUser.getAddress() != null) {
+                initAddress = UsefulThings.currentUser.getAddress();
+            } else {
+                initAddress = "";
+            }
+
+
+            address.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if(!initAddress.equals(s.toString())) {
+                        changeSubmitBtnDetails();
+                    }
+                }
+            });
+        }
+
+    }
+
+    private void changeSubmitBtnDetails() {
+        submitBtn.setBackground(ContextCompat.getDrawable(getApplicationContext(),
+                R.drawable.edit_text_form_green));
+        submitBtn.setTextColor(ContextCompat.getColor(getApplicationContext(),
+                R.color.white));
+        greenButton = true;
+        submitBtn.setEnabled(true);
     }
 
     @Override
@@ -197,7 +308,7 @@ public class EditPublicProfileActivity extends AppCompatActivity {
         outState.putSerializable("currentUser", UsefulThings.currentUser);
     }
 
-    private void setInitialProfileDetails() {
+    private void setInitialProfileDetails(boolean ngo) {
         changed = false;
 
         Bitmap icon;
@@ -217,35 +328,48 @@ public class EditPublicProfileActivity extends AppCompatActivity {
             describe.setText(UsefulThings.currentUser.getDescribe());
         }
 
-        if (UsefulThings.currentUser.getAddress() != null) {
-            address.setText(UsefulThings.currentUser.getAddress());
+        if(ngo) {
+            if (UsefulThings.currentUser.getOfficial_address() != null) {
+                official_address.setText(UsefulThings.currentUser.getOfficial_address());
+            }
+
+            if (UsefulThings.currentUser.getSite() != null) {
+                website.setText(UsefulThings.currentUser.getSite());
+            }
+
+            if (UsefulThings.currentUser.getDonate() != null) {
+                donate.setText(UsefulThings.currentUser.getDonate());
+            }
+        } else {
+            if (UsefulThings.currentUser.getAddress() != null) {
+                address.setText(UsefulThings.currentUser.getAddress());
+            }
+
+            ageSeekBar.setProgress(UsefulThings.currentUser.getAge());
+            progress = ageSeekBar.getProgress();
+            ageTextView.setText(String.valueOf(progress + 10));
+
+            ageSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
+                    progress = progressValue + 10;
+                    ageTextView.setText(String.valueOf(progress));
+                    changeSubmitBtnDetails();
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    ageTextView.setText(String.valueOf(progress));
+                }
+            });
+
         }
 
-        ageSeekBar.setProgress(UsefulThings.currentUser.getAge());
-
-        progress = ageSeekBar.getProgress();
-        ageTextView.setText(String.valueOf(progress + 10));
-
-        ageSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
-                progress = progressValue + 10;
-                ageTextView.setText(String.valueOf(progress));
-                submitBtn.setBackground(ContextCompat.getDrawable(getApplicationContext(),
-                        R.drawable.edit_text_form_green));
-                submitBtn.setEnabled(true);
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                ageTextView.setText(String.valueOf(progress));
-            }
-        });
     }
 
     private EditPublicProfileActivity.CallImageButtonClickListener callImageButtonClickListener =
@@ -268,10 +392,16 @@ public class EditPublicProfileActivity extends AppCompatActivity {
                     break;
 
                 case R.id.cancel_changes:
-                    Intent intent = new Intent();
-                    intent.putExtra("changed", false);
-                    setResult(RESULT_OK, intent);
-                    finish();
+                    if(greenButton) {
+                        Intent i = new Intent(getApplicationContext(), BackPressedActivity.class);
+                        i.putExtra("edit", "edit");
+                        startActivityForResult(i, 100);
+                    } else {
+                        Intent intent = new Intent();
+                        intent.putExtra("changed", false);
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    }
                     break;
 
                 case R.id.change_profile_image:
@@ -289,11 +419,9 @@ public class EditPublicProfileActivity extends AppCompatActivity {
 
         private void applyChanges(User user) {
             Intent i = new Intent();
-            Log.d(LOG, "changed: " + changed);
             i.putExtra("changed", true);
 
             if(changedImage != null) {
-                Log.d(LOG, "Am schimbat imaginea!");
                 createImageFromBitmap(changedImage);
                 new asyncImageUpload().execute();
                 i.putExtra("newPicture", true);
@@ -301,7 +429,6 @@ public class EditPublicProfileActivity extends AppCompatActivity {
                 i.putExtra("newPicture", false);
             }
 
-            Log.d(LOG, "ImageURL: " + UsefulThings.currentUser.getImageURL());
             updateUserDetails(user);
 
             setResult(RESULT_OK, i);
@@ -349,26 +476,67 @@ public class EditPublicProfileActivity extends AppCompatActivity {
                 draftUser.setDescribe(des);
             }
 
-            String adr = verifyString(address.getText().toString(), 0, 100, 3);
-            if(adr == null) {
-                changed = false;
-                return null;
-            }
-
-            if((UsefulThings.currentUser.getAddress() == null && !adr.equals("")) ||
-                    (UsefulThings.currentUser.getAddress() != null
-                            && !UsefulThings.currentUser.getAddress().equals(adr))) {
-                changed = true;
-                draftUser.setAddress(adr);
-            }
-
-            if(progress != UsefulThings.currentUser.getAge()) {
-                changed = true;
-                draftUser.setAge(progress);
-            }
-
             if(changedImage != null) {
                 changed = true;
+            }
+
+            if(UsefulThings.currentUser.getType().equals("ngo")) {
+                String off_adr = verifyString(official_address.getText().toString(), 0, 100, 4);
+                if(off_adr == null) {
+                    changed = false;
+                    return null;
+                }
+
+                if((UsefulThings.currentUser.getOfficial_address() == null && !off_adr.equals("")) ||
+                        (UsefulThings.currentUser.getOfficial_address() != null
+                                && !UsefulThings.currentUser.getOfficial_address().equals(off_adr))) {
+                    changed = true;
+                    draftUser.setOfficial_address(off_adr);
+                }
+
+                String site = verifyString(website.getText().toString(), 0, 100, 5);
+                if(site == null) {
+                    changed = false;
+                    return null;
+                }
+
+                if((UsefulThings.currentUser.getSite() == null && !site.equals("")) ||
+                        (UsefulThings.currentUser.getSite() != null
+                                && !UsefulThings.currentUser.getSite().equals(site))) {
+                    changed = true;
+                    draftUser.setSite(site);
+                }
+
+                String don = verifyString(donate.getText().toString(), 0, 100, 6);
+                if(don == null) {
+                    changed = false;
+                    return null;
+                }
+
+                if((UsefulThings.currentUser.getDonate() == null && !don.equals("")) ||
+                        (UsefulThings.currentUser.getDonate() != null
+                                && !UsefulThings.currentUser.getDonate().equals(don))) {
+                    changed = true;
+                    draftUser.setDonate(don);
+                }
+            } else {
+                String adr = verifyString(address.getText().toString(), 0, 100, 3);
+                if(adr == null) {
+                    changed = false;
+                    return null;
+                }
+
+                if((UsefulThings.currentUser.getAddress() == null && !adr.equals("")) ||
+                        (UsefulThings.currentUser.getAddress() != null
+                                && !UsefulThings.currentUser.getAddress().equals(adr))) {
+                    changed = true;
+                    draftUser.setAddress(adr);
+                }
+
+                if(progress != UsefulThings.currentUser.getAge()) {
+                    changed = true;
+                    draftUser.setAge(progress);
+                }
             }
 
             return draftUser;
@@ -413,25 +581,41 @@ public class EditPublicProfileActivity extends AppCompatActivity {
             UsefulThings.currentUser.setDescribe(draftUser.getDescribe());
         }
 
-        if(draftUser.getAddress() != null) {
-            UsefulThings.currentUser.setAddress(draftUser.getAddress());
+        String currentUserType = UsefulThings.currentUser.getType();
+
+        if(currentUserType.equals("ngo")) {
+            if (draftUser.getOfficial_address() != null) {
+                UsefulThings.currentUser.setOfficial_address(draftUser.getOfficial_address());
+            }
+
+            if (draftUser.getSite() != null) {
+                UsefulThings.currentUser.setSite(draftUser.getSite());
+            }
+
+            if (draftUser.getDonate() != null) {
+                UsefulThings.currentUser.setDonate(draftUser.getDonate());
+            }
+        } else {
+            if (draftUser.getAddress() != null) {
+                UsefulThings.currentUser.setAddress(draftUser.getAddress());
+            }
+
+            if (draftUser.getAge() != 0) {
+                UsefulThings.currentUser.setAge(draftUser.getAge());
+            }
         }
 
-        Log.d(LOG, "draftUser.getAge(): " + draftUser.getAge());
-
-        if(draftUser.getAge() != 0) {
-            UsefulThings.currentUser.setAge(draftUser.getAge());
-        }
-
-        new asyncUpload(draftUser).execute();
+        new asyncUpload(draftUser, currentUserType).execute();
     }
 
     private class asyncUpload extends AsyncTask<String, Void, String> {
 
-        private  User draftUser;
+        private User draftUser;
+        private String currentUserType;
 
-        asyncUpload(User draftUser){
+        asyncUpload(User draftUser, String currentUserType){
             this.draftUser = draftUser;
+            this.currentUserType = currentUserType;
         }
 
         @Override
@@ -456,15 +640,25 @@ public class EditPublicProfileActivity extends AppCompatActivity {
                 rootRef.child("describe").setValue(draftUser.getDescribe());
             }
 
-            if(draftUser.getAddress() != null) {
-                rootRef.child("address").setValue(draftUser.getAddress());
+            if(currentUserType.equals("ngo")){
+                if(draftUser.getOfficial_address() != null) {
+                    rootRef.child("official_address").setValue(draftUser.getOfficial_address());
+                }
+                if(draftUser.getDonate() != null) {
+                    rootRef.child("donate").setValue(draftUser.getDonate());
+                }
+                if(draftUser.getSite() != null) {
+                    rootRef.child("site").setValue(draftUser.getSite());
+                }
+            } else {
+                if(draftUser.getAddress() != null) {
+                    rootRef.child("address").setValue(draftUser.getAddress());
+                }
+
+                if(draftUser.getAge() != 0) {
+                    rootRef.child("age").setValue(draftUser.getAge());
+                }
             }
-
-            if(draftUser.getAge() != 0) {
-                rootRef.child("age").setValue(draftUser.getAge());
-            }
-
-
 
             return "Executed";
         }
@@ -494,29 +688,68 @@ public class EditPublicProfileActivity extends AppCompatActivity {
 
         int len = str.length();
         if(len < min) {
-            if(forToast == 1) {
-                Toast.makeText(getApplicationContext(),
-                        "Nickname prea scurt!", Toast.LENGTH_SHORT).show();
-            } else if(forToast == 2){
-                Toast.makeText(getApplicationContext(),
-                        "Descriere prea scurtă!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getApplicationContext(),
-                        "Adresă prea scurtă!", Toast.LENGTH_SHORT).show();
+            switch (forToast) {
+                case 1:
+                    Toast.makeText(getApplicationContext(),
+                            "Nickname prea scurt!", Toast.LENGTH_SHORT).show();
+                    break;
+                case 2:
+                    Toast.makeText(getApplicationContext(),
+                            "Descriere prea scurtă!", Toast.LENGTH_SHORT).show();
+                    break;
+                case 3:
+                    Toast.makeText(getApplicationContext(),
+                            "Adresă prea scurtă!", Toast.LENGTH_SHORT).show();
+                    break;
+                case 4:
+                    Toast.makeText(getApplicationContext(),
+                            "Adresa oficială prea scurtă!", Toast.LENGTH_SHORT).show();
+                    break;
+                case 5:
+                    Toast.makeText(getApplicationContext(),
+                            "Website prea scurt!", Toast.LENGTH_SHORT).show();
+                    break;
+                case 6:
+                    Toast.makeText(getApplicationContext(),
+                            "Link donație prea scurt!", Toast.LENGTH_SHORT).show();
+                    break;
+
+                default:
+                    break;
             }
             return null;
         }
 
         if(len > max) {
-            if(forToast == 1) {
-                Toast.makeText(getApplicationContext(),
-                        "Nickname prea lung!", Toast.LENGTH_SHORT).show();
-            } else if(forToast == 2){
-                Toast.makeText(getApplicationContext(),
-                        "Descriere prea lungă!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getApplicationContext(),
-                        "Adresă prea lungă!", Toast.LENGTH_SHORT).show();
+
+            switch (forToast) {
+                case 1:
+                    Toast.makeText(getApplicationContext(),
+                            "Nickname prea lung!", Toast.LENGTH_SHORT).show();
+                    break;
+                case 2:
+                    Toast.makeText(getApplicationContext(),
+                            "Descriere prea lungă!", Toast.LENGTH_SHORT).show();
+                    break;
+                case 3:
+                    Toast.makeText(getApplicationContext(),
+                            "Adresă prea lungă!", Toast.LENGTH_SHORT).show();
+                    break;
+                case 4:
+                    Toast.makeText(getApplicationContext(),
+                            "Adresa oficială prea lungă!", Toast.LENGTH_SHORT).show();
+                    break;
+                case 5:
+                    Toast.makeText(getApplicationContext(),
+                            "Website prea lung!", Toast.LENGTH_SHORT).show();
+                    break;
+                case 6:
+                    Toast.makeText(getApplicationContext(),
+                            "Link donație prea lung!", Toast.LENGTH_SHORT).show();
+                    break;
+
+                default:
+                    break;
             }
             return null;
         }
@@ -538,12 +771,20 @@ public class EditPublicProfileActivity extends AppCompatActivity {
                     if(bitmap != null) {
                         changeProfileImage.setImageBitmap(bitmap);
                         changedImage = bitmap;
-                        submitBtn.setBackground(ContextCompat.getDrawable(getApplicationContext(),
-                                R.drawable.edit_text_form_green));
-                        submitBtn.setEnabled(true);
+                        changeSubmitBtnDetails();
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                }
+            }
+        } else if (requestCode == 100) {
+            if(resultCode == Activity.RESULT_OK){
+                Bundle b = data.getExtras();
+                if(b.getBoolean("result")) {
+                    Intent intent = new Intent();
+                    intent.putExtra("changed", false);
+                    setResult(RESULT_OK, intent);
+                    finish();
                 }
             }
         }
@@ -648,8 +889,31 @@ public class EditPublicProfileActivity extends AppCompatActivity {
                 });
     }
 
-    /* ---------- End of Image Upload Section ---------- */
+    @Override
+    public void onBackPressed() {
+        if(greenButton) {
+            Intent i = new Intent(getApplicationContext(), BackPressedActivity.class);
+            i.putExtra("edit", "edit");
+            startActivityForResult(i, 100);
+        } else {
+            super.onBackPressed();
+        }
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
+                UsefulThings.mNetworkStateChangedFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
+    }
+
+    /* ---------- End of Image Upload Section ---------- */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -661,6 +925,9 @@ public class EditPublicProfileActivity extends AppCompatActivity {
         address = null;
         ageTextView = null;
         ageSeekBar = null;
+        official_address = null;
+        website = null;
+        donate = null;
 
         changeProfileImage = null;
 

@@ -2,31 +2,31 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:id="@+id/nav_account"
-        android:icon="@mipmap/ic_person_outline_black_24dp"
+        android:icon="@drawable/profile_icon"
         android:title="@string/publicProfile" />
 
     <item android:id="@+id/nav_my_causes"
-        android:icon="@drawable/logout"
+        android:icon="@drawable/my_castle_icon"
         android:title="@string/myCauses"/>
 
     <item android:id="@+id/nav_supported_causes"
-        android:icon="@drawable/logout"
+        android:icon="@drawable/supported_castle_icon"
         android:title="@string/supported_causes"/>
 
     <item android:id="@+id/nav_all_causes"
-        android:icon="@drawable/logout"
+        android:icon="@drawable/all_castle_icon"
         android:title="@string/all_causes"/>
 
     <item android:id="@+id/nav_members"
-        android:icon="@drawable/logout"
+        android:icon="@drawable/ngo_icon"
         android:title="@string/ngo_title"/>
 
     <item android:id="@+id/nav_proposals"
-        android:icon="@drawable/logout"
+        android:icon="@drawable/proposal_icon"
         android:title="@string/proposals"/>
 
     <item android:id="@+id/nav_settings"
-        android:icon="@mipmap/ic_settings_black_24dp"
+        android:icon="@drawable/settings_icon"
         android:title="@string/settings"/>
 
     <item android:id="@+id/nav_logout"

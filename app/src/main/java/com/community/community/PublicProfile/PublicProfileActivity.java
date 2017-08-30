@@ -3,6 +3,7 @@ package com.community.community.PublicProfile;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.support.percent.PercentRelativeLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -48,8 +49,11 @@ public class PublicProfileActivity extends AppCompatActivity {
     private DatabaseReference mDatabase = null;
 
     /* Profile details */
-    private android.support.percent.PercentRelativeLayout percentRelativeLayout1 = null;
-    private android.support.percent.PercentRelativeLayout percentRelativeLayout2 = null;
+    private PercentRelativeLayout describeRelativeLayout = null;
+    private PercentRelativeLayout addressRelativeLayout = null;
+    private PercentRelativeLayout officialAddressRelativeLayout = null;
+    private PercentRelativeLayout websiteRelativeLayout = null;
+    private PercentRelativeLayout donateRelativeLayout = null;
     private ImageView blurImage = null;
     private CircleImageView circleImage = null;
     private TextView nickname = null;
@@ -58,6 +62,9 @@ public class PublicProfileActivity extends AppCompatActivity {
     private TextView supportedNumber = null;
     private DocumentView describe = null;
     private DocumentView address = null;
+    private DocumentView official_address = null;
+    private TextView website = null;
+    private TextView donate = null;
 
     /* Ngo Buttons */
     private LinearLayout proposalsLayout = null;
@@ -84,10 +91,8 @@ public class PublicProfileActivity extends AppCompatActivity {
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        percentRelativeLayout1 = (android.support.percent.PercentRelativeLayout)
-                findViewById(R.id.relative_layout_1);
-        percentRelativeLayout2 = (android.support.percent.PercentRelativeLayout)
-                findViewById(R.id.relative_layout_2);
+        describeRelativeLayout = (android.support.percent.PercentRelativeLayout)
+                findViewById(R.id.relative_layout_describe);
         blurImage = (ImageView) findViewById(R.id.blur_profile_image);
         circleImage = (CircleImageView) findViewById(R.id.profile_image);
         nickname = (TextView) findViewById(R.id.userNickname);
@@ -95,7 +100,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         ownNumber = (TextView) findViewById(R.id.own_number);
         supportedNumber = (TextView) findViewById(R.id.supported_number);
         describe = (DocumentView) findViewById(R.id.describe_view);
-        address = (DocumentView) findViewById(R.id.address_view);
 
         /* Ngo */
         proposalsLayout = (LinearLayout) findViewById(R.id.proposalsLayout);
@@ -114,30 +118,67 @@ public class PublicProfileActivity extends AppCompatActivity {
         supportBtn.setOnClickListener(callButtonClickListener);
 
         setSmallTexts();
-        setUpUserDetails(savedInstanceState);
+        boolean isMe = setUpUserDetails(savedInstanceState);
+
+
+        if(UsefulThings.currentUser.getType().equals("ngo")) {
+            officialAddressRelativeLayout = (PercentRelativeLayout)
+                    findViewById(R.id.relative_layout_official_address);
+            websiteRelativeLayout = (PercentRelativeLayout)
+                    findViewById(R.id.relative_layout_site);
+            donateRelativeLayout = (PercentRelativeLayout)
+                    findViewById(R.id.relative_layout_donate);
+
+            setLayoutBelowAttribute(R.id.relative_layout_donate);
+            official_address = (DocumentView) findViewById(R.id.official_address_view);
+            website = (TextView) findViewById(R.id.site_view);
+            donate = (TextView) findViewById(R.id.donate_view);
+            setUpListeners();
+        } else {
+            addressRelativeLayout = (android.support.percent.PercentRelativeLayout)
+                    findViewById(R.id.relative_layout_address);
+
+            setLayoutBelowAttribute(R.id.relative_layout_address);
+            address = (DocumentView) findViewById(R.id.address_view);
+
+        }
+
+        setUpProfileDetails(isMe);
     }
 
-    private void setUpUserDetails(Bundle savedInstanceState) {
+    private void setUpListeners() {
 
-        if (UsefulThings.currentUser == null) {
-            UsefulThings.currentUser = (User) savedInstanceState.getSerializable("userDetails");
+        website.setClickable(true);
+        website.setOnClickListener(new View.OnClickListener() {
 
-            if(UsefulThings.currentUser == null) {
-                Log.d(LOG, "Nu am detaliile user-ului curent!");
-                finish();
+            public void onClick(View v) {
+                String url = website.getText().toString();
+                if (!url.startsWith("http://") && !url.startsWith("https://"))
+                    url = "http://" + url;
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
             }
-        }
 
-        boolean isMe = true;
-        Bundle b = getIntent().getExtras();
+        });
 
-        if(b != null) {
-            currentUserProfile = (User) b.getSerializable("userCauseDetails");
+        donate.setClickable(true);
+        donate.setOnClickListener(new View.OnClickListener() {
 
-            if(!currentUserProfile.getUid().equals(UsefulThings.currentUser.getUid())){
-                isMe = false;
+            public void onClick(View v) {
+                String url = donate.getText().toString();
+                if (!url.startsWith("http://") && !url.startsWith("https://"))
+                    url = "http://" + url;
+                Log.d(LOG, "URL: " + url);
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
             }
-        }
+
+        });
+    }
+
+    private void setUpProfileDetails(boolean isMe) {
 
         if(isMe) {
 
@@ -165,6 +206,41 @@ public class PublicProfileActivity extends AppCompatActivity {
                 setProfileDetails(currentUserProfile, null);
             }
         }
+    }
+
+
+    private void setLayoutBelowAttribute(int id) {
+        PercentRelativeLayout userOng = (PercentRelativeLayout) findViewById(R.id.userOng);
+        PercentRelativeLayout.LayoutParams childParams =
+                (PercentRelativeLayout.LayoutParams) userOng.getLayoutParams();
+        childParams.addRule(PercentRelativeLayout.BELOW, id);
+
+        userOng.requestLayout();
+    }
+
+    private boolean setUpUserDetails(Bundle savedInstanceState) {
+
+        if (UsefulThings.currentUser == null) {
+            UsefulThings.currentUser = (User) savedInstanceState.getSerializable("userDetails");
+
+            if(UsefulThings.currentUser == null) {
+                Log.d(LOG, "Nu am detaliile user-ului curent!");
+                finish();
+            }
+        }
+
+        boolean isMe = true;
+        Bundle b = getIntent().getExtras();
+
+        if(b != null) {
+            currentUserProfile = (User) b.getSerializable("userCauseDetails");
+
+            if(!currentUserProfile.getUid().equals(UsefulThings.currentUser.getUid())){
+                isMe = false;
+            }
+        }
+
+        return isMe;
     }
 
     private void setSmallTexts() {
@@ -386,7 +462,7 @@ public class PublicProfileActivity extends AppCompatActivity {
 //                                            if (map.containsKey(userDetails.getUid())) {
                                                 setBtnDetails(childText,
                                                         R.drawable.edit_text_form_gray,
-                                                        R.color.black,
+                                                        R.color.blue5,
                                                         R.string.rejected_proposal_from_ngo,
                                                         R.string.rejected_proposal_from_user);
                                             } else {
@@ -417,7 +493,7 @@ public class PublicProfileActivity extends AppCompatActivity {
                                             if (map.containsKey(currentUserProfile.getUid())) {
                                                 setBtnDetails(childText,
                                                         R.drawable.edit_text_form_gray,
-                                                        R.color.black,
+                                                        R.color.blue5,
                                                         R.string.reject_ngo,
                                                         R.string.reject_user);
                                             } else {
@@ -811,17 +887,43 @@ public class PublicProfileActivity extends AppCompatActivity {
         if(user.getDescribe() != null &&
                 !user.getDescribe().equals("")){
             describe.setText(user.getDescribe());
-            percentRelativeLayout1.setVisibility(View.VISIBLE);
+            describeRelativeLayout.setVisibility(View.VISIBLE);
         } else {
-            percentRelativeLayout1.setVisibility(View.GONE);
+            describeRelativeLayout.setVisibility(View.GONE);
         }
 
-        if(user.getAddress() != null &&
-                !user.getAddress().equals("")){
-            address.setText(user.getAddress());
-            percentRelativeLayout2.setVisibility(View.VISIBLE);
+        if(user.getType().equals("ngo")) {
+            if (user.getOfficial_address() != null &&
+                    !user.getOfficial_address().equals("")) {
+                official_address.setText(user.getOfficial_address());
+                officialAddressRelativeLayout.setVisibility(View.VISIBLE);
+            } else {
+                officialAddressRelativeLayout.setVisibility(View.GONE);
+            }
+
+            if (user.getSite() != null &&
+                    !user.getSite().equals("")) {
+                website.setText(user.getSite());
+                websiteRelativeLayout.setVisibility(View.VISIBLE);
+            } else {
+                websiteRelativeLayout.setVisibility(View.GONE);
+            }
+
+            if (user.getDonate() != null &&
+                    !user.getDonate().equals("")) {
+                donate.setText(user.getDonate());
+                donateRelativeLayout.setVisibility(View.VISIBLE);
+            } else {
+                donateRelativeLayout.setVisibility(View.GONE);
+            }
         } else {
-            percentRelativeLayout2.setVisibility(View.GONE);
+            if (user.getAddress() != null &&
+                    !user.getAddress().equals("")) {
+                address.setText(user.getAddress());
+                addressRelativeLayout.setVisibility(View.VISIBLE);
+            } else {
+                addressRelativeLayout.setVisibility(View.GONE);
+            }
         }
 
         DatabaseReference ref = mDatabase.child("users").child(user.getUid())
@@ -961,6 +1063,20 @@ public class PublicProfileActivity extends AppCompatActivity {
 //        super.onBackPressed();
         finish();
 
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
+                UsefulThings.mNetworkStateChangedFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
     }
 
     @Override

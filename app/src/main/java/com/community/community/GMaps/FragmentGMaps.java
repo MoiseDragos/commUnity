@@ -43,10 +43,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
-//TODO: No internet
-//TODO: EditCause problems
-//BackButton
-
 public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowClickListener,
         OnMapReadyCallback {
 

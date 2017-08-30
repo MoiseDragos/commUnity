@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.community.community.General.BackPressedActivity;
+import com.community.community.General.UsefulThings;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -120,7 +121,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         progressDialog.setMessage("Registering User...");
         progressDialog.show();
 
-
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -216,6 +216,19 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 }
             }
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
+                UsefulThings.mNetworkStateChangedFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
     }
 
     @Override

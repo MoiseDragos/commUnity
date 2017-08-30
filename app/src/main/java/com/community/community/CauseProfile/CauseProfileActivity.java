@@ -1,9 +1,13 @@
 package com.community.community.CauseProfile;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.percent.PercentRelativeLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -29,6 +33,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -145,7 +156,11 @@ public class CauseProfileActivity extends AppCompatActivity {
 //        currentUserType = intent.getStringExtra("type");
 
 //        Cause cacheData = cacheCauses.get(causeId);
-        Cause cacheData = UsefulThings.causeCaches.get(causeId);
+        Cause cacheData = null;
+
+        if(UsefulThings.causeCaches != null) {
+            cacheData = UsefulThings.causeCaches.get(causeId);
+        }
 
         if(changed || cacheData == null) {
             Log.d(LOG, "FirebaseData");
@@ -362,8 +377,6 @@ public class CauseProfileActivity extends AppCompatActivity {
                     number = (long) ref.get("number");
 
                     if (!UsefulThings.currentUser.getUid().equals(ownerUID)) {
-                        Log.d(LOG, "AltUser!");
-
                         buttonsLayout.setVisibility(View.VISIBLE);
 
                         Map<String, Object> map = (Map<String, Object>) snapshot.getValue();
@@ -386,7 +399,13 @@ public class CauseProfileActivity extends AppCompatActivity {
                     } else {
                         buttonsLayout.setVisibility(View.GONE);
                         editBtn.setVisibility(View.VISIBLE);
-                        Log.d(LOG, "Acelasi user!");
+
+                        PercentRelativeLayout csv_layout = (PercentRelativeLayout)
+                                findViewById(R.id.csv_layout);
+                        csv_layout.setVisibility(View.VISIBLE);
+                        Button create_csv = (Button)
+                                findViewById(R.id.create_csv);
+                        create_csv.setOnClickListener(callImageButtonClickListener);
                     }
 
                     if (causeInfo != null) {
@@ -503,19 +522,174 @@ public class CauseProfileActivity extends AppCompatActivity {
 
                 case R.id.submit_marker:
                     setBtnVisibility(View.GONE);
-                    Toast.makeText(getApplication(), "SubmitMarker", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplication(), "SubmitMarker", Toast.LENGTH_SHORT).show();
                     break;
 
                 case R.id.cancel_marker:
                     setBtnVisibility(View.GONE);
-                    Toast.makeText(getApplication(), "CancelMarker", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplication(), "CancelMarker", Toast.LENGTH_SHORT).show();
                     finish();
+                    break;
+
+                case R.id.create_csv:
+                    createCsvFile();
                     break;
 
                 default:
                     break;
             }
         }
+    }
+
+    private void createCsvFile() {
+
+        Log.d(LOG, "createCsvFile");
+        final ArrayList<String> data = new ArrayList<>();
+
+        data.add("Nume");
+        data.add("Email");
+
+        data.add(UsefulThings.currentUser.getNickname());
+        data.add(UsefulThings.currentUser.getEmail());
+
+        DatabaseReference dRef = mDatabase.child("causes")
+                .child(causeId).child("SupportedBy");
+
+        dRef.addListenerForSingleValueEvent(
+            new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    if(snapshot.getValue() != null) {
+                        Map<String, Object> map = (Map<String, Object>)
+                                snapshot.getValue();
+
+                        int length = map.size();
+                        int i = 0;
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+                            i++;
+                            downloadDetails(entry.getKey(), i, length);
+                        }
+                    }
+                }
+
+                private void writeCSV() {
+
+//                    File fileDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
+//                             + File.separator + "CommUnityDir");
+
+                    File fileDir = new File(getExternalCacheDir(), "CommUnityDir"
+                            + File.separator + causeId);
+
+                    Log.d(LOG, "Dir: " + fileDir.toString());
+                    boolean success = true;
+                    if(!fileDir.exists()){
+                        try{
+                            success = fileDir.mkdir();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if(success) {
+                        success = true;
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
+                        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+
+                        File file = new File(fileDir, sdf.format(timestamp) + ".csv");
+//                        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
+//                                + File.separator +"CommUnityDir" + File.separator + causeId + ".txt");
+                        Log.d(LOG, "File: " + file.toString());
+                        if (!file.exists()) {
+                            try {
+                                success = file.createNewFile();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+
+                        if(success) {
+                            if (file.exists()) {
+                                try {
+                                    FileWriter fileWriter = new FileWriter(file);
+                                    BufferedWriter bfWriter = new BufferedWriter(fileWriter);
+                                    for(int i = 0; i < data.size(); i+=2) {
+                                        bfWriter.write(data.get(i));
+                                        bfWriter.write(",");
+                                        bfWriter.write(data.get(i+1));
+                                        bfWriter.write("\n");
+                                    }
+//                                    Toast.makeText(getApplicationContext(),
+//                                            "Am salvat datele aici: " + file.toString(),
+//                                            Toast.LENGTH_LONG).show();
+                                    alertDialog(file.toString());
+                                    bfWriter.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                private void alertDialog(String text) {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(CauseProfileActivity.this);
+                    dialog.setCancelable(false);
+                    dialog.setTitle("Am salvat datele aici:");
+                    dialog.setMessage(text);
+                    dialog.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            //Action for "Delete".
+                        }
+                    });
+
+                    final AlertDialog alert = dialog.create();
+                    alert.show();
+                }
+
+                private void downloadDetails(String key,
+                                             final int i, final int length) {
+
+                    if(!key.equals("number")) {
+                        DatabaseReference dRef = mDatabase.child("users")
+                                .child(key).child("ProfileSettings");
+                        dRef.addListenerForSingleValueEvent(
+                                new ValueEventListener() {
+
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        Map<String, Object> map = (Map<String, Object>)
+                                                dataSnapshot.getValue();
+
+                                        String nick = map.get("nickname").toString();
+                                        String email = map.get("email").toString();
+
+                                        data.add(nick);
+                                        data.add(email);
+
+                                        if(i == length) {
+                                            writeCSV();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                    } else {
+                        if(i == length) {
+                            writeCSV();
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+        });
     }
 
     @Override
@@ -670,5 +844,18 @@ public class CauseProfileActivity extends AppCompatActivity {
     public void setBtnVisibility(int visibility){
         saveBtn.setVisibility(visibility);
         cancelBtn.setVisibility(visibility);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
+                UsefulThings.mNetworkStateChangedFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
     }
 }

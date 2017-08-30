@@ -440,8 +440,11 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
                                    final boolean updatePassword) {
         final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
+        Log.d(LOG, "Email: " + user.getEmail());
+        Log.d(LOG, "Password: " + oldPassword);
+
         AuthCredential credential = EmailAuthProvider
-                .getCredential(UsefulThings.currentUser.getEmail(), oldPassword);
+                .getCredential(user.getEmail(), oldPassword);
 
         user.reauthenticate(credential)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -726,6 +729,19 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
                 }
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
+                UsefulThings.mNetworkStateChangedFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
     }
 
 }

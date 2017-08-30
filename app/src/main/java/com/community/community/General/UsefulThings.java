@@ -1,15 +1,24 @@
 package com.community.community.General;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.v7.app.AlertDialog;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.bumptech.glide.util.LruCache;
+import com.community.community.CauseProfile.CauseProfileActivity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,22 +49,80 @@ public class UsefulThings {
     public static final int PROPOSALS_INTERMEDIATE_IDS = 5;
     public static final int NGO_INTERMEDIATE_IDS = 7;
     public static final int USERS_INTERMEDIATE_IDS = 7;
+    public static final int ADMIN_INTERMEDIATE_IDS = 7;
 
     public static int causeCacheSize = 8 * 1024 * 1024; // 8MiB
     public static int proposalsCacheSize = 4 * 1024 * 1024; // 4MiB
     public static User currentUser;
 
     public static LruCache<String, Cause> causeCaches;
-//    public static int ngoCacheSize = 4 * 1024 * 1024; // 4MiB
 
-
-//    public static LruCache<String, Bitmap> bitmapCache = new LruCache<String, Bitmap>(cacheSize) {
-//        protected int sizeOf(String key, Bitmap value) {
-//            return value.getByteCount();
-//        }
-//    };
+    public static IntentFilter mNetworkStateChangedFilter;
+    public static BroadcastReceiver mNetworkStateIntentReceiver;
 
     /* Functions */
+    public static void initNetworkListener(){
+
+        final AlertDialog[] alert = new AlertDialog[1];
+        alert[0] = null;
+
+        mNetworkStateChangedFilter = new IntentFilter();
+        mNetworkStateChangedFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+
+        mNetworkStateIntentReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+
+                    ConnectivityManager connMgr = (ConnectivityManager)
+                            context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                    NetworkInfo networkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                    boolean isWifiConn = networkInfo.isConnected();
+                    networkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+                    boolean isMobileConn = networkInfo.isConnected();
+
+//                    Toast.makeText(context, "Ajung aici!", Toast.LENGTH_SHORT).show();
+
+                    if(!isWifiConn && !isMobileConn) {
+                        alertDialog(context);
+                    } else {
+                        if(alert[0] != null) {
+                            alert[0].dismiss();
+                            alert[0] = null;
+                        }
+                    }
+                }
+            }
+
+            private void alertDialog(final Context context) {
+                AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+                dialog.setCancelable(false);
+                dialog.setTitle("Nu mai aveți conexiune la internet!");
+                dialog.setMessage("Doriți să activați internetul?");
+                dialog.setPositiveButton("Da", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        context.startActivity(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS));
+                        //Action for "Delete".
+                    }
+                })
+                .setNegativeButton("Ies din aplicație", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        //Action for "Delete".
+                        Intent startMain = new Intent(Intent.ACTION_MAIN);
+                        startMain.addCategory(Intent.CATEGORY_HOME);
+                        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(startMain);
+                    }
+                });
+
+                alert[0] = dialog.create();
+                alert[0].show();
+            }
+        };
+
+    }
 
     public static Bitmap getThumbnail(Uri uri, Context context) throws IOException {
         Bitmap bitmap;

@@ -93,7 +93,7 @@ public class ProposalsActivity extends AppCompatActivity {
         firstProcessing = true;
         firstRejected = true;
 
-        number = 1 - UsefulThings.CAUSE_INTERMEDIATE_IDS;
+        number = 1 - UsefulThings.PROPOSALS_INTERMEDIATE_IDS;
 
         receivedBtn.setBackgroundColor(
                 ContextCompat.getColor(getApplicationContext(), R.color.blue4));
@@ -210,9 +210,9 @@ public class ProposalsActivity extends AppCompatActivity {
                                             @Override
                                             public void onDataChange(DataSnapshot dataSnapshot) {
                                                 if(UsefulThings.currentUser != null) {
-                                                    String ownCausesMap =
-                                                            (String) dataSnapshot.getValue();
-                                                    determineSupporters(ownCausesMap);
+                                                    long ownCausesMap =
+                                                            (long) dataSnapshot.getValue();
+                                                    determineSupporters(String.valueOf(ownCausesMap));
                                                 }
                                             }
 
@@ -224,7 +224,7 @@ public class ProposalsActivity extends AppCompatActivity {
                                                             @Override
                                                             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                                                                number += UsefulThings.CAUSE_INTERMEDIATE_IDS;
+                                                                number += UsefulThings.PROPOSALS_INTERMEDIATE_IDS;
                                                                 idsSparseArray.put(number, key);
 
                                                                 if (dataSnapshot.getValue() != null) {
@@ -276,7 +276,7 @@ public class ProposalsActivity extends AppCompatActivity {
                                                             @Override
                                                             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                                                                number += UsefulThings.CAUSE_INTERMEDIATE_IDS;
+                                                                number += UsefulThings.PROPOSALS_INTERMEDIATE_IDS;
                                                                 idsSparseArray.put(number, key);
 
                                                                 if (dataSnapshot.getValue() != null) {
@@ -750,6 +750,19 @@ public class ProposalsActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
+                UsefulThings.mNetworkStateChangedFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
     }
 
 }

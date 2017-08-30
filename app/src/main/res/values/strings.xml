@@ -15,7 +15,7 @@
     <string name="publicProfile">Profil public</string>
     <string name="settings">Setări</string>
     <string name="title_activity_settings">Settings</string>
-    <string name="nickname">Nickname</string>
+    <string name="nickname">Nume</string>
     <string name="describe">Descriere</string>
     <string name="causesName">Nume obiectiv</string>
     <string name="save">Salvează</string>
@@ -99,7 +99,7 @@
     <string name="mod_objectiv_details">Modifică informații obiectiv</string>
     <string name="added_objectives">Obiective\nadăugate</string>
     <string name="supported_objectives">Obiective\nsusținute</string>
-    <string name="editNickname">NICKNAME</string>
+    <string name="editNickname">NUME</string>
     <string name="editAge">VÂRSTA</string>
     <string name="editAddress">ADRESA</string>
     <string name="address">Adresa</string>
@@ -160,6 +160,7 @@
     <string name="rejected">Refuzate</string>
     <string name="no_rejected_proposals">Nu aveți propuneri refuzate</string>
     <string name="no_processing_proposals">Nu aveți propuneri în curs de procesare</string>
+    <string name="no_processing_to_accept">Nu aveți propuneri\npe care să le aprobați</string>
     <string name="add_to_ngo">Vreau să fac\nparte din acest ONG</string>
     <string name="accept_ngo">Acceptă solicitarea\nși devino membru</string>
     <string name="reject_user">Ați refuzat acest\nuser în trecut.\nAnulează acestă decizie</string>
@@ -178,8 +179,17 @@
     <string name="support_NGO">Susține\nacest ONG</string>
     <string name="no_support_NGO">Nu susțin\nacest ONG</string>
     <string name="out">Ești sigur că vrei\nsă ieși din aplicație?</string>
+    <string name="cancel_changes">Ești sigur că vrei\nsă anulezi toate schimbările?</string>
+    <string name="confirm_decision">Ești sigur că vrei\nsă devină ONG utilizatorul\n</string>
     <string name="deleteCause">Șterge obiectivul</string>
     <string name="are_you_sure_delete_cause">Ești sigur\n că vrei să ștergi\nacest obiectiv?</string>
+    <string name="accept">Acceptă</string>
+    <string name="send">Trimite email</string>
+    <string name="changeDecision">Schimbă decizia</string>
+    <string name="official_address">Adresa oficială</string>
+    <string name="site">Website</string>
+    <string name="donate">Link donează 2%</string>
+    <string name="download_data">Descarcă lista de susținători</string>
     <!--<string name="thanks">Mulțumim!</string>-->
 
 </resources>

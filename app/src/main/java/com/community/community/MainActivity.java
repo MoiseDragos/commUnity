@@ -95,6 +95,8 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
         Log.d(LOG, "======== onCreate");
 
+//        UsefulThings.initNetworkListener();
+
         UsefulThings.causeCaches = new LruCache<>(UsefulThings.causeCacheSize);
 
          /* Firebase */
@@ -209,6 +211,8 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                                         LoginActivity.class));
                                 finish();
                                 break;
+                            default:
+                                break;
                         }
                         mDrawerLayout.closeDrawers();
                         return true;
@@ -223,8 +227,6 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         if(extras != null) {
             if(!isRegistered) {
                 isRegistered = true;
-
-
                 Boolean res = extras.getBoolean("isRegistred");
                 Log.d(LOG, "res: " + res);
                 if(res) {
@@ -237,6 +239,8 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     }
 
     private void downloadUserDetails() {
+        Log.d(LOG, "downloadUserDetails!");
+
         final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         final DatabaseReference dRef = FirebaseDatabase.getInstance().getReference().child("users")
@@ -278,9 +282,25 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     age = Integer.valueOf(data.get("age").toString());
                 }
 
+                String official_address = null;
+                if(snapshot.hasChild("official_address")) {
+                    official_address = data.get("official_address").toString();
+                }
+
+                String website = null;
+                if(snapshot.hasChild("site")) {
+                    website = data.get("site").toString();
+                }
+
+                String donate = null;
+                if(snapshot.hasChild("donate")) {
+                    donate = data.get("donate").toString();
+                }
+
                 UsefulThings.currentUser = new User(nickname, email, describe, address, uid,
-                        status, imageName, imageURL,
-                        age, ownCausesNumber, supportedCausesNumber);
+                        status, imageName, imageURL, age, ownCausesNumber, supportedCausesNumber,
+                        official_address, website, donate);
+
             }
 
             @Override
@@ -307,37 +327,73 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     }
 
     private void writeNewUser() {
-        FirebaseUser user = mAuth.getCurrentUser();
+        final FirebaseUser user = mAuth.getCurrentUser();
         String email = user.getEmail();
 
-        UsefulThings.currentUser = new User();
+        /* Firebase */
+        final DatabaseReference rootRef = mDatabase.child("users")
+                .child(user.getUid()).child("ProfileSettings");
+        final DatabaseReference[] ref = {rootRef.child("status")};
+        ref[0].setValue("active");
+        ref[0] = rootRef.child("nickname");
+        ref[0].setValue(email);
+        ref[0] = rootRef.child("email");
+        ref[0].setValue(email);
+        ref[0] = rootRef.child("ownCauses");
+        ref[0].setValue("0");
+        ref[0] = rootRef.child("supportedCauses");
+        ref[0].setValue("0");
+
+        String nick = email.replace(".", "-");
+        ref[0] = mDatabase.child("nicknames").child(nick);
+        ref[0].setValue(email + "~" + user.getUid());
 
         /* UserPublicProfile */
+        UsefulThings.currentUser = new User();
         UsefulThings.currentUser.setStatus("active");
         UsefulThings.currentUser.setNickname(email);
         UsefulThings.currentUser.setOwnCausesNumber(0);
         UsefulThings.currentUser.setSupportedCausesNumber(0);
-        UsefulThings.currentUser.setType("user");
         UsefulThings.currentUser.setUid(user.getUid());
 
-        /* Firebase */
-        DatabaseReference rootRef = mDatabase.child("users")
-                .child(user.getUid()).child("ProfileSettings");
-        DatabaseReference ref = rootRef.child("status");
-        ref.setValue("active");
-        ref = rootRef.child("nickname");
-        ref.setValue(email);
-        ref = rootRef.child("email");
-        ref.setValue(email);
-        ref = rootRef.child("ownCauses");
-        ref.setValue("0");
-        ref = rootRef.child("supportedCauses");
-        ref.setValue("0");
-        ref = rootRef.child("type");
-        ref.setValue("user");
-        String nick = email.replace(".", "-");
-        ref = mDatabase.child("nicknames").child(nick);
-        ref.setValue(email + "~" + user.getUid());
+        final DatabaseReference reference = mDatabase.child("users")
+                .child(user.getUid()).child("NGODetails");
+        reference.addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.getValue() != null) {
+                            mDatabase.child("ngo").child(user.getUid()).setValue(user.getEmail());
+
+                            ref[0] = rootRef.child("type");
+                            ref[0].setValue("ngo");
+                            UsefulThings.currentUser.setType("ngo");
+
+                            Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+
+                            String address = (String) map.get("address");
+                            ref[0] = rootRef.child("official_address");
+                            ref[0].setValue(address);
+                            UsefulThings.currentUser.setOfficial_address(address);
+
+                            String site = (String) map.get("site");
+                            ref[0] = rootRef.child("site");
+                            ref[0].setValue(site);
+                            UsefulThings.currentUser.setSite(site);
+
+                            reference.removeValue();
+                        } else {
+                            ref[0] = rootRef.child("type");
+                            ref[0].setValue("user");
+                            UsefulThings.currentUser.setType("user");
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
     }
 
     private CallImageButtonClickListener callImageButtonClickListener = new CallImageButtonClickListener();
@@ -359,6 +415,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     break;
                 case R.id.search_marker:
                     onButtonPressed(1);
+                    hideVirtualKeyboard();
                     break;
                 case R.id.add_marker:
                     hideVirtualKeyboard();
@@ -604,6 +661,19 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         lat = null;
         lng = null;
         firebaseImages = null;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
+                UsefulThings.mNetworkStateChangedFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
     }
 
     @Override

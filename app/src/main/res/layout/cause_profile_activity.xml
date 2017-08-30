@@ -12,10 +12,10 @@
     <android.support.percent.PercentRelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/relative_layout_1">
+        android:id="@+id/relative_layout_describe">
 
         <android.support.percent.PercentRelativeLayout
-            android:id="@+id/relative_layout_2"
+            android:id="@+id/relative_layout_address"
             android:layout_width="match_parent"
             app:layout_heightPercent="20%"
             >
@@ -34,7 +34,7 @@
         <LinearLayout
             android:layout_width="100dp"
             android:layout_height="45dp"
-            android:layout_below="@id/relative_layout_2"
+            android:layout_below="@id/relative_layout_address"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="20dp"
             android:orientation="horizontal">
@@ -95,7 +95,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="116dp"
-            android:layout_below="@id/relative_layout_2"
+            android:layout_below="@id/relative_layout_address"
             android:layout_marginTop="-59dp">
 
             <de.hdodenhof.circleimageview.CircleImageView
@@ -113,12 +113,13 @@
                 android:contentDescription="@string/edit"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@mipmap/ic_mode_edit_black_48dp"
-                android:background="@drawable/edit_text_form_white"
+                android:src="@drawable/edit_icon"
+                android:background="#0000"
                 android:layout_gravity="right"
                 android:layout_centerVertical="true"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="10dp"
+                android:scaleType="centerCrop"
                 android:id="@+id/edit_btn"
                 android:visibility="gone"
                 />
@@ -228,11 +229,13 @@
             </android.support.percent.PercentRelativeLayout>
 
             <android.support.percent.PercentRelativeLayout
+                android:id="@+id/imagesLayout"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="5dp"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
+                android:layout_marginBottom="10dp"
                 android:layout_below="@id/relative_layout_3">
                 <View
                     android:id="@+id/view3"
@@ -352,6 +355,24 @@
 
             </android.support.percent.PercentRelativeLayout>
 
+            <android.support.percent.PercentRelativeLayout
+                android:id="@+id/csv_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/imagesLayout"
+                android:layout_centerInParent="true"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/create_csv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/download_data"
+                    android:background="@drawable/edit_text_form_gray"
+                    android:scaleType="fitXY"
+                    android:textColor="@color/blue5" />
+
+            </android.support.percent.PercentRelativeLayout>
 
         </android.support.percent.PercentRelativeLayout>
 

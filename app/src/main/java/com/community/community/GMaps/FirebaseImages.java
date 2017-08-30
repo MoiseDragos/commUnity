@@ -17,7 +17,7 @@ public class FirebaseImages implements Serializable {
     private String optionalThumbnailURL2;
     private String optionalImageURL2;
 
-    public FirebaseImages(){}
+    FirebaseImages(){}
 
     public FirebaseImages(String profileImageName, String profileImageURL){
         this.profileImageName = profileImageName;
@@ -84,15 +84,15 @@ public class FirebaseImages implements Serializable {
         this.optionalThumbnailURL2 = optionalThumbnailURL2;
     }
 
-    public String getProfileThumbnailURL() {
+    String getProfileThumbnailURL() {
         return profileThumbnailURL;
     }
 
-    public String getOptionalThumbnailURL1() {
+    String getOptionalThumbnailURL1() {
         return optionalThumbnailURL1;
     }
 
-    public String getOptionalThumbnailURL2() {
+    String getOptionalThumbnailURL2() {
         return optionalThumbnailURL2;
     }
 }

@@ -15,7 +15,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.community.community.AdminActivity;
 import com.community.community.General.BackPressedActivity;
+import com.community.community.General.UsefulThings;
 import com.community.community.MainActivity;
 import com.community.community.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -82,7 +84,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if(user != null) {
 
             DatabaseReference ref = FirebaseDatabase.getInstance().getReference()
-                    .child("users").child(user.getUid());
+                    .child("users").child(user.getUid()).child("ProfileSettings");
             ref.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -134,12 +136,44 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     mAuth.signOut();
                 }
 
-                private void startMainActivity(boolean newUser) {
-                    Log.d(LOG, "startMainActivity");
-                    Intent i = new Intent(getApplicationContext(), MainActivity.class);
-                    i.putExtra("isRegistred", newUser);
-                    startActivity(i);
-                    finish();
+                private void startMainActivity(final boolean newUser) {
+
+                    FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                    FirebaseUser user = mAuth.getCurrentUser();
+
+                    if (user != null) {
+                        final DatabaseReference ref = FirebaseDatabase.getInstance().
+                                getReference().child("users").child(user.getUid())
+                                .child("ProfileSettings").child("type");
+                        ref.addListenerForSingleValueEvent(
+                                new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if(dataSnapshot.getValue() == null ||
+                                                !String.valueOf(dataSnapshot.getValue())
+                                                        .equals("admin")) {
+                                            Intent i = new Intent(getApplicationContext(),
+                                                    MainActivity.class);
+                                            i.putExtra("isRegistred", newUser);
+                                            startActivity(i);
+                                            finish();
+                                        } else {
+                                            startActivity(new Intent(getApplicationContext(),
+                                                    AdminActivity.class));
+                                            finish();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                    } else {
+                        Intent i = new Intent(getApplicationContext(), LoginActivity.class);
+                        startActivity(i);
+                        finish();
+                    }
                 }
 
                 @Override
@@ -246,6 +280,19 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
             }
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
+                UsefulThings.mNetworkStateChangedFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
     }
 
     @Override

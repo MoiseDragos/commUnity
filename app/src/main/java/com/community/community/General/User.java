@@ -12,6 +12,9 @@ public class User implements Serializable {
     private String uid = null;
     private String status = null;
     private String type = null;
+    private String site = null;
+    private String official_address = null;
+    private String donate = null;
     private int age = 0;
     private int ownCausesNumber = 0;
     private int supportedCausesNumber = 0;
@@ -19,8 +22,8 @@ public class User implements Serializable {
     public User() {}
 
     public User(String nickname, String email, String describe, String address, String uid,
-         String status, String imageName, String imageURL,
-         int age, int ownCausesNumber, int supportedCausesNumber){
+                String status, String imageName, String imageURL, int age, int ownCausesNumber,
+                int supportedCausesNumber, String official_address, String site, String donate){
 
         this.nickname = nickname;
         this.email = email;
@@ -33,7 +36,9 @@ public class User implements Serializable {
         this.age = age;
         this.ownCausesNumber = ownCausesNumber;
         this.supportedCausesNumber = supportedCausesNumber;
-
+        this.official_address = official_address;
+        this.site = site;
+        this.donate = donate;
     }
 
 
@@ -130,6 +135,30 @@ public class User implements Serializable {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getSite() {
+        return site;
+    }
+
+    public void setSite(String site) {
+        this.site = site;
+    }
+
+    public String getOfficial_address() {
+        return official_address;
+    }
+
+    public void setOfficial_address(String official_address) {
+        this.official_address = official_address;
+    }
+
+    public String getDonate() {
+        return donate;
+    }
+
+    public void setDonate(String donate) {
+        this.donate = donate;
     }
 }
 

@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.community.community.R;
 
@@ -19,6 +20,15 @@ public class BackPressedActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.back_pressed_activity);
+
+        Intent intent = getIntent();
+        if(intent != null){
+            if(intent.getStringExtra("edit") != null &&
+                    intent.getStringExtra("edit").equals("edit")) {
+                TextView textAreYouSure = (TextView) findViewById(R.id.textAreYouSure);
+                textAreYouSure.setText(R.string.cancel_changes);
+            }
+        }
 
         im_sure = (Button) findViewById(R.id.im_sure);
         im_sure.setOnClickListener(new View.OnClickListener() {

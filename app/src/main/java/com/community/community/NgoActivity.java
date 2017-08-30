@@ -33,6 +33,11 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Map;
 
+//TODO: EditCause problems
+//TODO: mesaj catre utilizator
+//TODO: back btn
+//TODO: search NGO
+
 public class NgoActivity extends AppCompatActivity {
 
     private String LOG = this.getClass().getSimpleName();
@@ -814,4 +819,18 @@ public class NgoActivity extends AppCompatActivity {
             rootLayout.removeView(allPercent);
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
+                UsefulThings.mNetworkStateChangedFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
+    }
+
 }

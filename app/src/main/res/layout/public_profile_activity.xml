@@ -35,7 +35,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:civ_border_width="2dp"
-                app:civ_border_color="@color/blue2"
+                app:civ_border_color="@color/blue4"
                 />
                 <!--android:src="@drawable/profile"-->
 
@@ -47,9 +47,10 @@
                 android:layout_marginRight="24dp"
                 android:layout_centerVertical="true"
                 android:layout_alignParentRight="true"
-                android:src="@mipmap/ic_mode_edit_black_48dp"
-                android:background="@drawable/edit_text_form_white"
+                android:src="@drawable/edit_icon"
                 android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                android:background="#0000"
                 android:visibility="gone"
                 />
 
@@ -193,7 +194,7 @@
             android:layout_height="wrap_content">
 
             <android.support.percent.PercentRelativeLayout
-                android:id="@+id/relative_layout_1"
+                android:id="@+id/relative_layout_describe"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:padding="10dp"
@@ -239,11 +240,11 @@
             </android.support.percent.PercentRelativeLayout>
 
             <android.support.percent.PercentRelativeLayout
-                android:id="@+id/relative_layout_2"
+                android:id="@+id/relative_layout_address"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:padding="10dp"
-                android:layout_below="@id/relative_layout_1"
+                android:layout_below="@id/relative_layout_describe"
                 android:visibility="gone"
                 >
                 <View
@@ -285,10 +286,170 @@
             </android.support.percent.PercentRelativeLayout>
 
             <android.support.percent.PercentRelativeLayout
+                android:id="@+id/relative_layout_official_address"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:layout_below="@id/relative_layout_describe"
+                android:visibility="gone"
+                >
+                <View
+                    android:id="@+id/view4"
+                    app:layout_widthPercent="27%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:textSize="18sp"
+                    android:textColor="@color/blue2"
+                    android:text="@string/official_address"/>
+
+                <View
+                    android:layout_alignParentRight="true"
+                    app:layout_widthPercent="27%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <com.bluejamesbond.text.DocumentView
+                    android:id="@+id/official_address_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    xmlns:ext="http://schemas.android.com/apk/res-auto"
+                    ext:documentView_insetPaddingLeft="10dp"
+                    ext:documentView_insetPaddingRight="10dp"
+                    ext:documentView_textAlignment="justified"
+                    ext:documentView_textColor="@color/white"
+                    ext:documentView_textSize="14sp"
+                    android:layout_marginTop="14dp"
+                    android:layout_below="@id/view4"
+                    />
+
+            </android.support.percent.PercentRelativeLayout>
+
+            <android.support.percent.PercentRelativeLayout
+                android:id="@+id/relative_layout_site"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:layout_below="@id/relative_layout_official_address"
+                android:visibility="gone"
+                >
+                <View
+                    android:id="@+id/view5"
+                    app:layout_widthPercent="35%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:textSize="18sp"
+                    android:textColor="@color/blue2"
+                    android:text="@string/site"/>
+
+                <View
+                    android:layout_alignParentRight="true"
+                    app:layout_widthPercent="35%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <TextView
+                    android:id="@+id/site_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:layout_marginTop="14dp"
+                    android:layout_below="@id/view5"
+                    />
+                <!--<com.bluejamesbond.text.DocumentView-->
+                    <!--android:id="@+id/site_view"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="match_parent"-->
+                    <!--xmlns:ext="http://schemas.android.com/apk/res-auto"-->
+                    <!--ext:documentView_insetPaddingLeft="10dp"-->
+                    <!--ext:documentView_insetPaddingRight="10dp"-->
+                    <!--ext:documentView_textAlignment="justified"-->
+                    <!--ext:documentView_textColor="@color/white"-->
+                    <!--ext:documentView_textSize="14sp"-->
+                    <!--android:layout_marginTop="14dp"-->
+                    <!--android:layout_below="@id/view5"-->
+                    <!--/>-->
+
+            </android.support.percent.PercentRelativeLayout>
+
+            <android.support.percent.PercentRelativeLayout
+                android:id="@+id/relative_layout_donate"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:layout_below="@id/relative_layout_site"
+                android:visibility="gone"
+                >
+                <View
+                    android:id="@+id/view6"
+                    app:layout_widthPercent="27%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:textSize="18sp"
+                    android:textColor="@color/blue2"
+                    android:text="@string/donate"/>
+
+                <View
+                    android:layout_alignParentRight="true"
+                    app:layout_widthPercent="27%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <TextView
+                    android:id="@+id/donate_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:layout_marginTop="14dp"
+                    android:layout_below="@id/view6"
+                    />
+
+                <!--<com.bluejamesbond.text.DocumentView-->
+                    <!--android:id="@+id/donate_view"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="match_parent"-->
+                    <!--xmlns:ext="http://schemas.android.com/apk/res-auto"-->
+                    <!--ext:documentView_insetPaddingLeft="10dp"-->
+                    <!--ext:documentView_insetPaddingRight="10dp"-->
+                    <!--ext:documentView_textAlignment="justified"-->
+                    <!--ext:documentView_textColor="@color/white"-->
+                    <!--ext:documentView_textSize="14sp"-->
+                    <!--android:layout_marginTop="14dp"-->
+                    <!--android:layout_below="@id/view6"-->
+                    <!--/>-->
+
+            </android.support.percent.PercentRelativeLayout>
+
+            <android.support.percent.PercentRelativeLayout
                 android:id="@+id/userOng"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/relative_layout_2"
                 android:layout_centerInParent="true"
                 android:layout_marginTop="14dp"
                 android:layout_marginBottom="14dp"
@@ -308,7 +469,7 @@
                 android:id="@+id/proposalsLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/relative_layout_2"
+                android:layout_below="@id/userOng"
                 android:orientation="horizontal"
                 android:gravity="center"
                 android:visibility="gone"
