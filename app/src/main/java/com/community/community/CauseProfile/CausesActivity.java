@@ -13,6 +13,7 @@ import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -78,6 +79,15 @@ public class CausesActivity extends AppCompatActivity {
             default:
                 break;
         }
+
+        Button backBtn = (Button) findViewById(R.id.backBtn);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                onBackPressed();
+            }
+
+        });
     }
 
     private void displayAllCauses() {

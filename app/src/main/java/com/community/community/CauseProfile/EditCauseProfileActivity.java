@@ -1,11 +1,13 @@
 package com.community.community.CauseProfile;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -22,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
+import com.community.community.General.BackPressedActivity;
 import com.community.community.General.Cause;
 import com.community.community.General.UsefulThings;
 import com.community.community.MainActivity;
@@ -56,6 +59,8 @@ public class EditCauseProfileActivity extends AppCompatActivity {
     private String ownerUID = null;
     private boolean changed = false;
     private boolean changedImage = false;
+    private boolean changedText = false;
+    private boolean existOptionalImage1 = false;
 
     /* Images Details */
     private ImageView profileImage = null;
@@ -123,8 +128,19 @@ public class EditCauseProfileActivity extends AppCompatActivity {
             causeDetails.setProfileImage((Bitmap) savedInstanceState.getParcelable("profileImage"));
             causeDetails.setOptionalImage1((Bitmap) savedInstanceState.getParcelable("optionalImage1"));
             causeDetails.setOptionalImage2((Bitmap) savedInstanceState.getParcelable("optionalImage2"));
+            ownerUID = savedInstanceState.getString("ownerUid");
+            causeId = savedInstanceState.getString("causeId");
         }
         setInitialDetails();
+
+        Button backBtn = (Button) findViewById(R.id.backBtn);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                onBackPressed();
+            }
+
+        });
     }
 
     private void setInitialDetails() {
@@ -137,6 +153,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
         Bitmap img = causeDetails.getOptionalImage1();
 
         if(img != null) {
+            existOptionalImage1 = true;
             optionalImage1.setImageBitmap(img);
         } else {
             optionalImage1.setImageResource(R.drawable.profile);
@@ -156,6 +173,8 @@ public class EditCauseProfileActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         Log.d(LOG, "====== onSaveInstanceState");
 
+        outState.putString("ownerUid", ownerUID);
+        outState.putString("causeId", causeId);
         outState.putString("name", causeDetails.getName());
         outState.putString("describe", causeDetails.getDescription());
         outState.putParcelable("profileImage", causeDetails.getProfileImage());
@@ -173,16 +192,17 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                 case R.id.submit_changes:
                     if(verifyCauseDetails()) {
 
-                        if(changedImage) {
-                            updateFirebaseImages();
+                        if(changedText) {
+                            changedText = false;
+                            updateTexts();
                         }
-                        Intent i = new Intent();
-                        i.putExtra("changed", changed);
-                        i.putExtra("ownerUID", ownerUID);
-                        i.putExtra("causeId", causeId);
-                        setResult(RESULT_OK, i);
-//                        Log.d(LOG, "AfterImage: " + userDetails.getProfileImage());
-                        finish();
+
+                        if(changedImage) {
+                            changedImage = false;
+                            updateFirebaseImages();
+                        } else {
+                            successfulIntent();
+                        }
                     }
                     break;
 
@@ -198,7 +218,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                         checkPermission();
                     }
                     startActivityForResult(new Intent(Intent.ACTION_PICK,
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI), 1);
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI), 11);
                     break;
 
                 case R.id.change_optional_image1:
@@ -206,7 +226,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                         checkPermission();
                     }
                     startActivityForResult(new Intent(Intent.ACTION_PICK,
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI), 2);
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI), 12);
                     break;
 
                 case R.id.change_optional_image2:
@@ -214,7 +234,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                         checkPermission();
                     }
                     startActivityForResult(new Intent(Intent.ACTION_PICK,
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI), 3);
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI), 13);
                     break;
 
                 case R.id.delete:
@@ -398,118 +418,73 @@ public class EditCauseProfileActivity extends AppCompatActivity {
         }
     }
 
-    private void updateFirebaseImages() {
+    private void updateTexts() {
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(ownerUID).child("MyCauses").child(causeId).child("Info");
 
-        final ProgressDialog dialog = new ProgressDialog(this);
+        rootRef.child("name").setValue(causeDetails.getName());
+        rootRef.child("description").setValue(causeDetails.getDescription());
+
+        FirebaseDatabase.getInstance().getReference()
+                .child("causes").child(causeId).child("Info").child("name")
+                .setValue(causeDetails.getName());
+
+    }
+
+    private void updateFirebaseImages() {
 
         /* Delete old image */
         final DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference()
                 .child("users").child(ownerUID).child("MyCauses").child(causeId).child("Images");
-        Log.d(LOG, String.valueOf(rootRef));
         rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
 
                 final Map ref = (Map) snapshot.getValue();
-                final String[] imageName = {null};
 
+                String imageName;
                 /* Delete profile image */
                 if(changedProfileImage != null) {
-                    dialog.setTitle("Deleting old profile image...");
-                    dialog.show();
+                    imageName = (String) ref.get("profileImageName");
+                    new asyncImageUpload(imageName, UsefulThings.currentUser.getUid()).execute();
+                }
 
-                    imageName[0] = (String) ref.get("profileImageName");
-                    Log.d(LOG, "++++++++ ImageName: " + imageName[0]);
+                if(changedOptionalImage1 != null) {
+                    imageName = (String) ref.get("optionalImageName1");
+                    new asyncImageUpload(imageName, UsefulThings.currentUser.getUid()).execute();
+                }
 
-                    final StorageReference[] desertRef = {FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                            causeId + "/" + imageName[0])};
-                    Log.d(LOG, "++++++++ desertRef: " + desertRef[0]);
+                if(changedOptionalImage2 != null) {
+                    imageName = (String) ref.get("optionalImageName2");
+                    new asyncImageUpload(imageName, UsefulThings.currentUser.getUid()).execute();
+                }
 
-                    desertRef[0].delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
+                uploadImagesToFirebase(causeId);
+            }
 
-                            desertRef[0] = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                                    causeId + "/thumbnail_" + imageName[0]);
+            class asyncImageUpload extends AsyncTask<String, Void, String> {
 
-                            desertRef[0].delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                               @Override
-                               public void onSuccess(Void aVoid) {
+                private String name;
+                private String uid;
 
-                                   /* Delete optional image 1 */
-                                   if(changedOptionalImage1 != null){
-                                       dialog.setTitle("Deleting old optional image 1...");
-                                       dialog.show();
+                asyncImageUpload(String name, String uid){
+                    this.name = name;
+                    this.uid = uid;
+                }
 
-                                       imageName[0] = (String) ref.get("optionalImageName1");
-                                       desertRef[0] = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                                               causeId + "/" + imageName[0]);
+                @Override
+                protected String doInBackground(String... params) {
 
-                                       desertRef[0].delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                           @Override
-                                           public void onSuccess(Void aVoid) {
+                    removeOldImageFromFirebase("/");
+                    removeOldImageFromFirebase("/thumbnail_");
+                    return "Executed";
+                }
 
-                                               desertRef[0] = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                                                       causeId + "/thumbnail_" + imageName[0]);
 
-                                               desertRef[0].delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                   @Override
-                                                   public void onSuccess(Void aVoid) {
-
-                                                       /* Delete optionla image 2 */
-                                                       if(changedOptionalImage2 != null) {
-                                                           dialog.setTitle("Deleting old optional image 2...");
-                                                           dialog.show();
-
-                                                           imageName[0] = (String) ref.get("optionalImageName2");
-                                                           desertRef[0] = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                                                                   causeId + "/" + imageName[0]);
-
-                                                           desertRef[0].delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                               @Override
-                                                               public void onSuccess(Void aVoid) {
-
-                                                                   desertRef[0] = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                                                                           causeId + "/thumbnail_" + imageName[0]);
-
-                                                                   desertRef[0].delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                                       @Override
-                                                                       public void onSuccess(Void aVoid) {
-                                                                           dialog.dismiss();
-                                                                           uploadImagesToFirebase(causeId);
-                                                                       }
-                                                                   });
-                                                               }
-                                                           });
-                                                       } else {
-                                                           dialog.dismiss();
-                                                           uploadImagesToFirebase(causeId);
-                                                       }
-                                                   }
-                                               });
-
-                                           }
-                                       }).addOnFailureListener(new OnFailureListener() {
-                                           @Override
-                                           public void onFailure(@NonNull Exception exception) {
-                                               Log.d(LOG, "Imaginea nu exista!");
-                                           }
-                                       });
-
-                                   } else {
-                                       dialog.dismiss();
-                                       uploadImagesToFirebase(causeId);
-                                   }
-
-                               }
-                           });
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception exception) {
-                            Log.d(LOG, "Imaginea nu exista!");
-                        }
-                    });
+                private void removeOldImageFromFirebase(String separator) {
+                    FirebaseStorage.getInstance().getReference()
+                            .child(UsefulThings.FB_STORAGE_USERS_PATH + uid + separator + name)
+                            .delete();
                 }
             }
 
@@ -523,62 +498,132 @@ public class EditCauseProfileActivity extends AppCompatActivity {
     @SuppressWarnings("VisibleForTests")
     private void uploadImagesToFirebase(final String causeId) {
 
+//        Log.d(LOG, optionalImage1 + "\n" + optionalURI1 + "\n" + optionalURI2);
+//        Log.d(LOG, changedOptionalImage1 + "\n" + changedOptionalImage2);
+//
+//        if(!existOptionalImage1 && optionalURI1 == null && optionalURI2 != null) {
+//            optionalURI1 = optionalURI2;
+//            optionalURI2 = null;
+//            changedOptionalImage1 = changedOptionalImage2;
+//            changedOptionalImage2 = null;
+//        }
+//        Log.d(LOG, optionalImage1 + "\n" + optionalURI1 + "\n" + optionalURI2);
+//        Log.d(LOG, changedOptionalImage1 + "\n" + changedOptionalImage2);
 //        realNames = new ArrayList<>();
 
         final ProgressDialog dialog = new ProgressDialog(this);
-        dialog.setTitle("Uploading profile image...");
-        dialog.show();
+        if(changedProfileImage != null) {
+            dialog.setTitle("Uploading profile image...");
+            dialog.show();
 
-        final String realName = getImageName(profileURI);
+            final String realName = getImageName(profileURI);
 
-        StorageReference ref = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                causeId + "/" + realName);
-        Log.d(LOG, "Ref: " + ref);
+            StorageReference ref = FirebaseStorage.getInstance().getReference()
+                    .child(UsefulThings.FB_STORAGE_PATH + causeId + "/" + realName);
+            Log.d(LOG, ref.toString());
+            ref.putFile(profileURI)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            Uri uri = getCompressedImageUri(getApplicationContext(),
+                                    changedProfileImage);
 
-        ref.putFile(profileURI)
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                        firebaseImages.setProfileImageURL(taskSnapshot.getDownloadUrl().toString());
-//                        firebaseImages.setProfileImageName(realName);
+                            updateURLs(taskSnapshot, uri, "profileImageURL"
+                                    , "profileImageName", false);
 
-//                        Uri uri = getCompressedImageUri(getApplicationContext(), profileBitmap);
-                        Uri uri = getCompressedImageUri(getApplicationContext(), changedProfileImage);
-                        uploadCompressedProfileImageToFirebase(uri, realName, dialog, causeId);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        dialog.dismiss();
-                        failureIntent(e);
-                    }
-                });
+                            uploadCompressedProfileImageToFirebase(uri, realName,
+                                    dialog, causeId);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            dialog.dismiss();
+                            failureIntent(e);
+                        }
+                    });
+        } else {
+            if(optionalURI1 != null) {
+                dialog.setTitle("Uploading optional image 1...");
+                dialog.show();
+
+                uploadOptionalImage1(dialog, causeId, optionalURI1, changedOptionalImage1);
+            } else if(optionalURI2 != null) {
+
+                if(!existOptionalImage1 && optionalURI1 == null) {
+                    dialog.setTitle("Uploading optional image 1...");
+                    dialog.show();
+                    uploadOptionalImage1(dialog, causeId, optionalURI2, changedOptionalImage2);
+                } else {
+                    dialog.setTitle("Uploading optional image 2...");
+                    dialog.show();
+                    uploadOptionalImage2(dialog, causeId);
+                }
+
+            }
+        }
     }
 
     @SuppressWarnings("VisibleForTests")
-    private void uploadCompressedProfileImageToFirebase(Uri uri, String realName, final ProgressDialog dialog, final String causeId) {
+    private void updateURLs(UploadTask.TaskSnapshot taskSnapshot, Uri uri,
+                            String imageURL, String imageName, boolean thumbnail) {
 
-        StorageReference ref = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                causeId + "/thumbnail_" + realName);
+        String url = taskSnapshot.getDownloadUrl().toString();
+        UsefulThings.currentUser.setImageURL(url);
+
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference ref = mDatabase.child("users").child(UsefulThings.currentUser.getUid())
+                .child("MyCauses").child(causeId).child("Images");
+
+        if(thumbnail) {
+            ref.child(imageURL).setValue(url);
+            if(imageName == null) {
+                mDatabase.child("causes").child(causeId).child("Info")
+                        .child("thumbnailImageURL").setValue(url);
+            }
+        } else {
+            String realPath = UsefulThings.getRealPath(uri,
+                    EditCauseProfileActivity.this);
+
+            Uri file = Uri.fromFile(new File(realPath));
+
+            ref.child(imageURL).setValue(url);
+            ref.child(imageName).setValue(file.getLastPathSegment());
+        }
+    }
+
+    @SuppressWarnings("VisibleForTests")
+    private void uploadCompressedProfileImageToFirebase(final Uri uri, String realName,
+                                                        final ProgressDialog dialog,
+                                                        final String causeId) {
+
+        StorageReference ref = FirebaseStorage.getInstance().getReference()
+                .child(UsefulThings.FB_STORAGE_PATH + causeId + "/thumbnail_" + realName);
 
         ref.putFile(uri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                        firebaseImages.setProfileThumbnailURL(taskSnapshot.getDownloadUrl().toString());
+
+                        updateURLs(taskSnapshot, uri, "profileThumbnailURL"
+                                , null, true);
 
                         if(optionalURI1 != null) {
                             dialog.setTitle("Uploading optional image 1...");
                             dialog.show();
 
-                            uploadOptionalImage1(dialog, causeId);
+                            uploadOptionalImage1(dialog, causeId, optionalURI1,
+                                    changedOptionalImage1);
                         } else if(optionalURI2 != null) {
                             dialog.setTitle("Uploading optional image 2...");
                             dialog.show();
 
-                            uploadOptionalImage2(dialog, causeId);
-
+                            if(!existOptionalImage1 && optionalURI1 == null) {
+                                uploadOptionalImage1(dialog, causeId, optionalURI2,
+                                        changedOptionalImage2);
+                            } else {
+                                uploadOptionalImage2(dialog, causeId);
+                            }
                         } else {
                             dialog.dismiss();
                             successfulIntent();
@@ -596,23 +641,25 @@ public class EditCauseProfileActivity extends AppCompatActivity {
     }
 
     @SuppressWarnings("VisibleForTests")
-    private void uploadOptionalImage1(final ProgressDialog dialog, final String causeId) {
+    private void uploadOptionalImage1(final ProgressDialog dialog, final String causeId, Uri optUri,
+                                      final Bitmap chOptImg) {
 
-        final String realName = getImageName(optionalURI1);
+        final String realName = getImageName(optUri);
 
-        StorageReference refOpt1 = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                causeId + "/" + realName);
+        StorageReference refOpt1 = FirebaseStorage.getInstance().getReference()
+                .child(UsefulThings.FB_STORAGE_PATH + causeId + "/" + realName);
         Log.d(LOG, "Ref: " + refOpt1);
 
-        refOpt1.putFile(optionalURI1)
+        refOpt1.putFile(optUri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                        firebaseImages.setOptionalImageURL1(taskSnapshot.getDownloadUrl().toString());
-//                        firebaseImages.setOptionalImageName1(realName);
+                        Uri uri = getCompressedImageUri(getApplicationContext(),
+                                chOptImg);
 
-//                        Uri uri = getCompressedImageUri(getApplicationContext(), optionalBitmap1);
-                        Uri uri = getCompressedImageUri(getApplicationContext(), changedOptionalImage1);
+                        updateURLs(taskSnapshot, uri, "optionalImageURL1"
+                                , "optionalImageName1", false);
+
                         uploadCompressedOptionalImage1ToFirebase(uri, realName, dialog, causeId);
 
                     }
@@ -627,18 +674,23 @@ public class EditCauseProfileActivity extends AppCompatActivity {
     }
 
     @SuppressWarnings("VisibleForTests")
-    private void uploadCompressedOptionalImage1ToFirebase(Uri uri, String realName, final ProgressDialog dialog, final String causeId) {
+    private void uploadCompressedOptionalImage1ToFirebase(final Uri uri,
+                                                          String realName,
+                                                          final ProgressDialog dialog,
+                                                          final String causeId) {
 
-        StorageReference ref = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                causeId + "/thumbnail_" + realName);
+        StorageReference ref = FirebaseStorage.getInstance().getReference()
+                .child(UsefulThings.FB_STORAGE_PATH + causeId + "/thumbnail_" + realName);
 
         ref.putFile(uri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                        firebaseImages.setOptionalThumbnailURL1(taskSnapshot.getDownloadUrl().toString());
 
-                        if (optionalURI2 != null) {
+                        updateURLs(taskSnapshot, uri, "optionalThumbnailURL1"
+                                , "1", true);
+
+                        if(optionalURI1 != null && optionalURI2 != null) {
 
                             dialog.setTitle("Uploading optional image 2...");
                             dialog.show();
@@ -664,19 +716,19 @@ public class EditCauseProfileActivity extends AppCompatActivity {
     private void uploadOptionalImage2(final ProgressDialog dialog, final String causeId) {
         final String realName = getImageName(optionalURI2);
 
-        StorageReference refOpt2 = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                causeId + "/" + realName);
-        Log.d(LOG, "Ref: " + refOpt2);
+        StorageReference refOpt2 = FirebaseStorage.getInstance().getReference()
+                .child(UsefulThings.FB_STORAGE_PATH + causeId + "/" + realName);
 
         refOpt2.putFile(optionalURI2)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                        firebaseImages.setOptionalImageURL2(taskSnapshot.getDownloadUrl().toString());
-//                        firebaseImages.setOptionalImageName2(realName);
+                        Uri uri = getCompressedImageUri(getApplicationContext(),
+                                changedOptionalImage2);
 
-//                        Uri uri = getCompressedImageUri(getApplicationContext(), optionalBitmap2);
-                        Uri uri = getCompressedImageUri(getApplicationContext(), changedOptionalImage2);
+                        updateURLs(taskSnapshot, uri, "optionalImageURL2"
+                                , "optionalImageName2", false);
+
                         uploadCompressedOptionalImage2ToFirebase(uri, realName, dialog, causeId);
 
                     }
@@ -691,16 +743,21 @@ public class EditCauseProfileActivity extends AppCompatActivity {
     }
 
     @SuppressWarnings("VisibleForTests")
-    private void uploadCompressedOptionalImage2ToFirebase(Uri uri, String realName, final ProgressDialog dialog, final String causeId) {
+    private void uploadCompressedOptionalImage2ToFirebase(final Uri uri,
+                                                          String realName,
+                                                          final ProgressDialog dialog,
+                                                          final String causeId) {
 
-        StorageReference ref = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                causeId + "/thumbnail_" + realName);
+        StorageReference ref = FirebaseStorage.getInstance().getReference()
+                .child(UsefulThings.FB_STORAGE_PATH + causeId + "/thumbnail_" + realName);
 
         ref.putFile(uri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                        firebaseImages.setOptionalThumbnailURL2(taskSnapshot.getDownloadUrl().toString());
+
+                        updateURLs(taskSnapshot, uri, "optionalThumbnailURL2"
+                                , "1", true);
 
                         dialog.dismiss();
                         successfulIntent();
@@ -736,6 +793,8 @@ public class EditCauseProfileActivity extends AppCompatActivity {
         Log.d(LOG, "SuccesfulIntent");
         Intent intent = new Intent();
         intent.putExtra("changed", changed);
+        intent.putExtra("ownerUID", ownerUID);
+        intent.putExtra("causeId", causeId);
         setResult(RESULT_OK, intent);
         finish();
     }
@@ -755,7 +814,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
         Log.d(LOG, "requestCode: " + requestCode + "\nresultCode: " + resultCode);
 
         switch (requestCode) {
-            case 1:
+            case 11:
                 if (resultCode == RESULT_OK) {
 
                     Uri imageUri = data.getData();
@@ -773,7 +832,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                 }
                 break;
 
-            case 2:
+            case 12:
                 if (resultCode == RESULT_OK) {
                     Uri imageUri = data.getData();
                     try {
@@ -790,7 +849,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                 }
                 break;
 
-            case 3:
+            case 13:
                 if (resultCode == RESULT_OK) {
                     Uri imageUri = data.getData();
                     try {
@@ -803,6 +862,18 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
+                    }
+                }
+                break;
+
+            case 100:
+                if(resultCode == Activity.RESULT_OK){
+                    Bundle b = data.getExtras();
+                    if(b.getBoolean("result")) {
+                        Intent intent = new Intent();
+                        intent.putExtra("changed", false);
+                        setResult(RESULT_OK, intent);
+                        finish();
                     }
                 }
                 break;
@@ -837,6 +908,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
 
         if(!causeDetails.getName().equals(nick)) {
             changed = true;
+            changedText = true;
             causeDetails.setName(nick);
         }
 
@@ -847,6 +919,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
 
         if(!causeDetails.getDescription().equals(des)) {
             changed = true;
+            changedText = true;
             causeDetails.setDescription(des);
         }
 
@@ -908,15 +981,52 @@ public class EditCauseProfileActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        Log.d(LOG, "onResume");
         super.onResume();
+        if(UsefulThings.mNetworkStateIntentReceiver == null ||
+                UsefulThings.mNetworkStateChangedFilter == null) {
+            UsefulThings.initNetworkListener();
+        }
         registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
                 UsefulThings.mNetworkStateChangedFilter);
     }
 
     @Override
     protected void onPause() {
+        Log.d(LOG, "onPause");
         super.onPause();
         unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(LOG, "onDestroy");
+        super.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        Log.d(LOG, "onLowMemory");
+        super.onLowMemory();
+    }
+
+    @Override
+    protected void onStart() {
+        Log.d(LOG, "onStart");
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(LOG, "onStop");
+        super.onStop();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent i = new Intent(getApplicationContext(), BackPressedActivity.class);
+        i.putExtra("edit", "edit");
+        startActivityForResult(i, 100);
     }
 }
 

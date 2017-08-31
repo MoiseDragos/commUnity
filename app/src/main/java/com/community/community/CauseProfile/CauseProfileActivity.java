@@ -3,9 +3,7 @@ package com.community.community.CauseProfile;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.percent.PercentRelativeLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -15,7 +13,6 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bluejamesbond.text.DocumentView;
 import com.bumptech.glide.Glide;
@@ -63,7 +60,7 @@ public class CauseProfileActivity extends AppCompatActivity {
     private TextView causes_name = null;
     private TextView supportedNumber = null;
     private DocumentView describe = null;
-    private int imagesNumber;
+    private int imagesNumber = -1;
 
     /* Buttons */
     private Button saveBtn = null;
@@ -126,6 +123,15 @@ public class CauseProfileActivity extends AppCompatActivity {
         getCauseData();
 
         setSupportedNumberListener();
+
+        Button backBtn = (Button) findViewById(R.id.backBtn);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                onBackPressed();
+            }
+
+        });
     }
 
     private void setSupportedNumberListener(){
@@ -215,8 +221,7 @@ public class CauseProfileActivity extends AppCompatActivity {
         switch (cacheData.getNumberOfPhotos()){
             case 1:
                 /* One picture uploaded */
-                android.support.percent.PercentRelativeLayout relative_layout_pic1 =
-                        (android.support.percent.PercentRelativeLayout)
+                PercentRelativeLayout relative_layout_pic1 = (PercentRelativeLayout)
                                 findViewById(R.id.relative_layout_pic1);
                 relative_layout_pic1.setVisibility(View.VISIBLE);
                 imagesNumber = 1;
@@ -226,8 +231,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                 break;
             case 2:
                 /* Two pictures uploaded */
-                android.support.percent.PercentRelativeLayout relative_layout_pic2 =
-                        (android.support.percent.PercentRelativeLayout)
+                PercentRelativeLayout relative_layout_pic2 = (PercentRelativeLayout)
                                 findViewById(R.id.relative_layout_pic2);
                 relative_layout_pic2.setVisibility(View.VISIBLE);
                 imagesNumber = 2;
@@ -243,8 +247,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                 break;
             case 3:
                 /* Three pictures uploaded */
-                android.support.percent.PercentRelativeLayout relative_layout_pic3 =
-                        (android.support.percent.PercentRelativeLayout)
+                PercentRelativeLayout relative_layout_pic3 = (PercentRelativeLayout)
                                 findViewById(R.id.relative_layout_pic3);
                 relative_layout_pic3.setVisibility(View.VISIBLE);
                 imagesNumber = 3;
@@ -269,10 +272,13 @@ public class CauseProfileActivity extends AppCompatActivity {
 
         DatabaseReference rootRef = mDatabase.child("users").child(ownerUID)
                 .child("MyCauses").child(causeId);
+//        rootRef.addValueEventListener(new ValueEventListener() {
         rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 Map all = (Map) snapshot.getValue();
+
+                Log.d(LOG, "addValueEventListener" + imagesNumber);
 
                 /* Cause Info */
                 Map ref = (Map) all.get("Info");
@@ -286,6 +292,10 @@ public class CauseProfileActivity extends AppCompatActivity {
                 final String profileURL = (String) ref.get("profileThumbnailURL");
                 final String optionalURL1 = (String) ref.get("optionalThumbnailURL1");
                 final String optionalURL2 = (String) ref.get("optionalThumbnailURL2");
+
+                if(imagesNumber != -1) {
+                    removeOldLayouts();
+                }
 
                 setImageNumber(optionalURL1, optionalURL2);
                 final Map finalRef = ref;
@@ -356,6 +366,32 @@ public class CauseProfileActivity extends AppCompatActivity {
                             }
                         });
                 Log.d(LOG, "Out of Glide");
+            }
+
+            private void removeOldLayouts() {
+
+                Log.d(LOG, "removeOldLayouts");
+                switch (imagesNumber) {
+                    case 1:
+                        PercentRelativeLayout relative_layout_pic1 = (PercentRelativeLayout)
+                                findViewById(R.id.relative_layout_pic1);
+                        relative_layout_pic1.setVisibility(View.GONE);
+                        break;
+                    case 2:
+                        PercentRelativeLayout relative_layout_pic2 = (PercentRelativeLayout)
+                                findViewById(R.id.relative_layout_pic2);
+                        relative_layout_pic2.setVisibility(View.GONE);
+                        break;
+                    case 3:
+                        PercentRelativeLayout relative_layout_pic3 = (PercentRelativeLayout)
+                                findViewById(R.id.relative_layout_pic3);
+                        relative_layout_pic3.setVisibility(View.GONE);
+                        break;
+
+                    default:
+                        break;
+                }
+
             }
 
             @Override
@@ -703,7 +739,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                     if(data.getBooleanExtra("changed", removeIt)){
                         removeIt = true;
                         Log.d(LOG, "Au aparut schimbari! " + removeIt);
-
+                        getFirebaseCauseData();
                     } else {
                         Log.d(LOG, "Nu au aparut schimbari!");
                     }
@@ -848,14 +884,32 @@ public class CauseProfileActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        Log.d(LOG, "onResume");
         super.onResume();
+        if(UsefulThings.mNetworkStateIntentReceiver == null ||
+                UsefulThings.mNetworkStateChangedFilter == null) {
+            UsefulThings.initNetworkListener();
+        }
         registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
                 UsefulThings.mNetworkStateChangedFilter);
     }
 
     @Override
     protected void onPause() {
+        Log.d(LOG, "onPause");
         super.onPause();
         unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(LOG, "onDestroy");
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(LOG, "onStop");
+        super.onStop();
     }
 }

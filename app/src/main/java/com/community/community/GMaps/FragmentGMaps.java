@@ -172,6 +172,10 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 if (snapshot.hasChild("causes")) {
+
+                    mGoogleMap.clear();
+
+                    Log.d(LOG, "addCausesOnMap");
                     Map all = (Map) snapshot.getValue();
                     Map<String,Object> causes = (Map<String,Object>) all.get("causes");
 
@@ -196,8 +200,8 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
                         final String ownerUID = (String) singleCause.get("ownerUID");
                         final String name = (String) singleCause.get("name");
                         String profileURL = (String) singleCause.get("thumbnailImageURL");
-                        Log.d(LOG, "Name: " + name);
-                        Log.d(LOG, "ProfileURL: " + profileURL);
+//                        Log.d(LOG, "Name: " + name);
+//                        Log.d(LOG, "ProfileURL: " + profileURL);
 
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 

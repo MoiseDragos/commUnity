@@ -116,6 +116,15 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
         onCheckedListeners();
         setUpSharedPreferences();
 
+        Button backBtn = (Button) findViewById(R.id.backBtn);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                onBackPressed();
+            }
+
+        });
+
     }
 
     private void setUpSharedPreferences() {

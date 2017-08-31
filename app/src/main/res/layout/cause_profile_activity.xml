@@ -9,10 +9,13 @@
     android:background="@color/blue4"
     tools:context="com.community.community.PublicProfile.PublicProfileActivity">
 
+
     <android.support.percent.PercentRelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/relative_layout_describe">
+
+
 
         <android.support.percent.PercentRelativeLayout
             android:id="@+id/relative_layout_address"
@@ -28,6 +31,21 @@
                 android:scaleType="centerCrop"
                 />
                 <!--android:src="@drawable/profile"-->
+
+
+        </android.support.percent.PercentRelativeLayout>
+
+        <android.support.percent.PercentRelativeLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="15dp"
+            >
+            <Button
+                android:id="@+id/backBtn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/back_blue4"
+                />
 
         </android.support.percent.PercentRelativeLayout>
 
@@ -103,7 +121,7 @@
                 android:layout_width="116dp"
                 android:layout_height="116dp"
                 app:civ_border_width="2dp"
-                app:civ_border_color="@color/blue2"
+                app:civ_border_color="@color/blue4"
                 android:layout_centerInParent="true"
                 android:layout_marginBottom="-59dp"
                 />

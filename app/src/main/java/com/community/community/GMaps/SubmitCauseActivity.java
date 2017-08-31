@@ -97,6 +97,15 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
         }
 
         Log.d(LOG, "CurrentUser: " + UsefulThings.currentUser.toString());
+
+        Button backBtn = (Button) findViewById(R.id.backBtn);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                onBackPressed();
+            }
+
+        });
     }
 
     @Override
@@ -563,8 +572,8 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
         for (int i = 0; i < realNames.size(); i++) {
             String name = realNames.get(i);
 
-            StorageReference desertRef = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                    lat + "_" + lng + "/" + name);
+            StorageReference desertRef = FirebaseStorage.getInstance().getReference()
+                    .child(UsefulThings.FB_STORAGE_PATH + lat + "_" + lng + "/" + name);
 
             desertRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
@@ -578,8 +587,8 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
                 }
             });
 
-            desertRef = FirebaseStorage.getInstance().getReference().child(UsefulThings.FB_STORAGE_PATH +
-                    lat + "_" + lng + "/thumbnail_" + name);
+            desertRef = FirebaseStorage.getInstance().getReference()
+                    .child(UsefulThings.FB_STORAGE_PATH + lat + "_" + lng + "/thumbnail_" + name);
 
             desertRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
@@ -598,6 +607,10 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onResume() {
         super.onResume();
+        if(UsefulThings.mNetworkStateIntentReceiver == null ||
+                UsefulThings.mNetworkStateChangedFilter == null) {
+            UsefulThings.initNetworkListener();
+        }
         registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
                 UsefulThings.mNetworkStateChangedFilter);
     }

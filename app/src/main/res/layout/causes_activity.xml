@@ -18,6 +18,21 @@
         android:textColor="@color/white"
         android:textStyle="bold"/>
 
+    <android.support.percent.PercentRelativeLayout
+        android:layout_width="48dp"
+        app:layout_heightPercent="12%"
+        android:layout_marginLeft="15dp"
+        >
+        <Button
+            android:id="@+id/backBtn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_centerVertical="true"
+            android:background="@drawable/back_white"
+            />
+
+    </android.support.percent.PercentRelativeLayout>
+
     <ScrollView
         android:id="@+id/scroll_view_no_causes"
         android:layout_width="match_parent"

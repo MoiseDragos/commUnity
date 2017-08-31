@@ -23,6 +23,20 @@
             android:contentDescription="@null" />
 
         <android.support.percent.PercentRelativeLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="15dp"
+            >
+            <Button
+                android:id="@+id/backBtn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/back_blue4"
+                />
+
+        </android.support.percent.PercentRelativeLayout>
+
+        <android.support.percent.PercentRelativeLayout
             android:id="@+id/circleLayout"
             android:layout_width="match_parent"
             app:layout_heightPercent="36%"

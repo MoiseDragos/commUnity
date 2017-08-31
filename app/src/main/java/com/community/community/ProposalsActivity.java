@@ -86,6 +86,15 @@ public class ProposalsActivity extends AppCompatActivity {
         }
 
         chooseWhatToShow(1);
+
+        Button backBtn = (Button) findViewById(R.id.backBtn);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                onBackPressed();
+            }
+
+        });
     }
 
     private void chooseWhatToShow(int i) {

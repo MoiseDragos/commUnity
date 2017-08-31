@@ -106,6 +106,15 @@ public class NgoActivity extends AppCompatActivity {
             supporterBtn.setText(R.string.supported);
             displayUser(1);
         }
+
+        Button backBtn = (Button) findViewById(R.id.backBtn);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                onBackPressed();
+            }
+
+        });
     }
 
     @Override

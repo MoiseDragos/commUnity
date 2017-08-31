@@ -131,6 +131,15 @@ public class EditPublicProfileActivity extends AppCompatActivity {
             setInitialProfileDetails(false);
         }
 
+        Button backBtn = (Button) findViewById(R.id.backBtn);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                onBackPressed();
+            }
+
+        });
+
     }
 
     private void setListeners(boolean ngo) {
@@ -903,14 +912,20 @@ public class EditPublicProfileActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if(UsefulThings.mNetworkStateIntentReceiver == null ||
+                UsefulThings.mNetworkStateChangedFilter == null) {
+            UsefulThings.initNetworkListener();
+        }
         registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
-                UsefulThings.mNetworkStateChangedFilter);
+                 UsefulThings.mNetworkStateChangedFilter);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
+        if(UsefulThings.mNetworkStateIntentReceiver != null) {
+            unregisterReceiver(UsefulThings.mNetworkStateIntentReceiver);
+        }
     }
 
     /* ---------- End of Image Upload Section ---------- */
