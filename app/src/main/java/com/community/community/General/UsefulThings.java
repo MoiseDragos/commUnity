@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.util.LruCache;
 import com.community.community.CauseProfile.CauseProfileActivity;
+import com.google.firebase.database.DatabaseReference;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -51,12 +52,12 @@ public class UsefulThings {
     public static final int USERS_INTERMEDIATE_IDS = 7;
     public static final int ADMIN_INTERMEDIATE_IDS = 7;
 
-    public static int causeCacheSize = 8 * 1024 * 1024; // 8MiB
-    public static int proposalsCacheSize = 4 * 1024 * 1024; // 4MiB
+    public static int CAUSE_CACHE_SIZE = 8 * 1024 * 1024; // 8MiB
+    public static int PROPOSALS_CACHE_SIZE = 4 * 1024 * 1024; // 4MiB
+
+    public static LruCache<String, Cause> CAUSE_CACHES;
+
     public static User currentUser;
-
-    public static LruCache<String, Cause> causeCaches;
-
     public static IntentFilter mNetworkStateChangedFilter;
     public static BroadcastReceiver mNetworkStateIntentReceiver;
 

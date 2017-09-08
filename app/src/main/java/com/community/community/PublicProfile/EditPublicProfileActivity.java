@@ -1,11 +1,13 @@
 package com.community.community.PublicProfile;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -127,6 +129,11 @@ public class EditPublicProfileActivity extends AppCompatActivity {
             address = (EditText) findViewById(R.id.edit_address);
             ageTextView = (TextView) findViewById(R.id.edit_age);
             ageSeekBar = (SeekBar) findViewById(R.id.seek_bar);
+            ageSeekBar.getProgressDrawable().setColorFilter(ContextCompat.getColor(
+                    getApplicationContext(), R.color.green), PorterDuff.Mode.SRC_IN);
+            ageSeekBar.getThumb().setColorFilter(ContextCompat.getColor(
+                    getApplicationContext(), R.color.green), PorterDuff.Mode.SRC_IN);
+
             setListeners(false);
             setInitialProfileDetails(false);
         }
@@ -427,21 +434,21 @@ public class EditPublicProfileActivity extends AppCompatActivity {
         }
 
         private void applyChanges(User user) {
-            Intent i = new Intent();
-            i.putExtra("changed", true);
 
             if(changedImage != null) {
                 createImageFromBitmap(changedImage);
+                uploadImageToFirebase(user);
                 new asyncImageUpload().execute();
-                i.putExtra("newPicture", true);
             } else {
+                updateUserDetails(user);
+
+                Intent i = new Intent();
+                i.putExtra("changed", true);
                 i.putExtra("newPicture", false);
+                setResult(RESULT_OK, i);
+                finish();
             }
 
-            updateUserDetails(user);
-
-            setResult(RESULT_OK, i);
-            finish();
         }
 
         private class asyncImageUpload extends AsyncTask<String, Void, String> {
@@ -450,7 +457,7 @@ public class EditPublicProfileActivity extends AppCompatActivity {
             protected String doInBackground(String... params) {
 
                 removeOldImageFromFirebase();
-                uploadImageToFirebase();
+//                uploadImageToFirebase();
 
                 return "Executed";
             }
@@ -801,7 +808,7 @@ public class EditPublicProfileActivity extends AppCompatActivity {
 
     /* ---------- Image Upload Section ---------- */
 
-    public String createImageFromBitmap(Bitmap bitmap) {
+    private String createImageFromBitmap(Bitmap bitmap) {
         String fileName = "myImage_" + UsefulThings.currentUser.getEmail();
 
         try {
@@ -842,11 +849,11 @@ public class EditPublicProfileActivity extends AppCompatActivity {
 
     }
 
-    private void uploadImageToFirebase() {
+    private void uploadImageToFirebase(User user) {
         Uri uri = UsefulThings.getCompressedImageUri(getApplicationContext(), changedImage);
 
         if(uri != null){
-            uploadToFirebase(uri);
+            uploadToFirebase(uri, user);
         } else {
             Toast.makeText(getApplicationContext(),
                     "No image to upload", Toast.LENGTH_SHORT).show();
@@ -855,8 +862,13 @@ public class EditPublicProfileActivity extends AppCompatActivity {
     }
 
     @SuppressWarnings("VisibleForTests")
-    private void uploadToFirebase(final Uri uri) {
+    private void uploadToFirebase(final Uri uri, final User user) {
 
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Uploading profile image...");
+        progressDialog.show();
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
 
         String realPath = UsefulThings.getRealPath(uri, EditPublicProfileActivity.this);
 
@@ -887,6 +899,16 @@ public class EditPublicProfileActivity extends AppCompatActivity {
                                 .child("users").child(UsefulThings.currentUser.getUid())
                                 .child("ProfileSettings").child("imageName")
                                 .setValue(file.getLastPathSegment());
+
+                        updateUserDetails(user);
+
+                        progressDialog.dismiss();
+
+                        Intent i = new Intent();
+                        i.putExtra("changed", true);
+                        i.putExtra("newPicture", true);
+                        setResult(RESULT_OK, i);
+                        finish();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {

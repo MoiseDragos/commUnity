@@ -50,8 +50,17 @@
                 android:layout_height="match_parent"
                 app:civ_border_width="2dp"
                 app:civ_border_color="@color/blue4"
+                android:clickable="true"
                 />
-                <!--android:src="@drawable/profile"-->
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:visibility="gone"
+                />
+            <!--android:src="@drawable/profile"-->
 
             <ImageButton
                 android:layout_gravity="right"
@@ -144,12 +153,25 @@
                     android:textSize="15sp"
                     android:textColor="@color/blue2"/>
 
+                <ImageView
+                    android:id="@+id/imageView1"
+                    app:layout_aspectRatio="100%"
+                    app:layout_heightPercent="42%"
+                    app:layout_marginTopPercent="1%"
+                    android:layout_below="@id/textView1"
+                    android:layout_centerInParent="true"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/bandage_icon"
+                    android:visibility="gone"
+                    android:contentDescription="@null">
+                </ImageView>
+
                 <TextView
                     android:id="@+id/own_number"
                     android:layout_width="match_parent"
                     app:layout_heightPercent="42%"
                     android:layout_below="@id/textView1"
-                    android:layout_marginTop="3dp"
+                    app:layout_marginTopPercent="5%"
                     android:textSize="20sp"
                     android:textColor="@color/white"
                     android:gravity="center"
@@ -186,12 +208,25 @@
                     android:layout_width="match_parent"
                     app:layout_heightPercent="42%"
                     android:layout_below="@id/textView2"
-                    android:layout_marginTop="3dp"
+                    app:layout_marginTopPercent="5%"
                     android:textSize="20sp"
                     android:textColor="@color/white"
                     android:gravity="center"
                     android:textStyle="bold"
                     />
+
+                <ImageView
+                    android:id="@+id/imageView2"
+                    app:layout_aspectRatio="100%"
+                    app:layout_heightPercent="42%"
+                    app:layout_marginTopPercent="1%"
+                    android:layout_below="@id/textView2"
+                    android:layout_centerInParent="true"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/bandage_icon"
+                    android:contentDescription="@null"
+                    android:visibility="gone">
+                </ImageView>
             </android.support.percent.PercentRelativeLayout>
 
         </android.support.percent.PercentRelativeLayout>
@@ -251,6 +286,18 @@
                     android:layout_marginTop="14dp"
                     />
 
+                <ImageView
+                    android:id="@+id/imageView3"
+                    app:layout_aspectRatio="300%"
+                    app:layout_widthPercent="100%"
+                    android:layout_below="@id/view1"
+                    android:layout_marginTop="4dp"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/blur_text_big"
+                    android:contentDescription="@null"
+                    android:visibility="gone">
+                </ImageView>
+
             </android.support.percent.PercentRelativeLayout>
 
             <android.support.percent.PercentRelativeLayout
@@ -296,6 +343,74 @@
                     android:layout_marginTop="14dp"
                     android:layout_below="@id/view3"
                     />
+
+                <ImageView
+                    android:id="@+id/imageView4"
+                    app:layout_aspectRatio="700%"
+                    app:layout_widthPercent="100%"
+                    android:layout_below="@id/view3"
+                    android:layout_marginTop="4dp"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/blur_text_small"
+                    android:visibility="gone"
+                    android:contentDescription="@null">
+                </ImageView>
+
+            </android.support.percent.PercentRelativeLayout>
+
+            <android.support.percent.PercentRelativeLayout
+                android:id="@+id/relative_layout_age"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:layout_below="@id/relative_layout_address"
+                android:visibility="gone"
+                >
+                <View
+                    android:id="@+id/view_age"
+                    app:layout_widthPercent="35%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:textSize="18sp"
+                    android:textColor="@color/blue2"
+                    android:text="@string/age"/>
+
+                <View
+                    android:layout_alignParentRight="true"
+                    app:layout_widthPercent="35%"
+                    android:layout_height="1dp"
+                    android:background="@color/blue2"
+                    android:layout_marginTop="12sp"/>
+
+                <TextView
+                    android:id="@+id/age_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:layout_marginTop="14dp"
+                    android:layout_below="@id/view_age"
+                    />
+
+                <ImageView
+                    android:id="@+id/imageView5"
+                    app:layout_aspectRatio="1000%"
+                    app:layout_widthPercent="100%"
+                    android:layout_below="@id/view_age"
+                    android:layout_marginTop="4dp"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/blur_text_age"
+                    android:contentDescription="@null"
+                    android:visibility="gone">
+                </ImageView>
 
             </android.support.percent.PercentRelativeLayout>
 
@@ -386,19 +501,6 @@
                     android:layout_marginTop="14dp"
                     android:layout_below="@id/view5"
                     />
-                <!--<com.bluejamesbond.text.DocumentView-->
-                    <!--android:id="@+id/site_view"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--xmlns:ext="http://schemas.android.com/apk/res-auto"-->
-                    <!--ext:documentView_insetPaddingLeft="10dp"-->
-                    <!--ext:documentView_insetPaddingRight="10dp"-->
-                    <!--ext:documentView_textAlignment="justified"-->
-                    <!--ext:documentView_textColor="@color/white"-->
-                    <!--ext:documentView_textSize="14sp"-->
-                    <!--android:layout_marginTop="14dp"-->
-                    <!--android:layout_below="@id/view5"-->
-                    <!--/>-->
 
             </android.support.percent.PercentRelativeLayout>
 
@@ -443,20 +545,6 @@
                     android:layout_marginTop="14dp"
                     android:layout_below="@id/view6"
                     />
-
-                <!--<com.bluejamesbond.text.DocumentView-->
-                    <!--android:id="@+id/donate_view"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--xmlns:ext="http://schemas.android.com/apk/res-auto"-->
-                    <!--ext:documentView_insetPaddingLeft="10dp"-->
-                    <!--ext:documentView_insetPaddingRight="10dp"-->
-                    <!--ext:documentView_textAlignment="justified"-->
-                    <!--ext:documentView_textColor="@color/white"-->
-                    <!--ext:documentView_textSize="14sp"-->
-                    <!--android:layout_marginTop="14dp"-->
-                    <!--android:layout_below="@id/view6"-->
-                    <!--/>-->
 
             </android.support.percent.PercentRelativeLayout>
 
@@ -564,5 +652,12 @@
             />
     </android.support.percent.PercentRelativeLayout>
 
+    <ImageView
+        android:id="@+id/full_screen_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blue4"
+        android:visibility="gone"
+        android:contentDescription="@null" />
 
 </android.support.percent.PercentRelativeLayout>

@@ -3,7 +3,9 @@ package com.community.community.PublicProfile;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PorterDuff;
 import android.net.Uri;
+
 import android.support.percent.PercentRelativeLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +18,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,6 +54,7 @@ public class PublicProfileActivity extends AppCompatActivity {
     /* Profile details */
     private PercentRelativeLayout describeRelativeLayout = null;
     private PercentRelativeLayout addressRelativeLayout = null;
+    private PercentRelativeLayout ageRelativeLayout = null;
     private PercentRelativeLayout officialAddressRelativeLayout = null;
     private PercentRelativeLayout websiteRelativeLayout = null;
     private PercentRelativeLayout donateRelativeLayout = null;
@@ -65,6 +69,7 @@ public class PublicProfileActivity extends AppCompatActivity {
     private DocumentView official_address = null;
     private TextView website = null;
     private TextView donate = null;
+    private TextView age = null;
 
     /* Ngo Buttons */
     private LinearLayout proposalsLayout = null;
@@ -83,6 +88,8 @@ public class PublicProfileActivity extends AppCompatActivity {
 
     /* Confirm changes */
     private boolean isUserOng = false;
+    private Bitmap profileImage = null;
+    private ImageView fullScreenContainer = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,10 +98,29 @@ public class PublicProfileActivity extends AppCompatActivity {
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        describeRelativeLayout = (android.support.percent.PercentRelativeLayout)
+        addressRelativeLayout = (PercentRelativeLayout) findViewById(R.id.relative_layout_address);
+        ageRelativeLayout = (PercentRelativeLayout) findViewById(R.id.relative_layout_age);
+        officialAddressRelativeLayout = (PercentRelativeLayout)
+                findViewById(R.id.relative_layout_official_address);
+        websiteRelativeLayout = (PercentRelativeLayout)
+                findViewById(R.id.relative_layout_site);
+        donateRelativeLayout = (PercentRelativeLayout)
+                findViewById(R.id.relative_layout_donate);
+        describeRelativeLayout = (PercentRelativeLayout)
                 findViewById(R.id.relative_layout_describe);
+        fullScreenContainer = (ImageView) findViewById(R.id.full_screen_container);
+
         blurImage = (ImageView) findViewById(R.id.blur_profile_image);
         circleImage = (CircleImageView) findViewById(R.id.profile_image);
+        circleImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(profileImage != null) {
+                    fullScreenContainer.setImageBitmap(profileImage);
+                    fullScreenContainer.setVisibility(View.VISIBLE);
+                }
+            }
+        });
         nickname = (TextView) findViewById(R.id.userNickname);
         email = (TextView) findViewById(R.id.userEmail);
         ownNumber = (TextView) findViewById(R.id.own_number);
@@ -117,30 +143,17 @@ public class PublicProfileActivity extends AppCompatActivity {
         supportBtn = (TextView) findViewById(R.id.supportBtn);
         supportBtn.setOnClickListener(callButtonClickListener);
 
+        official_address = (DocumentView) findViewById(R.id.official_address_view);
+        website = (TextView) findViewById(R.id.site_view);
+        donate = (TextView) findViewById(R.id.donate_view);
+        address = (DocumentView) findViewById(R.id.address_view);
+        age = (TextView) findViewById(R.id.age_view);
+
         setSmallTexts();
         boolean isMe = setUpUserDetails(savedInstanceState);
 
-
         if(UsefulThings.currentUser.getType().equals("ngo")) {
-            officialAddressRelativeLayout = (PercentRelativeLayout)
-                    findViewById(R.id.relative_layout_official_address);
-            websiteRelativeLayout = (PercentRelativeLayout)
-                    findViewById(R.id.relative_layout_site);
-            donateRelativeLayout = (PercentRelativeLayout)
-                    findViewById(R.id.relative_layout_donate);
-
-            setLayoutBelowAttribute(R.id.relative_layout_donate);
-            official_address = (DocumentView) findViewById(R.id.official_address_view);
-            website = (TextView) findViewById(R.id.site_view);
-            donate = (TextView) findViewById(R.id.donate_view);
             setUpListeners();
-        } else {
-            addressRelativeLayout = (android.support.percent.PercentRelativeLayout)
-                    findViewById(R.id.relative_layout_address);
-
-            setLayoutBelowAttribute(R.id.relative_layout_address);
-            address = (DocumentView) findViewById(R.id.address_view);
-
         }
 
         setUpProfileDetails(isMe);
@@ -217,7 +230,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         }
     }
 
-
     private void setLayoutBelowAttribute(int id) {
         PercentRelativeLayout userOng = (PercentRelativeLayout) findViewById(R.id.userOng);
         PercentRelativeLayout.LayoutParams childParams =
@@ -276,7 +288,7 @@ public class PublicProfileActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1){
             if(resultCode == RESULT_OK) {
                 Bundle bundle = data.getExtras();
@@ -888,95 +900,88 @@ public class PublicProfileActivity extends AppCompatActivity {
 
     /* ------------ Profile Details Section ------------ */
 
-    private void setProfileDetails(User user, String ongUid) {
+    private void setProfileDetails(final User user, String ongUid) {
 
         nickname.setText(user.getNickname());
         email.setText(user.getEmail());
 
-        if(user.getDescribe() != null &&
-                !user.getDescribe().equals("")){
-            describe.setText(user.getDescribe());
-            describeRelativeLayout.setVisibility(View.VISIBLE);
-        } else {
-            describeRelativeLayout.setVisibility(View.GONE);
-        }
-
         if(user.getType().equals("ngo")) {
-            if (user.getOfficial_address() != null &&
-                    !user.getOfficial_address().equals("")) {
-                official_address.setText(user.getOfficial_address());
-                officialAddressRelativeLayout.setVisibility(View.VISIBLE);
-            } else {
-                officialAddressRelativeLayout.setVisibility(View.GONE);
-            }
-
-            if (user.getSite() != null &&
-                    !user.getSite().equals("")) {
-                website.setText(user.getSite());
-                websiteRelativeLayout.setVisibility(View.VISIBLE);
-            } else {
-                websiteRelativeLayout.setVisibility(View.GONE);
-            }
-
-            if (user.getDonate() != null &&
-                    !user.getDonate().equals("")) {
-                donate.setText(user.getDonate());
-                donateRelativeLayout.setVisibility(View.VISIBLE);
-            } else {
-                donateRelativeLayout.setVisibility(View.GONE);
-            }
+            setUpCauseDetail(user, false, R.id.imageView1);
+            setUpSupportedCauseDetail(user, false, R.id.imageView2);
+            setUpDescribeDetail(user, false, R.id.imageView3);
+            setUpNgoOtherDetails(user);
         } else {
-            if (user.getAddress() != null &&
-                    !user.getAddress().equals("")) {
-                address.setText(user.getAddress());
-                addressRelativeLayout.setVisibility(View.VISIBLE);
+            if(currentUserProfile != null) {
+                DatabaseReference ref = mDatabase.child("users").child(user.getUid())
+                        .child("GeneralSettings");
+                ref.addValueEventListener(
+                        new ValueEventListener() {
+
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if(dataSnapshot.getValue() != null){
+                                    Map<String, Object> map = (Map<String, Object>)
+                                            dataSnapshot.getValue();
+
+                                    if(map.containsKey("MyCauses") &&
+                                            (boolean) map.get("MyCauses")) {
+                                        setUpCauseDetail(user, true, R.id.imageView1);
+                                    } else {
+                                        setUpCauseDetail(user, false, R.id.imageView1);
+                                    }
+
+                                    if(map.containsKey("MySupportedCauses") &&
+                                            (boolean) map.get("MySupportedCauses")) {
+                                        setUpSupportedCauseDetail(user, true, R.id.imageView2);
+                                    } else {
+                                        setUpSupportedCauseDetail(user, false, R.id.imageView2);
+                                    }
+
+                                    if(map.containsKey("MyDescription") &&
+                                            (boolean) map.get("MyDescription")) {
+                                        setUpDescribeDetail(user, true, R.id.imageView3);
+                                    } else {
+                                        setUpDescribeDetail(user, false, R.id.imageView3);
+                                    }
+
+                                    if(map.containsKey("MyAddress") &&
+                                            (boolean) map.get("MyAddress")) {
+                                        setUpAddressDetail(user, true, R.id.imageView4);
+                                    } else {
+                                        setUpAddressDetail(user, false, R.id.imageView4);
+                                    }
+
+                                    if(map.containsKey("MyAge") &&
+                                            (boolean) map.get("MyAge")) {
+                                        setUpAgeDetail(user, true, R.id.imageView5);
+                                    } else {
+                                        setUpAgeDetail(user, false, R.id.imageView5);
+                                    }
+                                } else {
+                                    setUpCauseDetail(user, false, R.id.imageView1);
+                                    setUpSupportedCauseDetail(user, false, R.id.imageView2);
+                                    setUpDescribeDetail(user, false, R.id.imageView3);
+                                    setUpAddressDetail(user, false, R.id.imageView4);
+                                    setUpAgeDetail(user, false, R.id.imageView5);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
             } else {
-                addressRelativeLayout.setVisibility(View.GONE);
+                setUpCauseDetail(user, false, R.id.imageView1);
+                setUpSupportedCauseDetail(user, false, R.id.imageView2);
+                setUpDescribeDetail(user, false, R.id.imageView3);
+                setUpAddressDetail(user, false, R.id.imageView4);
+                setUpAgeDetail(user, false, R.id.imageView5);
             }
         }
-
-        DatabaseReference ref = mDatabase.child("users").child(user.getUid())
-                .child("ProfileSettings").child("ownCauses");
-        ref.addValueEventListener(
-                new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if(dataSnapshot.getValue() != null) {
-                            realtimeOwnNumber = dataSnapshot.getValue().toString();
-                            ownNumber.setText(realtimeOwnNumber);
-                        } else {
-                            ownNumber.setText("0");
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
-        ref = mDatabase.child("users").child(user.getUid())
-                .child("ProfileSettings").child("supportedCauses");
-        ref.addValueEventListener(
-                new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if(dataSnapshot.getValue() != null) {
-                            realtimeSupportedNumber = dataSnapshot.getValue().toString();
-                            supportedNumber.setText(realtimeSupportedNumber);
-                        } else {
-                            supportedNumber.setText("0");
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
 
         if(ongUid != null) {
-            ref = mDatabase.child("users").child(ongUid)
+            DatabaseReference ref = mDatabase.child("users").child(ongUid)
                     .child("ProfileSettings").child("membersCauses");
             ref.addValueEventListener(
                     new ValueEventListener() {
@@ -997,6 +1002,160 @@ public class PublicProfileActivity extends AppCompatActivity {
         }
     }
 
+    private void setUpCauseDetail(User user, final boolean image, int id) {
+
+        final ImageView imageView = (ImageView) findViewById(id);
+
+        DatabaseReference ref = mDatabase.child("users").child(user.getUid())
+                .child("ProfileSettings").child("ownCauses");
+        ref.addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.getValue() != null) {
+                            if(image) {
+                                imageView.setVisibility(View.VISIBLE);
+                            } else {
+                                imageView.setVisibility(View.GONE);
+                                realtimeOwnNumber = dataSnapshot.getValue().toString();
+                                ownNumber.setText(realtimeOwnNumber);
+                            }
+                        } else {
+                            if(image) {
+                                imageView.setVisibility(View.VISIBLE);
+                            } else {
+                                imageView.setVisibility(View.GONE);
+                                ownNumber.setText("0");
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
+    private void setUpSupportedCauseDetail(User user, final boolean image, int id) {
+
+        final ImageView imageView = (ImageView) findViewById(id);
+
+        DatabaseReference ref = mDatabase.child("users").child(user.getUid())
+                .child("ProfileSettings").child("supportedCauses");
+        ref.addValueEventListener(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.getValue() != null) {
+                            if(image) {
+                                imageView.setVisibility(View.VISIBLE);
+                            } else {
+                                imageView.setVisibility(View.GONE);
+                                realtimeSupportedNumber = dataSnapshot.getValue().toString();
+                                supportedNumber.setText(realtimeSupportedNumber);
+                            }
+                        } else {
+                            if(image) {
+                                imageView.setVisibility(View.VISIBLE);
+                            } else {
+                                imageView.setVisibility(View.GONE);
+                                supportedNumber.setText("0");
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
+    private void setUpDescribeDetail(User user, boolean image, int id) {
+        ImageView imageView = (ImageView) findViewById(id);
+
+        if(user.getDescribe() != null &&
+                !user.getDescribe().equals("")){
+            setLayoutBelowAttribute(R.id.relative_layout_describe);
+            describeRelativeLayout.setVisibility(View.VISIBLE);
+            if(image) {
+                imageView.setVisibility(View.VISIBLE);
+            } else {
+                imageView.setVisibility(View.GONE);
+                describe.setText(user.getDescribe());
+            }
+        } else {
+            describeRelativeLayout.setVisibility(View.GONE);
+        }
+    }
+
+    private void setUpAddressDetail(User user, boolean image, int id) {
+
+        ImageView imageView = (ImageView) findViewById(id);
+
+        if (user.getAddress() != null &&
+                !user.getAddress().equals("")) {
+            setLayoutBelowAttribute(R.id.relative_layout_address);
+            addressRelativeLayout.setVisibility(View.VISIBLE);
+            if(image) {
+                imageView.setVisibility(View.VISIBLE);
+            } else {
+                imageView.setVisibility(View.GONE);
+                address.setText(user.getAddress());
+            }
+        } else {
+            addressRelativeLayout.setVisibility(View.GONE);
+        }
+    }
+
+    private void setUpAgeDetail(User user, boolean image, int id) {
+
+        ImageView imageView = (ImageView) findViewById(id);
+
+        if (user.getAge() != 0) {
+            setLayoutBelowAttribute(R.id.relative_layout_age);
+            ageRelativeLayout.setVisibility(View.VISIBLE);
+            if(image) {
+                imageView.setVisibility(View.VISIBLE);
+            } else {
+                imageView.setVisibility(View.GONE);
+                age.setText(String.valueOf(user.getAge()));
+            }
+        } else {
+            ageRelativeLayout.setVisibility(View.GONE);
+        }
+    }
+
+    private void setUpNgoOtherDetails(User user) {
+        if (user.getOfficial_address() != null &&
+                !user.getOfficial_address().equals("")) {
+            official_address.setText(user.getOfficial_address());
+            officialAddressRelativeLayout.setVisibility(View.VISIBLE);
+            setLayoutBelowAttribute(R.id.relative_layout_address);
+        } else {
+            officialAddressRelativeLayout.setVisibility(View.GONE);
+        }
+
+        if (user.getSite() != null &&
+                !user.getSite().equals("")) {
+            website.setText(user.getSite());
+            websiteRelativeLayout.setVisibility(View.VISIBLE);
+            setLayoutBelowAttribute(R.id.relative_layout_site);
+        } else {
+            websiteRelativeLayout.setVisibility(View.GONE);
+        }
+
+        if (user.getDonate() != null &&
+                !user.getDonate().equals("")) {
+            donate.setText(user.getDonate());
+            donateRelativeLayout.setVisibility(View.VISIBLE);
+            setLayoutBelowAttribute(R.id.relative_layout_donate);
+        } else {
+            donateRelativeLayout.setVisibility(View.GONE);
+        }
+    }
+
     private void setProfilePicture(boolean isCurrentUser) {
         Bitmap icon;
 
@@ -1014,6 +1173,12 @@ public class PublicProfileActivity extends AppCompatActivity {
                 setProfileImages(icon);
             }
         } else {
+            final ProgressBar spinner = (ProgressBar) findViewById(R.id.progressBar);
+            spinner.getIndeterminateDrawable()
+                    .setColorFilter(ContextCompat.getColor(getApplicationContext()
+                            , R.color.blue4), PorterDuff.Mode.SRC_IN );
+            spinner.setVisibility(View.VISIBLE);
+
             DatabaseReference ref = mDatabase.child("users").child(currentUserProfile.getUid())
                     .child("ProfileSettings").child("imageURL");
             ref.addValueEventListener(
@@ -1023,8 +1188,9 @@ public class PublicProfileActivity extends AppCompatActivity {
                             if(dataSnapshot.getValue() != null){
                                 String url = (String) dataSnapshot.getValue();
                                 currentUserProfile.setImageURL(url);
-                                downloadImage(url);
+                                downloadImage(url, spinner);
                             } else {
+                                spinner.setVisibility(View.GONE);
                                 Bitmap icon = BitmapFactory.decodeResource(
                                         getApplicationContext().getResources(),
                                         R.drawable.profile);
@@ -1049,9 +1215,10 @@ public class PublicProfileActivity extends AppCompatActivity {
                 .into(blurImage);
 
         circleImage.setImageBitmap(icon);
+        profileImage = icon;
     }
 
-    private void downloadImage(String url) {
+    private void downloadImage(String url, final ProgressBar spinner) {
 
         Glide
                 .with(this)
@@ -1060,6 +1227,7 @@ public class PublicProfileActivity extends AppCompatActivity {
                 .into(new SimpleTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
+                        spinner.setVisibility(View.GONE);
                         setProfileImages(resource);
                     }
                 });
@@ -1069,15 +1237,22 @@ public class PublicProfileActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-//        super.onBackPressed();
-        finish();
-
+        if (fullScreenContainer.getVisibility() == View.VISIBLE) {
+            fullScreenContainer.setImageDrawable(null);
+            fullScreenContainer.setVisibility(View.GONE);
+        } else {
+            super.onBackPressed();
+        }
+//        finish();
     }
-
 
     @Override
     protected void onResume() {
         super.onResume();
+        if(UsefulThings.mNetworkStateIntentReceiver == null ||
+                UsefulThings.mNetworkStateChangedFilter == null) {
+            UsefulThings.initNetworkListener();
+        }
         registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
                 UsefulThings.mNetworkStateChangedFilter);
     }

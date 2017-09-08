@@ -19,24 +19,6 @@
         android:text="@string/proposals"
         android:textStyle="bold"/>
 
-    <android.support.percent.PercentRelativeLayout
-        android:layout_width="wrap_content"
-        app:layout_heightPercent="12%"
-        app:layout_marginLeftPercent="5%"
-        android:gravity="center">
-
-        <ImageButton
-            android:id="@+id/logout"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="centerCrop"
-            android:background="#0000"
-            android:src="@drawable/logout_white"
-            android:contentDescription="@null">
-
-        </ImageButton>
-
-    </android.support.percent.PercentRelativeLayout>
 
     <android.support.percent.PercentRelativeLayout
         android:id="@+id/receivedLayout"
@@ -272,4 +254,27 @@
                 android:text="@string/no"
                 />
         </android.support.percent.PercentRelativeLayout>
+
+
+    <android.support.percent.PercentRelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_marginPercent="4%"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:gravity="center">
+
+        <ImageButton
+            android:id="@+id/logout"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:scaleType="centerCrop"
+            android:background="#0000"
+            android:src="@drawable/logout_white"
+            android:contentDescription="@null">
+
+        </ImageButton>
+
+    </android.support.percent.PercentRelativeLayout>
+
 </android.support.percent.PercentRelativeLayout>

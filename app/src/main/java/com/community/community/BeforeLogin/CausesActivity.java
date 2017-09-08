@@ -1,4 +1,4 @@
-package com.community.community.CauseProfile;
+package com.community.community.BeforeLogin;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -22,6 +22,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.community.community.CauseProfile.CauseProfileActivity;
 import com.community.community.General.UsefulThings;
 import com.community.community.R;
 import com.google.firebase.database.DataSnapshot;
@@ -103,7 +104,7 @@ public class CausesActivity extends AppCompatActivity {
 
                             allPercents = new ArrayList<>();
 
-                            title = (TextView) findViewById(R.id.textView);
+//                            title = (TextView) findViewById(R.id.textView);
                             mDatabase = FirebaseDatabase.getInstance().getReference();
 
                             TextView noCause = (TextView) findViewById(R.id.no_causes);
@@ -167,11 +168,11 @@ public class CausesActivity extends AppCompatActivity {
                             allPercents = null;
 
                             title = (TextView) findViewById(R.id.textView);
-                            PercentRelativeLayout.LayoutParams params =
-                                    (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
-                            PercentLayoutHelper.PercentLayoutInfo info = params.getPercentLayoutInfo();
-                            info.heightPercent = 0.20f;
-                            title.requestLayout();
+//                            PercentRelativeLayout.LayoutParams params =
+//                                    (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
+//                            PercentLayoutHelper.PercentLayoutInfo info = params.getPercentLayoutInfo();
+//                            info.heightPercent = 0.20f;
+//                            title.requestLayout();
 
                             title.setText(R.string.all_causes);
 
@@ -206,7 +207,7 @@ public class CausesActivity extends AppCompatActivity {
 
                             allPercents = new ArrayList<>();
 
-                            title = (TextView) findViewById(R.id.textView);
+//                            title = (TextView) findViewById(R.id.textView);
                             title.setText(R.string.supported_causes);
 
                             TextView noCause = (TextView) findViewById(R.id.no_causes);
@@ -255,12 +256,12 @@ public class CausesActivity extends AppCompatActivity {
                             idsSparseArray = null;
                             allPercents = null;
 
-                            title = (TextView) findViewById(R.id.textView);
-                            PercentRelativeLayout.LayoutParams params =
-                                    (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
-                            PercentLayoutHelper.PercentLayoutInfo info = params.getPercentLayoutInfo();
-                            info.heightPercent = 0.20f;
-                            title.requestLayout();
+//                            title = (TextView) findViewById(R.id.textView);
+//                            PercentRelativeLayout.LayoutParams params =
+//                                    (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
+//                            PercentLayoutHelper.PercentLayoutInfo info = params.getPercentLayoutInfo();
+//                            info.heightPercent = 0.20f;
+//                            title.requestLayout();
 
                             title.setText(R.string.supported_causes);
 
@@ -340,14 +341,14 @@ public class CausesActivity extends AppCompatActivity {
                             idsSparseArray = null;
                             allPercents = null;
 
-                            title = (TextView) findViewById(R.id.textView);
-
-                            PercentRelativeLayout.LayoutParams params =
-                                    (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
-                            PercentLayoutHelper.PercentLayoutInfo info =
-                                    params.getPercentLayoutInfo();
-                            info.heightPercent = 0.20f;
-                            title.requestLayout();
+//                            title = (TextView) findViewById(R.id.textView);
+//
+//                            PercentRelativeLayout.LayoutParams params =
+//                                    (PercentRelativeLayout.LayoutParams) title.getLayoutParams();
+//                            PercentLayoutHelper.PercentLayoutInfo info =
+//                                    params.getPercentLayoutInfo();
+//                            info.heightPercent = 0.20f;
+//                            title.requestLayout();
 
                             if(UsefulThings.currentUser.getType().equals("ngo")) {
                                 title.setText(R.string.ngoCauses);
@@ -703,6 +704,10 @@ public class CausesActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if(UsefulThings.mNetworkStateIntentReceiver == null ||
+                UsefulThings.mNetworkStateChangedFilter == null) {
+            UsefulThings.initNetworkListener();
+        }
         registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
                 UsefulThings.mNetworkStateChangedFilter);
     }

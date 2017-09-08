@@ -1,4 +1,4 @@
-package com.community.community;
+package com.community.community.NavigationBar;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -24,6 +24,7 @@ import com.bumptech.glide.util.LruCache;
 import com.community.community.General.UsefulThings;
 import com.community.community.General.User;
 import com.community.community.PublicProfile.PublicProfileActivity;
+import com.community.community.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,12 +33,12 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.Map;
 
-public class ProposalsActivity extends AppCompatActivity {
+public class InvitationsActivity extends AppCompatActivity {
 
     private String LOG = this.getClass().getSimpleName();
 
     private static LruCache<Integer, PercentRelativeLayout> allPercents
-        = new LruCache<>(UsefulThings.proposalsCacheSize);
+        = new LruCache<>(UsefulThings.PROPOSALS_CACHE_SIZE);
 
     private PercentRelativeLayout percentLayout2 = null;
 
@@ -141,7 +142,7 @@ public class ProposalsActivity extends AppCompatActivity {
 
                         if(text.equals("Received")) {
                             removeLayouts();
-                            allPercents = new LruCache<>(UsefulThings.proposalsCacheSize);
+                            allPercents = new LruCache<>(UsefulThings.PROPOSALS_CACHE_SIZE);
                         }
 
                         if (dataSnapshot.hasChild("Proposals" + text)) {
@@ -340,8 +341,8 @@ public class ProposalsActivity extends AppCompatActivity {
 
     }
 
-    private ProposalsActivity.CallButtonClickListener callButtonClickListener
-            = new ProposalsActivity.CallButtonClickListener();
+    private InvitationsActivity.CallButtonClickListener callButtonClickListener
+            = new InvitationsActivity.CallButtonClickListener();
     private class CallButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
@@ -482,7 +483,7 @@ public class ProposalsActivity extends AppCompatActivity {
         textAdd.setGravity(Gravity.CENTER);
         textAdd.setMaxLines(2);
         if(UsefulThings.currentUser.getType().equals("ngo")) {
-            textAdd.setText("Obiective\nsusținute");
+            textAdd.setText("Cauze\nsusținute");
         } else {
             textAdd.setText("Număr\nsusținători");
         }
@@ -561,7 +562,7 @@ public class ProposalsActivity extends AppCompatActivity {
         textAdd.setGravity(Gravity.CENTER);
         textAdd.setMaxLines(2);
         if(UsefulThings.currentUser.getType().equals("ngo")) {
-            textAdd.setText("Obiective\nadăugate");
+            textAdd.setText("Cauze\nadăugate");
         } else {
             textAdd.setText("Număr\nmembri");
         }

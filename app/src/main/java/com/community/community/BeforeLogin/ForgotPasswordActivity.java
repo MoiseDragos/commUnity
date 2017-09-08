@@ -32,7 +32,7 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
     private TextView mLogInAct = null;
 
     /* Firebase */
-    private FirebaseAuth mAuth;
+    private FirebaseAuth mAuth = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +69,8 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
 
         progressDialog.setMessage("Verify email...");
         progressDialog.show();
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
 
         mAuth.fetchProvidersForEmail(email)
                 .addOnCompleteListener(this, new OnCompleteListener<ProviderQueryResult>() {
@@ -157,6 +159,10 @@ public class ForgotPasswordActivity extends AppCompatActivity implements View.On
     @Override
     protected void onResume() {
         super.onResume();
+        if(UsefulThings.mNetworkStateIntentReceiver == null ||
+                UsefulThings.mNetworkStateChangedFilter == null) {
+            UsefulThings.initNetworkListener();
+        }
         registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
                 UsefulThings.mNetworkStateChangedFilter);
     }

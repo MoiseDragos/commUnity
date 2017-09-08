@@ -119,7 +119,7 @@ public class EditCauseProfileActivity extends AppCompatActivity {
 
         if(causeId != null) {
 //            causeDetails = CauseProfileActivity.cacheCauses.get(causeId);
-            causeDetails = UsefulThings.causeCaches.get(causeId);
+            causeDetails = UsefulThings.CAUSE_CACHES.get(causeId);
         } else if (savedInstanceState != null) {
             Log.d(LOG, "Ajung aici!");
             causeDetails = new Cause();
@@ -515,6 +515,8 @@ public class EditCauseProfileActivity extends AppCompatActivity {
         if(changedProfileImage != null) {
             dialog.setTitle("Uploading profile image...");
             dialog.show();
+            dialog.setCancelable(false);
+            dialog.setCanceledOnTouchOutside(false);
 
             final String realName = getImageName(profileURI);
 
@@ -546,6 +548,8 @@ public class EditCauseProfileActivity extends AppCompatActivity {
             if(optionalURI1 != null) {
                 dialog.setTitle("Uploading optional image 1...");
                 dialog.show();
+                dialog.setCancelable(false);
+                dialog.setCanceledOnTouchOutside(false);
 
                 uploadOptionalImage1(dialog, causeId, optionalURI1, changedOptionalImage1);
             } else if(optionalURI2 != null) {
@@ -553,10 +557,14 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                 if(!existOptionalImage1 && optionalURI1 == null) {
                     dialog.setTitle("Uploading optional image 1...");
                     dialog.show();
+                    dialog.setCancelable(false);
+                    dialog.setCanceledOnTouchOutside(false);
                     uploadOptionalImage1(dialog, causeId, optionalURI2, changedOptionalImage2);
                 } else {
                     dialog.setTitle("Uploading optional image 2...");
                     dialog.show();
+                    dialog.setCancelable(false);
+                    dialog.setCanceledOnTouchOutside(false);
                     uploadOptionalImage2(dialog, causeId);
                 }
 
@@ -611,12 +619,16 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                         if(optionalURI1 != null) {
                             dialog.setTitle("Uploading optional image 1...");
                             dialog.show();
+                            dialog.setCancelable(false);
+                            dialog.setCanceledOnTouchOutside(false);
 
                             uploadOptionalImage1(dialog, causeId, optionalURI1,
                                     changedOptionalImage1);
                         } else if(optionalURI2 != null) {
                             dialog.setTitle("Uploading optional image 2...");
                             dialog.show();
+                            dialog.setCancelable(false);
+                            dialog.setCanceledOnTouchOutside(false);
 
                             if(!existOptionalImage1 && optionalURI1 == null) {
                                 uploadOptionalImage1(dialog, causeId, optionalURI2,
@@ -694,6 +706,8 @@ public class EditCauseProfileActivity extends AppCompatActivity {
 
                             dialog.setTitle("Uploading optional image 2...");
                             dialog.show();
+                            dialog.setCancelable(false);
+                            dialog.setCanceledOnTouchOutside(false);
 
                             uploadOptionalImage2(dialog, causeId);
                         } else {
@@ -772,14 +786,14 @@ public class EditCauseProfileActivity extends AppCompatActivity {
                 });
     }
 
-    public Uri getCompressedImageUri(Context inContext, Bitmap inImage) {
+    private Uri getCompressedImageUri(Context inContext, Bitmap inImage) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         inImage.compress(Bitmap.CompressFormat.JPEG, 60, bytes);
         String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
         return Uri.parse(path);
     }
 
-    public String getImageName(Uri uri){
+    private String getImageName(Uri uri){
         String realPath = UsefulThings.getRealPath(uri, EditCauseProfileActivity.this);
         Uri file = Uri.fromFile(new File(realPath));
 

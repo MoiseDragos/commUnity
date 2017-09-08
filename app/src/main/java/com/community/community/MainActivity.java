@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -32,13 +31,15 @@ import com.bumptech.glide.util.LruCache;
 import com.community.community.BeforeLogin.LoginActivity;
 import com.community.community.General.BackPressedActivity;
 import com.community.community.General.UsefulThings;
-import com.community.community.CauseProfile.CausesActivity;
+import com.community.community.BeforeLogin.CausesActivity;
 import com.community.community.GMaps.FirebaseImages;
 import com.community.community.GMaps.FragmentGMaps;
 import com.community.community.GMaps.SubmitCauseActivity;
 import com.community.community.General.User;
+import com.community.community.NavigationBar.InvitationsActivity;
+import com.community.community.NavigationBar.NgoActivity;
 import com.community.community.PublicProfile.PublicProfileActivity;
-import com.community.community.Settings.AllSettingsActivity;
+import com.community.community.NavigationBar.AllSettingsActivity;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -97,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
 //        UsefulThings.initNetworkListener();
 
-        UsefulThings.causeCaches = new LruCache<>(UsefulThings.causeCacheSize);
+        UsefulThings.CAUSE_CACHES = new LruCache<>(UsefulThings.CAUSE_CACHE_SIZE);
 
          /* Firebase */
         mAuth = FirebaseAuth.getInstance();
@@ -143,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
         verifyUserState();
 
-//        Log.d(LOG, "Current user: " + UsefulThings.currentUser.getEmail());
+        Log.d(LOG, "Current user: " + UsefulThings.currentUser);
 
         while(UsefulThings.currentUser != null) {
             Bitmap icon = getLocalIcon();
@@ -200,13 +201,13 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
                             case R.id.nav_proposals:
                                 Intent in5 = new Intent(getApplicationContext(),
-                                        ProposalsActivity.class);
+                                        InvitationsActivity.class);
                                 startActivity(in5);
                                 break;
 
                             case R.id.nav_logout:
                                 mAuth.signOut();
-                                UsefulThings.causeCaches = null;
+                                UsefulThings.CAUSE_CACHES = null;
                                 startActivity(new Intent(getApplicationContext(),
                                         LoginActivity.class));
                                 finish();
@@ -405,10 +406,12 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 
                 case R.id.edit_profile:
                     hideVirtualKeyboard();
+                    Bitmap icon = getLocalIcon();
                     if(!localIcon) {
                         Log.d(LOG, "No localIcon!");
                         setIcon();
                     } else {
+                        mNavViewImage.setImageBitmap(icon);
                         mDrawerLayout.openDrawer(Gravity.START);
                     }
 
@@ -499,6 +502,8 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
 //        }
     }
 
+    /* ------------ Map Section ------------ */
+
     public void onButtonPressed(int i) {
 
         if (mapFragment != null) {
@@ -552,8 +557,10 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         return null;
     }
 
+    /* ------------ End Of Map Section ------------ */
+
     /* ------------ Image Profile Section ------------ */
-    public Bitmap getLocalIcon() {
+    private Bitmap getLocalIcon() {
         Bitmap icon = null;
 
         try {
@@ -562,13 +569,16 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                     .openFileInput("myImage_" + mAuth.getCurrentUser().getEmail()));
             localIcon = true;
         } catch (FileNotFoundException e) {
+            localIcon = false;
             e.printStackTrace();
         }
 
         return icon;
     }
 
-    public void setIcon() {
+    private void setIcon() {
+
+        Log.d(LOG, "URL: " + UsefulThings.currentUser.getImageURL());
 
         if(UsefulThings.currentUser.getImageURL() != null) {
             Log.d(LOG, "Caut imaginea pe Firebase!");
@@ -589,6 +599,8 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         final ProgressDialog dialog = new ProgressDialog(this);
         dialog.setTitle("Downloading profile image...");
         dialog.show();
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
 
         Glide
                 .with(this)
@@ -597,42 +609,37 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
                 .into(new SimpleTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
+                        Log.d(LOG, "Image Downloaded!");
                         mNavViewImage.setImageBitmap(resource);
+                        saveLocalImage(resource);
                         dialog.dismiss();
-                        new saveImageLocal().execute(resource);
+//                        new saveImageLocal().execute(resource);
                         mDrawerLayout.openDrawer(Gravity.START);
+                    }
+
+                    private void saveLocalImage(Bitmap resource) {
+                        String fileName = "myImage_" + FirebaseAuth.getInstance()
+                                .getCurrentUser().getEmail();
+
+                        try {
+                            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                            resource.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                            FileOutputStream fo = openFileOutput(fileName, Context.MODE_PRIVATE);
+                            fo.write(bytes.toByteArray());
+                            fo.close();
+                            localIcon = true;
+                        } catch (Exception e) {
+                            e.printStackTrace();
+//                fileName = null;
+                            Log.d(LOG, "--------Nu pot scrie!----------");
+                        }
                     }
                 });
     }
 
-    private class saveImageLocal extends AsyncTask<Bitmap, Void, Bitmap> {
-
-        @Override
-        protected Bitmap doInBackground(Bitmap... params) {
-            //        if(Build.VERSION.SDK_INT > 22){
-//            checkPermission();
-//        }
-            String fileName = "myImage_" + UsefulThings.currentUser.getEmail();
-
-            try {
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                params[0].compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-                FileOutputStream fo = openFileOutput(fileName, Context.MODE_PRIVATE);
-                fo.write(bytes.toByteArray());
-                fo.close();
-                localIcon = true;
-            } catch (Exception e) {
-                e.printStackTrace();
-//                fileName = null;
-                Log.d(LOG, "--------Nu pot scrie!----------");
-            }
-
-            return null;
-        }
-    }
     /* ------------ End of Image Profile Section ------------ */
 
-    public void hideVirtualKeyboard(){
+    private void hideVirtualKeyboard(){
         View view = this.getCurrentFocus();
         if (view != null) {
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -640,7 +647,7 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
         }
     }
 
-    public void setVisibility(int visibility){
+    private void setVisibility(int visibility){
         saveBtn.setVisibility(visibility);
         cancelBtn.setVisibility(visibility);
     }
@@ -666,6 +673,10 @@ public class MainActivity extends AppCompatActivity implements FragmentGMaps.OnB
     @Override
     protected void onResume() {
         super.onResume();
+        if(UsefulThings.mNetworkStateIntentReceiver == null ||
+                UsefulThings.mNetworkStateChangedFilter == null) {
+            UsefulThings.initNetworkListener();
+        }
         registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
                 UsefulThings.mNetworkStateChangedFilter);
     }

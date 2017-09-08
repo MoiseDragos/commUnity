@@ -1,4 +1,4 @@
-package com.community.community;
+package com.community.community.NavigationBar;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -14,6 +14,8 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -24,6 +26,7 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.community.community.General.UsefulThings;
 import com.community.community.General.User;
 import com.community.community.PublicProfile.PublicProfileActivity;
+import com.community.community.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,11 +35,6 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Map;
-
-//TODO: EditCause problems
-//TODO: mesaj catre utilizator
-//TODO: back btn
-//TODO: search NGO
 
 public class NgoActivity extends AppCompatActivity {
 
@@ -49,6 +47,7 @@ public class NgoActivity extends AppCompatActivity {
     private ScrollView causesLayout = null;
 
     private PercentRelativeLayout rootLayout = null;
+    private PercentRelativeLayout searchLayout = null;
 
     private DatabaseReference mDatabase = null;
 
@@ -61,6 +60,8 @@ public class NgoActivity extends AppCompatActivity {
     private Button memberBtn = null;
     private Button supporterBtn = null;
     private Button allBtn = null;
+
+    private EditText textSearched = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,9 +78,16 @@ public class NgoActivity extends AppCompatActivity {
         allBtn = (Button) findViewById(R.id.allBtn);
         allBtn.setOnClickListener(callButtonClickListener);
 
+        ImageButton searchNGO = (ImageButton) findViewById(R.id.search_ngo);
+        searchNGO.setOnClickListener(callButtonClickListener);
+
         noCausesLayout = (ScrollView) findViewById(R.id.scroll_view_no_causes);
         causesLayout = (ScrollView) findViewById(R.id.scroll_view_causes);
+
         rootLayout = (PercentRelativeLayout) findViewById(R.id.rootLayout);
+        searchLayout = (PercentRelativeLayout) findViewById(R.id.searchNGOLayout);
+
+        textSearched = (EditText) findViewById(R.id.text_search);
 
         TextView title = (TextView) findViewById(R.id.textView);
 
@@ -135,19 +143,19 @@ public class NgoActivity extends AppCompatActivity {
                 memberBtn.setBackgroundColor(
                         ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 no_ong = getString(R.string.no_member);
-                displayDetails("Members", no_ong, false, i);
+                displayDetails("Members", no_ong, false, i, null);
                 break;
             case 2:
                 supporterBtn.setBackgroundColor(
                         ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 no_ong = getString(R.string.no_supporter);
-                displayDetails("Supporters", no_ong, false, i);
+                displayDetails("Supporters", no_ong, false, i, null);
                 break;
             case 3:
                 allBtn.setBackgroundColor(
                         ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 no_ong = getString(R.string.no_ngo);
-                displayDetails("ngo", no_ong, true, i);
+                displayDetails("ngo", no_ong, true, i, null);
                 break;
             default:
                 break;
@@ -157,25 +165,23 @@ public class NgoActivity extends AppCompatActivity {
 
     private void displayUser(int i) {
 
-        number = 1 - unit;
-
         resetColors();
         String no_ong;
         switch (i) {
             case 1:
                 memberBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 no_ong = getString(R.string.no_member_of);
-                displayDetails("MemberOf", no_ong, false, i);
+                displayDetails("MemberOf", no_ong, false, i, null);
                 break;
             case 2:
                 supporterBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 no_ong = getString(R.string.no_supporter_of);
-                displayDetails("SupporterOf", no_ong, false, i);
+                displayDetails("SupporterOf", no_ong, false, i, null);
                 break;
             case 3:
                 allBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.blue1));
                 no_ong = getString(R.string.no_ngo);
-                displayDetails("ngo", no_ong, true, i);
+                displayDetails("ngo", no_ong, true, i, null);
                 break;
             default:
                 break;
@@ -183,7 +189,7 @@ public class NgoActivity extends AppCompatActivity {
     }
 
     private void displayDetails(final String child, final String no_ong,
-                                boolean isAll, final int i){
+                                boolean isAll, final int i, final String filter){
 
         final DatabaseReference ref;
         if(!isAll) {
@@ -192,6 +198,7 @@ public class NgoActivity extends AppCompatActivity {
             ref = mDatabase;
         }
 
+        Log.d(LOG, "Child: " + child);
 
         ref.addListenerForSingleValueEvent(
                 new ValueEventListener() {
@@ -205,6 +212,12 @@ public class NgoActivity extends AppCompatActivity {
 
                             idsSparseArray = new SparseArray<>();
 
+                            if(i == 3) {
+                                searchLayout.setVisibility(View.VISIBLE);
+                            } else {
+                                searchLayout.setVisibility(View.GONE);
+                            }
+
                             DatabaseReference dRef = ref.child(child);
                             dRef.addListenerForSingleValueEvent(
                                     new ValueEventListener() {
@@ -214,10 +227,10 @@ public class NgoActivity extends AppCompatActivity {
                                             Map<String, Object> map =
                                                     (Map<String, Object>) dataSnapshot.getValue();
 
-                                            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                                            number = 1 - unit;
 
-                                                number += unit;
-                                                downloadDetails(entry.getKey(), i, number);
+                                            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                                                downloadDetails(entry.getKey(), i, filter);
                                             }
                                         }
 
@@ -243,7 +256,7 @@ public class NgoActivity extends AppCompatActivity {
                 });
     }
 
-    private void downloadDetails(final String key, final int child, final int currentNumber) {
+    private void downloadDetails(final String key, final int child, final String filter) {
 
         DatabaseReference reference = mDatabase.child("users").child(key).child("ProfileSettings");
         reference.addListenerForSingleValueEvent(
@@ -253,6 +266,18 @@ public class NgoActivity extends AppCompatActivity {
                         Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
 
                         final String name = map.get("nickname").toString();
+
+                        Log.d(LOG, "Name: " + name);
+                        if(filter != null) {
+                            Log.d(LOG, String.valueOf(!name.toLowerCase().contains(filter.toLowerCase())));
+                            Log.d(LOG, "" + !name.toLowerCase().contains(filter.toLowerCase()));
+                        }
+
+                        if(filter != null && !name.toLowerCase().contains(filter.toLowerCase()))
+                            return;
+                        number += unit;
+                        final int currentNumber = number;
+
                         final String ownCauses = map.get("ownCauses").toString();
 
                         final String imageURL;
@@ -404,6 +429,20 @@ public class NgoActivity extends AppCompatActivity {
                         }
                     }
                     break;
+
+                case R.id.search_ngo:
+                    Log.d(LOG, "Filter: " + textSearched.getText().toString());
+                    if(textSearched.getText().toString() != null) {
+                        removeLayouts();
+                        if(!textSearched.getText().toString().equals("")) {
+                            displayDetails("ngo", getString(R.string.no_searched_ngo), true, 3,
+                                    textSearched.getText().toString());
+                        } else {
+                            displayDetails("ngo", getString(R.string.no_searched_ngo), true, 3,
+                                    null);
+                        }
+                    }
+                    break;
                 default:
                     break;
             }
@@ -414,7 +453,7 @@ public class NgoActivity extends AppCompatActivity {
                              String supporters, String imageURL, String email,
                              String date, String members, int child, int currentNumber) {
 
-        PercentRelativeLayout parent = setParentLayout(currentNumber);
+        PercentRelativeLayout parent = setParentLayout(currentNumber, child);
 
         setImage(imageURL, parent, currentNumber);
         setTitle(name, parent, currentNumber);
@@ -430,7 +469,7 @@ public class NgoActivity extends AppCompatActivity {
                     + Integer.valueOf(allCauses)), parent, 2, currentNumber);
             setVerticalLine(parent, 1, currentNumber);
         } else {
-            setColumn("Obiective\nadăugate", parent, 0, currentNumber);
+            setColumn("Cauze\nadăugate", parent, 0, currentNumber);
             setColumnText(ownCauses, parent, 0, currentNumber);
             setEmailText(email, parent, currentNumber);
             setHorizontalLine(parent, currentNumber);
@@ -725,8 +764,7 @@ public class NgoActivity extends AppCompatActivity {
         }
     }
 
-    private PercentRelativeLayout setParentLayout(int currentNumber) {
-
+    private PercentRelativeLayout setParentLayout(int currentNumber, int i) {
 
         PercentRelativeLayout parent = new PercentRelativeLayout(getApplicationContext());
         parent.setId(currentNumber);
@@ -739,6 +777,10 @@ public class NgoActivity extends AppCompatActivity {
 
         if(currentNumber != 1) {
             params.addRule(PercentRelativeLayout.BELOW, currentNumber - unit);
+        } else {
+            if(i == 3) {
+                params.addRule(PercentRelativeLayout.BELOW, R.id.searchNGOLayout);
+            }
         }
 
         PercentLayoutHelper.PercentLayoutInfo info = params.getPercentLayoutInfo();
@@ -832,6 +874,10 @@ public class NgoActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if(UsefulThings.mNetworkStateIntentReceiver == null ||
+                UsefulThings.mNetworkStateChangedFilter == null) {
+            UsefulThings.initNetworkListener();
+        }
         registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
                 UsefulThings.mNetworkStateChangedFilter);
     }

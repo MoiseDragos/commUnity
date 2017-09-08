@@ -1,5 +1,6 @@
 package com.community.community.GMaps;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -171,6 +172,16 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
 //        rootRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
+
+                ProgressDialog progressDialog = null;
+                if(getContext() != null) {
+                    progressDialog = new ProgressDialog(getContext());
+                    progressDialog.setMessage("Downloading causes...");
+                    progressDialog.show();
+                    progressDialog.setCancelable(false);
+                    progressDialog.setCanceledOnTouchOutside(false);
+                }
+
                 if (snapshot.hasChild("causes")) {
 
                     mGoogleMap.clear();
@@ -182,8 +193,12 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
 //                    firebaseMarkers = new ArrayList<>();
                     Map singleCauseMap;
 
+                    int length = causes.size();
+                    int i = 0;
+
                     for (Map.Entry<String, Object> entry : causes.entrySet()) {
 
+                        i++;
                         // Get cause from map
                         singleCauseMap = (Map) entry.getValue();
                         Map singleCause = (Map) singleCauseMap.get("Info");
@@ -225,6 +240,14 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
                                     + "~" + ownCausesNumber + "~" + owner);
                             markerName.setSnippet(profileURL);
                         }
+
+                        if(i == length && progressDialog != null) {
+                            progressDialog.dismiss();
+                        }
+                    }
+                } else {
+                    if(progressDialog != null) {
+                        progressDialog.dismiss();
                     }
                 }
             }
@@ -261,6 +284,10 @@ public class FragmentGMaps extends Fragment implements GoogleMap.OnInfoWindowCli
                          FirebaseImages firebaseImages, int ownCauses){
 
         String email = UsefulThings.currentUser.getEmail();
+        if(email == null) {
+            email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+            UsefulThings.currentUser.setEmail(email);
+        }
         String userUid = UsefulThings.currentUser.getUid();
 
         Log.d(LOG, "Email: " + email);

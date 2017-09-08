@@ -58,7 +58,7 @@ public class AdminActivity extends AppCompatActivity {
     private String LOG = this.getClass().getSimpleName();
 
     private static LruCache<Integer, PercentRelativeLayout> allPercents
-        = new LruCache<>(UsefulThings.proposalsCacheSize);
+        = new LruCache<>(UsefulThings.PROPOSALS_CACHE_SIZE);
 
     private PercentRelativeLayout no_processing_layout = null;
     private PercentRelativeLayout rootLayout = null;
@@ -106,16 +106,6 @@ public class AdminActivity extends AppCompatActivity {
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-
-//        if (UsefulThings.currentUser == null) {
-//            UsefulThings.currentUser = (User) savedInstanceState.getSerializable("userDetails");
-//
-//            if(UsefulThings.currentUser == null) {
-//                Log.d(LOG, "Nu am detaliile user-ului curent!");
-//                finish();
-//            }
-//        }
-
         chooseWhatToShow(1);
     }
 
@@ -126,25 +116,27 @@ public class AdminActivity extends AppCompatActivity {
         addBtn.setBackgroundColor(
                 ContextCompat.getColor(getApplicationContext(), R.color.blue4));
 
-        Log.d(LOG, "i: " + i);
-
         if(i == 1) {
             accept = true;
             scrollView.setVisibility(View.GONE);
             acceptBtn.setBackgroundColor(
                     ContextCompat.getColor(getApplicationContext(), R.color.blue1));
 
-            final DatabaseReference ref = mDatabase.child("applyForNgo");
+            DatabaseReference ref = mDatabase.child("applyForNgo");
+            Log.d(LOG, "ref: " + ref);
+//            ref.addListenerForSingleValueEvent(
             ref.addValueEventListener(
                     new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
+                            Log.d(LOG, "C");
                             if(dataSnapshot.getValue() != null) {
+                                Log.d(LOG, "A");
                                 no_processing_layout.setVisibility(View.GONE);
 
                                 removeLayouts();
                                 number = 1 - UsefulThings.ADMIN_INTERMEDIATE_IDS;
-                                allPercents = new LruCache<>(UsefulThings.proposalsCacheSize);
+                                allPercents = new LruCache<>(UsefulThings.PROPOSALS_CACHE_SIZE);
                                 idsSparseArray = new SparseArray<>();
                                 nameSparseArray = new SparseArray<>();
 
@@ -155,6 +147,8 @@ public class AdminActivity extends AppCompatActivity {
                                 }
 
                             } else {
+                                Log.d(LOG, "B");
+
                                 removeLayouts();
                                 no_processing_layout.setVisibility(View.VISIBLE);
                             }
@@ -775,6 +769,8 @@ public class AdminActivity extends AppCompatActivity {
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Registering User...");
         progressDialog.show();
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
 
         final FirebaseAuth mAuth = FirebaseAuth.getInstance();
         final String add = address.getText().toString();
@@ -801,6 +797,7 @@ public class AdminActivity extends AppCompatActivity {
                                                         sendBtn.setEnabled(true);
 
                                                         mAuth.signOut();
+
                                                         if (task.isSuccessful()) {
                                                             Toast.makeText(getApplicationContext(),
                                                                     "Am trimis un email pentru activare",
@@ -948,6 +945,10 @@ public class AdminActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if(UsefulThings.mNetworkStateIntentReceiver == null ||
+                UsefulThings.mNetworkStateChangedFilter == null) {
+            UsefulThings.initNetworkListener();
+        }
         registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
                 UsefulThings.mNetworkStateChangedFilter);
     }

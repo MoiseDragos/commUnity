@@ -171,6 +171,8 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
         final ProgressDialog dialog = new ProgressDialog(this);
         dialog.setTitle("Uploading profile image...");
         dialog.show();
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
 
         final String realName = getImageName(profileURI);
 
@@ -217,11 +219,15 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
                         if(optionalURI1 != null) {
                             dialog.setTitle("Uploading optional image 1...");
                             dialog.show();
+                            dialog.setCancelable(false);
+                            dialog.setCanceledOnTouchOutside(false);
 
                             uploadOptionalImage1(dialog, causeId);
                         } else if(optionalURI2 != null) {
                             dialog.setTitle("Uploading optional image 2...");
                             dialog.show();
+                            dialog.setCancelable(false);
+                            dialog.setCanceledOnTouchOutside(false);
 
                             uploadOptionalImage2(dialog, causeId);
 
@@ -291,6 +297,8 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
 
                             dialog.setTitle("Uploading optional image 2...");
                             dialog.show();
+                            dialog.setCancelable(false);
+                            dialog.setCanceledOnTouchOutside(false);
 
                             uploadOptionalImage2(dialog, causeId);
                         } else {
@@ -366,7 +374,7 @@ public class SubmitCauseActivity extends AppCompatActivity implements View.OnCli
                 });
     }
 
-    public String getImageName(Uri uri){
+    private String getImageName(Uri uri){
         String realPath = UsefulThings.getRealPath(uri, SubmitCauseActivity.this);
         Uri file = Uri.fromFile(new File(realPath));
 

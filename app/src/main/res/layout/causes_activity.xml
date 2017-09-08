@@ -9,20 +9,13 @@
     android:layout_height="match_parent"
     android:background="@color/blue5">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
-        app:layout_heightPercent="12%"
-        android:gravity="center"
-        android:textSize="25sp"
-        android:textColor="@color/white"
-        android:textStyle="bold"/>
-
     <android.support.percent.PercentRelativeLayout
+        android:id="@+id/back_layout"
         android:layout_width="48dp"
         app:layout_heightPercent="12%"
         android:layout_marginLeft="15dp"
         >
+
         <Button
             android:id="@+id/backBtn"
             android:layout_width="48dp"
@@ -33,12 +26,32 @@
 
     </android.support.percent.PercentRelativeLayout>
 
+    <android.support.percent.PercentRelativeLayout
+        android:layout_width="match_parent"
+        app:layout_heightPercent="12%"
+        android:layout_marginLeft="63dp"
+        android:layout_marginRight="63dp"
+        >
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            />
+
+    </android.support.percent.PercentRelativeLayout>
+
     <ScrollView
         android:id="@+id/scroll_view_no_causes"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/back_layout"
         android:layout_marginBottom="10dp"
-        android:visibility="gone">
+        >
         <TextView
             android:id="@+id/no_causes"
             android:layout_width="match_parent"
@@ -54,12 +67,12 @@
 
     <ScrollView
         android:id="@+id/scroll_view_causes"
-        android:layout_below="@id/textView"
+        android:layout_below="@id/back_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="10dp"
+        android:visibility="gone"
         >
-        <!--android:visibility="gone"-->
 
         <android.support.percent.PercentRelativeLayout
             android:id="@+id/rootLayout"
@@ -68,228 +81,6 @@
             >
             <!--android:visibility="gone"-->
 
-            <!--<android.support.percent.PercentRelativeLayout-->
-                <!--android:id="@+id/obj_1"-->
-                <!--android:layout_width="match_parent"-->
-                <!--app:layout_heightPercent="20%"-->
-                <!--android:background="@color/blue4"-->
-                <!--app:layout_marginBottomPercent="2%"-->
-                <!--app:layout_marginLeftPercent="2%"-->
-                <!--app:layout_marginRightPercent="2%"-->
-                <!--android:padding="5dp"-->
-                <!--&gt;-->
-
-                <!--<android.support.percent.PercentRelativeLayout-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--app:layout_widthPercent="38%"-->
-                    <!--app:layout_marginPercent="1.5%"-->
-                    <!--&gt;-->
-
-                    <!--<ImageView-->
-                        <!--android:contentDescription="@null"-->
-                        <!--android:layout_height="match_parent"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_centerVertical="true"-->
-                        <!--android:scaleType="centerCrop"-->
-                        <!--android:clickable="true"-->
-                        <!--android:src="@drawable/profile"-->
-                        <!--/>-->
-
-                <!--</android.support.percent.PercentRelativeLayout>-->
-
-                <!--<android.support.percent.PercentRelativeLayout-->
-                    <!--android:id="@+id/title_1"-->
-                    <!--app:layout_heightPercent="35%"-->
-                    <!--app:layout_marginLeftPercent="42%"-->
-                    <!--app:layout_marginRightPercent="2%"-->
-                    <!--app:layout_marginBottomPercent="1%"-->
-                    <!--app:layout_widthPercent="56%"-->
-                    <!--&gt;-->
-
-                    <!--<TextView-->
-                        <!--android:gravity="center"-->
-                        <!--android:maxLines="2"-->
-                        <!--android:text="Titlul meu a geag egea cu numarul unu"-->
-                        <!--android:textColor="@color/white"-->
-                        <!--android:textSize="13sp"-->
-                        <!--android:textStyle="bold"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="match_parent"/>-->
-
-                <!--</android.support.percent.PercentRelativeLayout>-->
-
-                <!--<android.support.percent.PercentRelativeLayout-->
-                    <!--android:id="@+id/supported_1"-->
-                    <!--android:layout_below="@id/title_1"-->
-                    <!--app:layout_heightPercent="25%"-->
-                    <!--app:layout_marginBottomPercent="2.5%"-->
-                    <!--app:layout_marginLeftPercent="42%"-->
-                    <!--app:layout_widthPercent="10%"-->
-                    <!--&gt;-->
-
-                    <!--<ImageView-->
-                        <!--android:background="@drawable/edit_text_form_green"-->
-                        <!--android:contentDescription="@null"-->
-                        <!--android:src="@drawable/follow_man"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="match_parent"/>-->
-
-                <!--</android.support.percent.PercentRelativeLayout>-->
-
-                <!--<android.support.percent.PercentRelativeLayout-->
-                    <!--android:id="@+id/supported_number_1"-->
-                    <!--android:layout_below="@id/title_1"-->
-                    <!--app:layout_heightPercent="25%"-->
-                    <!--app:layout_marginBottomPercent="2.5%"-->
-                    <!--app:layout_marginLeftPercent="49%"-->
-                    <!--app:layout_widthPercent="8%"-->
-                    <!--&gt;-->
-                    <!--<TextView-->
-                        <!--android:background="@drawable/edit_text_form_green"-->
-                        <!--android:gravity="center"-->
-                        <!--android:textColor="@color/white"-->
-                        <!--android:textSize="12sp"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="match_parent"/>-->
-
-                <!--</android.support.percent.PercentRelativeLayout>-->
-
-                <!--<android.support.percent.PercentRelativeLayout-->
-                    <!--android:layout_below="@id/title_1"-->
-                    <!--app:layout_heightPercent="25%"-->
-                    <!--app:layout_marginBottomPercent="2.5%"-->
-                    <!--app:layout_marginRightPercent="3%"-->
-                    <!--app:layout_marginLeftPercent="42%"-->
-                    <!--app:layout_widthPercent="56%"-->
-                    <!--&gt;-->
-
-                    <!--<TextView-->
-                        <!--android:layout_width="wrap_content"-->
-                        <!--android:layout_height="match_parent"-->
-                        <!--android:layout_alignParentRight="true"-->
-                        <!--android:gravity="center"-->
-                        <!--android:text="2017/20/12"-->
-                        <!--android:textColor="@color/white"-->
-                        <!--android:textSize="12sp"/>-->
-
-                <!--</android.support.percent.PercentRelativeLayout>-->
-
-                <!--<android.support.percent.PercentRelativeLayout-->
-                    <!--android:layout_below="@id/supported_1"-->
-                    <!--app:layout_heightPercent="34%"-->
-                    <!--app:layout_widthPercent="56%"-->
-                    <!--app:layout_marginLeftPercent="42%"-->
-                    <!--app:layout_marginRightPercent="2%"-->
-                    <!--&gt;-->
-
-                    <!--<TextView-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="match_parent"-->
-                        <!--android:maxLines="2"-->
-                        <!--android:text="Titlul meu a geag egea sa gea ge hea hea fae hea aef aegea hea  cu numarul unu"-->
-                        <!--android:textColor="@color/white"-->
-                        <!--android:textSize="12sp" />-->
-
-                <!--</android.support.percent.PercentRelativeLayout>-->
-
-            <!--</android.support.percent.PercentRelativeLayout>-->
-
-            <!--<android.support.percent.PercentRelativeLayout-->
-                <!--android:id="@+id/obj_2"-->
-                <!--android:layout_below="@id/obj_1"-->
-                <!--android:layout_width="match_parent"-->
-                <!--app:layout_heightPercent="20%"-->
-                <!--android:background="@color/blue4"-->
-                <!--android:padding="5dp"-->
-                <!--android:paddingLeft="10dp"-->
-                <!--android:paddingRight="10dp"-->
-                <!--app:layout_marginBottomPercent="2%"-->
-                <!--app:layout_marginLeftPercent="2%"-->
-                <!--app:layout_marginRightPercent="2%"-->
-                <!--&gt;-->
-
-                <!--<ImageView-->
-                    <!--android:id="@+id/image_2"-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--app:layout_widthPercent="38%"-->
-                    <!--android:contentDescription="@null"-->
-                    <!--android:scaleType="centerCrop"-->
-                    <!--android:src="@drawable/profile"-->
-                    <!--android:clickable="true"-->
-                    <!--app:layout_marginPercent="1%"-->
-                    <!--android:layout_alignParentRight="true"-->
-                    <!--/>-->
-
-                <!--<android.support.percent.PercentRelativeLayout-->
-                    <!--android:id="@+id/title_2"-->
-                    <!--app:layout_heightPercent="35%"-->
-                    <!--app:layout_marginLeftPercent="2%"-->
-                    <!--app:layout_marginRightPercent="2%"-->
-                    <!--app:layout_marginBottomPercent="1%"-->
-                    <!--app:layout_widthPercent="56%"-->
-                    <!--&gt;-->
-                    <!--<TextView-->
-                        <!--android:gravity="center"-->
-                        <!--android:maxLines="2"-->
-                        <!--android:textColor="@color/white"-->
-                        <!--android:text="Titlul meu a geag egea cu numarul unu"-->
-                        <!--android:textSize="13sp"-->
-                        <!--android:textStyle="bold"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="match_parent"/>-->
-
-                    <!--</android.support.percent.PercentRelativeLayout>-->
-
-                <!--<ImageView-->
-                    <!--android:id="@+id/supported_2"-->
-                    <!--android:layout_below="@id/title_2"-->
-                    <!--android:background="@drawable/edit_text_form_green"-->
-                    <!--android:contentDescription="@null"-->
-                    <!--android:src="@drawable/follow_man"-->
-                    <!--app:layout_heightPercent="25%"-->
-                    <!--app:layout_marginBottomPercent="2.5%"-->
-                    <!--app:layout_marginLeftPercent="2%"-->
-                    <!--app:layout_widthPercent="10%" />-->
-
-                <!--<TextView-->
-                    <!--android:id="@+id/supported_number_2"-->
-                    <!--android:layout_below="@id/title_2"-->
-                    <!--android:background="@drawable/edit_text_form_green"-->
-                    <!--android:gravity="center"-->
-                    <!--android:textColor="@color/white"-->
-                    <!--android:textSize="12sp"-->
-                    <!--app:layout_heightPercent="25%"-->
-                    <!--app:layout_marginBottomPercent="2.5%"-->
-                    <!--app:layout_marginLeftPercent="9%"-->
-                    <!--app:layout_widthPercent="8%" />-->
-
-                <!--<TextView-->
-                    <!--android:id="@+id/date_2"-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_below="@id/title_2"-->
-                    <!--android:gravity="center_vertical"-->
-                    <!--android:text="2017/20/12"-->
-                    <!--android:textColor="@color/white"-->
-                    <!--android:textSize="12sp"-->
-                    <!--app:layout_heightPercent="25%"-->
-                    <!--app:layout_marginBottomPercent="2.5%"-->
-                    <!--app:layout_marginLeftPercent="40%"-->
-                    <!--/>-->
-
-                <!--<TextView-->
-                    <!--android:id="@+id/describe_2"-->
-                    <!--android:layout_below="@id/supported_2"-->
-                    <!--android:maxLines="2"-->
-                    <!--android:text="Titlul meu a geag egea sa gea ge hea hea fae hea aef aegea hea  cu numarul unu"-->
-                    <!--android:textColor="@color/white"-->
-                    <!--android:textSize="12sp"-->
-                    <!--app:layout_heightPercent="34%"-->
-                    <!--app:layout_widthPercent="56%"-->
-                    <!--app:layout_marginLeftPercent="2%"-->
-                    <!--app:layout_marginRightPercent="2%" />-->
-
-
-            <!--</android.support.percent.PercentRelativeLayout>-->
 
         </android.support.percent.PercentRelativeLayout>
 

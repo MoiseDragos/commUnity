@@ -1,4 +1,4 @@
-package com.community.community.Settings;
+package com.community.community.NavigationBar;
 
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +7,10 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.percent.PercentRelativeLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Layout;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.AlignmentSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -350,16 +354,32 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
                                     "Nu ați aplicat încă",
                                     Toast.LENGTH_SHORT).show();
                         } else {
-                            ref[0].child(UsefulThings.currentUser.getUid())
-                                    .removeValue().addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Log.d(LOG, e.getLocalizedMessage());
-                                }
-                            });
-                            Toast.makeText(getApplicationContext(),
-                                    "Cererea a fost anulată",
-                                    Toast.LENGTH_SHORT).show();
+                            Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                            String date = (String) map.get(UsefulThings.currentUser.getUid());
+
+                            String[] parts = date.split("~");
+                            if(parts.length == 1) {
+                                ref[0].child(UsefulThings.currentUser.getUid())
+                                        .removeValue().addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.d(LOG, e.getLocalizedMessage());
+                                    }
+                                });
+                                Toast.makeText(getApplicationContext(),
+                                        "Cererea a fost anulată",
+                                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                String text = " Cererea a fost refuzată.\nNe puteți contacta " +
+                                        "pe emai pentru mai multe informații";
+                                Spannable centeredText = new SpannableString(text);
+                                centeredText.setSpan(new AlignmentSpan.Standard(
+                                        Layout.Alignment.ALIGN_CENTER), 0, text.length() - 1,
+                                        Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+                                Toast.makeText(getApplicationContext(), centeredText,
+                                        Toast.LENGTH_LONG).show();
+                            }
                         }
                     }
 
@@ -378,19 +398,35 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if(dataSnapshot.hasChild(UsefulThings.currentUser.getUid())){
-                            Toast.makeText(getApplicationContext(),
-                                    "Ați aplicat mai demult",
-                                    Toast.LENGTH_SHORT).show();
+                            Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                            String date = (String) map.get(UsefulThings.currentUser.getUid());
+
+                            String[] parts = date.split("~");
+                            if(parts.length == 1) {
+                                Toast.makeText(getApplicationContext(),
+                                        "Ați aplicat mai demult",
+                                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                String text = " Cererea a fost refuzată.\nNe puteți contacta " +
+                                        "pe emai pentru mai multe informații";
+                                Spannable centeredText = new SpannableString(text);
+                                centeredText.setSpan(new AlignmentSpan.Standard(
+                                                Layout.Alignment.ALIGN_CENTER), 0, text.length() - 1,
+                                        Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+                                Toast.makeText(getApplicationContext(), centeredText,
+                                        Toast.LENGTH_LONG).show();
+                            }
                         } else {
                             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
                             ref[0] = ref[0].child(UsefulThings.currentUser.getUid());
                             ref[0].setValue(dateFormat.format(new Date()))
                                     .addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Log.d(LOG, e.getLocalizedMessage());
-                                }
-                            });
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.d(LOG, e.getLocalizedMessage());
+                                        }
+                                    });
                             Toast.makeText(getApplicationContext(),
                                     "Ați aplicat cu succes",
                                     Toast.LENGTH_SHORT).show();
@@ -511,30 +547,48 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
 
     private void removeUser() {
 
+        Log.d(LOG, "0");
+
         String uid = UsefulThings.currentUser.getUid();
         String email = UsefulThings.currentUser.getEmail();
+        String nickname = UsefulThings.currentUser.getNickname();
+
         int ownCauses = UsefulThings.currentUser.getOwnCausesNumber();
 
+        Log.d(LOG, "1");
         updateProposals("ProposalsMade", "ProposalsReceived", uid);
         updateProposals("ProposalsReceived", "ProposalsMade", uid);
         updateProposals("ProposalsMadeRejected", "ProposalsReceivedRejected", uid);
         updateProposals("ProposalsReceivedRejected", "ProposalsMadeRejected", uid);
         updateProposals("SupporterOf", "Supporters", uid);
 
+        Log.d(LOG, "2");
+        updateNicknames(nickname);
+
+        Log.d(LOG, "3");
         updateMemberOf(uid, ownCauses);
 
+        Log.d(LOG, "updateCauses00: " + uid);
         updateCauses(uid);
 
+        Log.d(LOG, "4");
         removeProfileImage(uid);
+        Log.d(LOG, "5");
         removeLocalImage(email);
+        Log.d(LOG, "6");
         removeAccount(uid);
+        Log.d(LOG, "7");
         logOut();
 
     }
 
+    private void updateNicknames(String nickname) {
+        mDatabase.child("nicknames").child(nickname.replace(".", "-")).removeValue();
+    }
+
     private void logOut() {
         FirebaseAuth.getInstance().signOut();
-        UsefulThings.causeCaches = null;
+        UsefulThings.CAUSE_CACHES = null;
         UsefulThings.currentUser = null;
         startActivity(new Intent(getApplicationContext(),
                 LoginActivity.class));
@@ -560,6 +614,8 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void updateCauses(final String uid) {
+        Log.d(LOG, "updateCauses");
+
         final DatabaseReference ref = mDatabase.child("users")
                 .child(uid).child("MyCauses");
         ref.addListenerForSingleValueEvent(
@@ -569,17 +625,28 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
                         if (dataSnapshot.getValue() != null) {
                             Map<String, Object> map =
                                     (Map<String, Object>) dataSnapshot.getValue();
+
+                            Log.d(LOG, "map: " + map);
+
+                            int length = map.size();
+
+                            Log.d(LOG, "map: " + length);
+                            int i = 0;
                             for (Map.Entry<String, Object> entry : map.entrySet()) {
+                                i++;
                                 updateCauses(entry.getKey());
                                 addOrphan(entry.getKey(), entry.getValue());
-                                removeCause(entry.getKey());
+                                removeCause(entry.getKey(), length, i, ref);
                             }
-                            ref.removeValue();
                         }
                     }
 
-                    private void removeCause(String key) {
+                    private void removeCause(String key, int length, int i, DatabaseReference ref) {
+                        Log.d(LOG, "Key: " + key);
                         mDatabase.child("causes").child(key).removeValue();
+                        if(length == i) {
+                            ref.removeValue();
+                        }
                     }
 
                     private void addOrphan(String key, Object value) {
@@ -613,8 +680,6 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
 
                                     }
                                 });
-
-
                     }
 
                     @Override
@@ -743,6 +808,10 @@ public class AllSettingsActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onResume() {
         super.onResume();
+        if(UsefulThings.mNetworkStateIntentReceiver == null ||
+                UsefulThings.mNetworkStateChangedFilter == null) {
+            UsefulThings.initNetworkListener();
+        }
         registerReceiver(UsefulThings.mNetworkStateIntentReceiver,
                 UsefulThings.mNetworkStateChangedFilter);
     }

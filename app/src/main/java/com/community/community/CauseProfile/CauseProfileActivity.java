@@ -3,8 +3,11 @@ package com.community.community.CauseProfile;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.percent.PercentRelativeLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -12,12 +15,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bluejamesbond.text.DocumentView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.util.LruCache;
 import com.community.community.General.Cause;
 import com.community.community.General.UsefulThings;
 import com.community.community.General.User;
@@ -63,8 +69,6 @@ public class CauseProfileActivity extends AppCompatActivity {
     private int imagesNumber = -1;
 
     /* Buttons */
-    private Button saveBtn = null;
-    private Button cancelBtn = null;
     private Button supportBtn = null;
     private Button noMoreSupportBtn = null;
 
@@ -74,6 +78,26 @@ public class CauseProfileActivity extends AppCompatActivity {
     private long currentSupportedNumber;
     private String ownerUID = null;
     private String causeId = null;
+
+    /* Spinners */
+    private ProgressBar spinnerProfile = null;
+    private ProgressBar spinnerPic31 = null;
+    private ProgressBar spinnerPic32 = null;
+    private ProgressBar spinnerPic33 = null;
+    private ProgressBar spinnerPic21 = null;
+    private ProgressBar spinnerPic22 = null;
+    private ProgressBar spinnerPic11 = null;
+
+    private PercentRelativeLayout relative_layout_pic1 = null;
+    private PercentRelativeLayout relative_layout_pic2 = null;
+    private PercentRelativeLayout relative_layout_pic3 = null;
+
+    private ImageView fullScreenContainer = null;
+    private ImageView fullScreenContainerBlur = null;
+
+    private Bitmap img1 = null;
+    private Bitmap img2 = null;
+    private Bitmap img3 = null;
 //    private String currentUserType = null;
 
     @Override
@@ -99,16 +123,12 @@ public class CauseProfileActivity extends AppCompatActivity {
         noMoreSupportBtn.setOnClickListener(callImageButtonClickListener);
 
         buttonsLayout = (PercentRelativeLayout) findViewById(R.id.buttonsLayout);
+        fullScreenContainer = (ImageView) findViewById(R.id.full_screen_container);
+        fullScreenContainerBlur = (ImageView) findViewById(R.id.full_screen_container_blur);
 
         /* Edit Button */
         editBtn = (ImageButton) findViewById(R.id.edit_btn);
         editBtn.setOnClickListener(callImageButtonClickListener);
-
-        /* Submit Buttons */
-        saveBtn = (Button)findViewById(R.id.submit_marker);
-        saveBtn.setOnClickListener(callImageButtonClickListener);
-        cancelBtn = (Button)findViewById(R.id.cancel_marker);
-        cancelBtn.setOnClickListener(callImageButtonClickListener);
 
         if (UsefulThings.currentUser == null) {
             UsefulThings.currentUser = (User) savedInstanceState.getSerializable("userDetails");
@@ -141,8 +161,10 @@ public class CauseProfileActivity extends AppCompatActivity {
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                Log.d(LOG, "SupportedCauses: " + snapshot.getValue());
-                currentSupportedNumber = Long.valueOf(String.valueOf(snapshot.getValue()));
+                if(UsefulThings.currentUser != null) {
+                    Log.d(LOG, "SupportedCauses: " + snapshot.getValue());
+                    currentSupportedNumber = Long.valueOf(String.valueOf(snapshot.getValue()));
+                }
             }
 
             @Override
@@ -159,13 +181,15 @@ public class CauseProfileActivity extends AppCompatActivity {
         Boolean changed = intent.getBooleanExtra("changed", removeIt);
         ownerUID = intent.getStringExtra("ownerUID");
         causeId = intent.getStringExtra("causeId");
+
+        Log.d(LOG, "ownerUID: " + ownerUID + "causeId: " + causeId);
 //        currentUserType = intent.getStringExtra("type");
 
 //        Cause cacheData = cacheCauses.get(causeId);
         Cause cacheData = null;
 
-        if(UsefulThings.causeCaches != null) {
-            cacheData = UsefulThings.causeCaches.get(causeId);
+        if(UsefulThings.CAUSE_CACHES != null) {
+            cacheData = UsefulThings.CAUSE_CACHES.get(causeId);
         }
 
         if(changed || cacheData == null) {
@@ -181,7 +205,14 @@ public class CauseProfileActivity extends AppCompatActivity {
     public void onBackPressed() {
 
         Log.d(LOG, "======== onBackPressed");
-        super.onBackPressed();
+        if (fullScreenContainer.getVisibility() == View.VISIBLE) {
+            fullScreenContainer.setImageDrawable(null);
+            fullScreenContainer.setVisibility(View.GONE);
+            fullScreenContainerBlur.setImageDrawable(null);
+            fullScreenContainerBlur.setVisibility(View.GONE);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -196,11 +227,13 @@ public class CauseProfileActivity extends AppCompatActivity {
     }
 
     private void setCauseData(Cause cacheData){
-        Log.d(LOG, "2");
+
+        Log.d(LOG, "getDescription: " + cacheData.getDescription() +
+                "\n" + "getName(): " + cacheData.getName());
+
         describe.setText(cacheData.getDescription());
         causes_name.setText(cacheData.getName());
         nickname.setText(cacheData.getOwner());
-
 
         Bitmap profileImage = cacheData.getProfileImage();
 
@@ -211,6 +244,9 @@ public class CauseProfileActivity extends AppCompatActivity {
                 .from(profileImage)
                 .into(blurImage);
 
+        if(spinnerProfile != null) {
+            spinnerProfile.setVisibility(View.GONE);
+        }
         circleImage.setImageBitmap(profileImage);
 
         if(causeInfo == null) {
@@ -221,45 +257,78 @@ public class CauseProfileActivity extends AppCompatActivity {
         switch (cacheData.getNumberOfPhotos()){
             case 1:
                 /* One picture uploaded */
-                PercentRelativeLayout relative_layout_pic1 = (PercentRelativeLayout)
-                                findViewById(R.id.relative_layout_pic1);
-                relative_layout_pic1.setVisibility(View.VISIBLE);
+                if(relative_layout_pic1 == null) {
+                    relative_layout_pic1 = (PercentRelativeLayout)
+                            findViewById(R.id.relative_layout_pic1);
+                    relative_layout_pic1.setVisibility(View.VISIBLE);
+                }
                 imagesNumber = 1;
 
+                if(spinnerPic11 != null) {
+                    spinnerPic11.setVisibility(View.GONE);
+                }
                 ImageView pic11 = (ImageView) findViewById(R.id.pic11);
                 pic11.setImageBitmap(profileImage);
+                setFullScreenListener(pic11, img1);
+
+
                 break;
             case 2:
                 /* Two pictures uploaded */
-                PercentRelativeLayout relative_layout_pic2 = (PercentRelativeLayout)
-                                findViewById(R.id.relative_layout_pic2);
-                relative_layout_pic2.setVisibility(View.VISIBLE);
+                if(relative_layout_pic2 == null) {
+                    relative_layout_pic2 = (PercentRelativeLayout)
+                            findViewById(R.id.relative_layout_pic2);
+                    relative_layout_pic2.setVisibility(View.VISIBLE);
+                }
                 imagesNumber = 2;
 
+                if(spinnerPic21 != null) {
+                    spinnerPic21.setVisibility(View.GONE);
+                }
                 ImageView pic21 = (ImageView) findViewById(R.id.pic21);
                 pic21.setImageBitmap(profileImage);
+                setFullScreenListener(pic21, img1);
 
+
+                if(spinnerPic22 != null) {
+                    spinnerPic22.setVisibility(View.GONE);
+                }
                 ImageView pic22 = (ImageView) findViewById(R.id.pic22);
                 pic22.setImageBitmap(cacheData.getOptionalImage1());
+                setFullScreenListener(pic22, img2);
 
                 causeInfo.setOptionalImage1(cacheData.getOptionalImage1());
 
                 break;
             case 3:
                 /* Three pictures uploaded */
-                PercentRelativeLayout relative_layout_pic3 = (PercentRelativeLayout)
-                                findViewById(R.id.relative_layout_pic3);
-                relative_layout_pic3.setVisibility(View.VISIBLE);
+                if(relative_layout_pic3 == null) {
+                    relative_layout_pic3 = (PercentRelativeLayout)
+                            findViewById(R.id.relative_layout_pic3);
+                    relative_layout_pic3.setVisibility(View.VISIBLE);
+                }
                 imagesNumber = 3;
 
+                if(spinnerPic31 != null) {
+                    spinnerPic31.setVisibility(View.GONE);
+                }
                 ImageView pic31 = (ImageView) findViewById(R.id.pic31);
                 pic31.setImageBitmap(cacheData.getOptionalImage1());
+                setFullScreenListener(pic31, img2);
 
+                if(spinnerPic32 != null) {
+                    spinnerPic32.setVisibility(View.GONE);
+                }
                 ImageView pic32 = (ImageView) findViewById(R.id.pic32);
                 pic32.setImageBitmap(profileImage);
+                setFullScreenListener(pic32, img1);
 
+                if(spinnerPic33 != null) {
+                    spinnerPic33.setVisibility(View.GONE);
+                }
                 ImageView pic33 = (ImageView) findViewById(R.id.pic33);
                 pic33.setImageBitmap(cacheData.getOptionalImage2());
+                setFullScreenListener(pic33, img3);
 
                 causeInfo.setOptionalImage1(cacheData.getOptionalImage1());
                 causeInfo.setOptionalImage2(cacheData.getOptionalImage2());
@@ -268,7 +337,59 @@ public class CauseProfileActivity extends AppCompatActivity {
         setSupportedBtn();
     }
 
+    private void setFullScreenListener(ImageView pic, final Bitmap img) {
+        Log.d(LOG, "SetListener: " + img);
+        if(img == null && causeInfo != null) {
+            switch (imagesNumber) {
+                case 1:
+                    img1 = causeInfo.getProfileImage();
+                    break;
+                case 2:
+                    img1 = causeInfo.getProfileImage();
+                    img2 = causeInfo.getOptionalImage1();
+                    break;
+                case 3:
+                    img1 = causeInfo.getProfileImage();
+                    img2 = causeInfo.getOptionalImage1();
+                    img3 = causeInfo.getOptionalImage2();
+                    break;
+                default:
+                    break;
+            }
+        }
+        pic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(LOG, "IMG: " + img);
+                if(img != null) {
+                    fullScreenContainer.setImageBitmap(img);
+                    fullScreenContainer.setVisibility(View.VISIBLE);
+
+
+                    fullScreenContainerBlur.setImageBitmap(img);
+                    fullScreenContainerBlur.setVisibility(View.VISIBLE);
+
+                    Blurry.with(getApplicationContext())
+                            .async()
+                            .from(img)
+                            .into(fullScreenContainerBlur);
+                }
+            }
+        });
+    }
+
     private void getFirebaseCauseData(){
+
+        if(UsefulThings.CAUSE_CACHES == null) {
+            UsefulThings.CAUSE_CACHES = new LruCache<>(UsefulThings.CAUSE_CACHE_SIZE);
+        }
+
+        spinnerProfile = (ProgressBar) findViewById(R.id.progressBarProfile);
+        spinnerProfile.getIndeterminateDrawable()
+                .setColorFilter(ContextCompat.getColor(getApplicationContext()
+                        , R.color.blue4), PorterDuff.Mode.SRC_IN );
+        Log.d(LOG, "ProfileSpinner VISIBLE");
+        spinnerProfile.setVisibility(View.VISIBLE);
 
         DatabaseReference rootRef = mDatabase.child("users").child(ownerUID)
                 .child("MyCauses").child(causeId);
@@ -277,8 +398,6 @@ public class CauseProfileActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 Map all = (Map) snapshot.getValue();
-
-                Log.d(LOG, "addValueEventListener" + imagesNumber);
 
                 /* Cause Info */
                 Map ref = (Map) all.get("Info");
@@ -300,6 +419,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                 setImageNumber(optionalURL1, optionalURL2);
                 final Map finalRef = ref;
 
+
                 Glide
                         .with(getApplication())
                         .load(profileURL)
@@ -311,6 +431,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                                         name, owner, profileURL, profileImageName, imagesNumber);
 
                                 causeInfo.setProfileImage(resource);
+                                img1 = resource;
 
                                 final String refName1 = (String) finalRef.get("optionalImageURL1");
 
@@ -325,6 +446,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                                                 public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
                                                     causeInfo.setOptionalImage1(resource);
 
+                                                    img2 = resource;
                                                     final String refName2 = (String) finalRef.get("optionalImageURL2");
 
                                                     if(optionalURL2 != null){
@@ -339,8 +461,9 @@ public class CauseProfileActivity extends AppCompatActivity {
                                                                                                 GlideAnimation glideAnimation) {
                                                                         causeInfo.setOptionalImage2(resource);
 
+                                                                        img3 = resource;
 //                                                                        cacheCauses.put(causeId, causeInfo);
-                                                                        UsefulThings.causeCaches.put(causeId, causeInfo);
+                                                                        UsefulThings.CAUSE_CACHES.put(causeId, causeInfo);
 
                                                                         setCauseData(causeInfo);
                                                                         Log.d(LOG, "Glide");
@@ -348,7 +471,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                                                                 });
                                                     } else {
 //                                                        cacheCauses.put(causeId, causeInfo);
-                                                        UsefulThings.causeCaches.put(causeId, causeInfo);
+                                                        UsefulThings.CAUSE_CACHES.put(causeId, causeInfo);
 
                                                         setCauseData(causeInfo);
                                                         Log.d(LOG, "Glide");
@@ -358,7 +481,7 @@ public class CauseProfileActivity extends AppCompatActivity {
                                             });
                                 } else {
 //                                    cacheCauses.put(causeId, causeInfo);
-                                    UsefulThings.causeCaches.put(causeId, causeInfo);
+                                    UsefulThings.CAUSE_CACHES.put(causeId, causeInfo);
 
                                     setCauseData(causeInfo);
                                     Log.d(LOG, "Glide");
@@ -373,17 +496,17 @@ public class CauseProfileActivity extends AppCompatActivity {
                 Log.d(LOG, "removeOldLayouts");
                 switch (imagesNumber) {
                     case 1:
-                        PercentRelativeLayout relative_layout_pic1 = (PercentRelativeLayout)
+                        relative_layout_pic1 = (PercentRelativeLayout)
                                 findViewById(R.id.relative_layout_pic1);
                         relative_layout_pic1.setVisibility(View.GONE);
                         break;
                     case 2:
-                        PercentRelativeLayout relative_layout_pic2 = (PercentRelativeLayout)
+                        relative_layout_pic2 = (PercentRelativeLayout)
                                 findViewById(R.id.relative_layout_pic2);
                         relative_layout_pic2.setVisibility(View.GONE);
                         break;
                     case 3:
-                        PercentRelativeLayout relative_layout_pic3 = (PercentRelativeLayout)
+                        relative_layout_pic3 = (PercentRelativeLayout)
                                 findViewById(R.id.relative_layout_pic3);
                         relative_layout_pic3.setVisibility(View.GONE);
                         break;
@@ -462,16 +585,83 @@ public class CauseProfileActivity extends AppCompatActivity {
 
         if(optionalURL1 != null){
             if(optionalURL2 != null) {
+                setSpinners(3);
                 imagesNumber = 3;
             } else {
+                setSpinners(2);
                 imagesNumber = 2;
             }
         } else {
             if(optionalURL2 != null) {
+                setSpinners(2);
                 imagesNumber = 2;
             } else {
+                setSpinners(1);
                 imagesNumber = 1;
             }
+        }
+    }
+
+    private void setSpinners(int i) {
+
+        Log.d(LOG, "SetSpinners: " + i);
+        switch (i) {
+            case 1:
+                PercentRelativeLayout relative_layout_pic1 = (PercentRelativeLayout)
+                        findViewById(R.id.relative_layout_pic1);
+                relative_layout_pic1.setVisibility(View.VISIBLE);
+
+                spinnerPic11 = (ProgressBar) findViewById(R.id.progressBarPic11);
+                spinnerPic11.getIndeterminateDrawable()
+                        .setColorFilter(ContextCompat.getColor(getApplicationContext()
+                                , R.color.blue4), PorterDuff.Mode.SRC_IN );
+                spinnerPic11.setVisibility(View.VISIBLE);
+                break;
+
+            case 2:
+                PercentRelativeLayout relative_layout_pic2 = (PercentRelativeLayout)
+                        findViewById(R.id.relative_layout_pic2);
+                relative_layout_pic2.setVisibility(View.VISIBLE);
+
+                spinnerPic21 = (ProgressBar) findViewById(R.id.progressBarPic21);
+                spinnerPic21.getIndeterminateDrawable()
+                        .setColorFilter(ContextCompat.getColor(getApplicationContext()
+                                , R.color.blue4), PorterDuff.Mode.SRC_IN );
+                spinnerPic21.setVisibility(View.VISIBLE);
+
+                spinnerPic22 = (ProgressBar) findViewById(R.id.progressBarPic22);
+                spinnerPic22.getIndeterminateDrawable()
+                        .setColorFilter(ContextCompat.getColor(getApplicationContext()
+                                , R.color.blue4), PorterDuff.Mode.SRC_IN );
+                spinnerPic22.setVisibility(View.VISIBLE);
+                break;
+
+            case 3:
+                PercentRelativeLayout relative_layout_pic3 = (PercentRelativeLayout)
+                        findViewById(R.id.relative_layout_pic3);
+                relative_layout_pic3.setVisibility(View.VISIBLE);
+
+                spinnerPic31 = (ProgressBar) findViewById(R.id.progressBarPic31);
+                spinnerPic31.getIndeterminateDrawable()
+                        .setColorFilter(ContextCompat.getColor(getApplicationContext()
+                                , R.color.blue4), PorterDuff.Mode.SRC_IN );
+                spinnerPic31.setVisibility(View.VISIBLE);
+
+                spinnerPic32 = (ProgressBar) findViewById(R.id.progressBarPic32);
+                spinnerPic32.getIndeterminateDrawable()
+                        .setColorFilter(ContextCompat.getColor(getApplicationContext()
+                                , R.color.blue4), PorterDuff.Mode.SRC_IN );
+                spinnerPic32.setVisibility(View.VISIBLE);
+
+                spinnerPic33 = (ProgressBar) findViewById(R.id.progressBarPic33);
+                spinnerPic33.getIndeterminateDrawable()
+                        .setColorFilter(ContextCompat.getColor(getApplicationContext()
+                                , R.color.blue4), PorterDuff.Mode.SRC_IN );
+                spinnerPic33.setVisibility(View.VISIBLE);
+                break;
+
+            default:
+                break;
         }
     }
 
@@ -556,17 +746,6 @@ public class CauseProfileActivity extends AppCompatActivity {
                     startActivityForResult(i, 1);
                     break;
 
-                case R.id.submit_marker:
-                    setBtnVisibility(View.GONE);
-//                    Toast.makeText(getApplication(), "SubmitMarker", Toast.LENGTH_SHORT).show();
-                    break;
-
-                case R.id.cancel_marker:
-                    setBtnVisibility(View.GONE);
-//                    Toast.makeText(getApplication(), "CancelMarker", Toast.LENGTH_SHORT).show();
-                    finish();
-                    break;
-
                 case R.id.create_csv:
                     createCsvFile();
                     break;
@@ -610,11 +789,11 @@ public class CauseProfileActivity extends AppCompatActivity {
 
                 private void writeCSV() {
 
-//                    File fileDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
-//                             + File.separator + "CommUnityDir");
+                    File fileDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
+                             + File.separator + "CommUnityDir" + File.separator + causeId);
 
-                    File fileDir = new File(getExternalCacheDir(), "CommUnityDir"
-                            + File.separator + causeId);
+//                    File fileDir = new File(getExternalCacheDir(), "CommUnityDir"
+//                            + File.separator + causeId);
 
                     Log.d(LOG, "Dir: " + fileDir.toString());
                     boolean success = true;
@@ -622,18 +801,26 @@ public class CauseProfileActivity extends AppCompatActivity {
                         try{
                             success = fileDir.mkdir();
                         } catch (Exception e) {
+                            Log.d(LOG, "AICI0");
                             e.printStackTrace();
                         }
                     }
 
+                    Log.d(LOG, "AICI1" + success);
+
                     if(success) {
+
+                        Log.d(LOG, "AICI12");
                         success = true;
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
                         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
-                        File file = new File(fileDir, sdf.format(timestamp) + ".csv");
+//                        Log.d()
+//                        File file = new File(fileDir, sdf.format(timestamp) + ".csv");
 //                        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
 //                                + File.separator +"CommUnityDir" + File.separator + causeId + ".txt");
+                        File file = new File(getExternalCacheDir(), "CommUnityDir"
+                                + File.separator + causeId + sdf.format(timestamp) + ".csv");
                         Log.d(LOG, "File: " + file.toString());
                         if (!file.exists()) {
                             try {
@@ -644,6 +831,7 @@ public class CauseProfileActivity extends AppCompatActivity {
 
                         }
 
+                        Log.d(LOG, "AICI2");
                         if(success) {
                             if (file.exists()) {
                                 try {
@@ -655,12 +843,14 @@ public class CauseProfileActivity extends AppCompatActivity {
                                         bfWriter.write(data.get(i+1));
                                         bfWriter.write("\n");
                                     }
-//                                    Toast.makeText(getApplicationContext(),
-//                                            "Am salvat datele aici: " + file.toString(),
-//                                            Toast.LENGTH_LONG).show();
+                                    Toast.makeText(getApplicationContext(),
+                                            "Am salvat datele aici: " + file.toString(),
+                                            Toast.LENGTH_LONG).show();
                                     alertDialog(file.toString());
                                     bfWriter.close();
                                 } catch (IOException e) {
+
+                                    Log.d(LOG, "AICI3");
                                     e.printStackTrace();
                                 }
                             }
@@ -875,11 +1065,6 @@ public class CauseProfileActivity extends AppCompatActivity {
                 });
             }
         });
-    }
-
-    public void setBtnVisibility(int visibility){
-        saveBtn.setVisibility(visibility);
-        cancelBtn.setVisibility(visibility);
     }
 
     @Override
